@@ -1,0 +1,15 @@
+# Godot-specific
+.import/
+export.cfg
+export_presets.cfg
+
+# Godot 4 cache
+.godot/
+
+# OS specific
+.DS_Store
+Thumbs.db
+
+# IDE / editor junk (à adapter si besoin)
+.vscode/
+.idea/
