@@ -1,37 +1,50 @@
 extends Resource
 class_name ArmyData
 
-const ARMY_COLS := 4
-const ARMY_ROWS := 5
-const ARMY_SIZE := ARMY_COLS * ARMY_ROWS
+# Taille fixe de l'armée (20 slots pour ton UI 5x4)
+const ARMY_SIZE := 20
 
-@export var units: Array[UnitData] = []
+# Tableau des unités (UnitData ou null)
+@export var units: Array = []
+
 
 func _init() -> void:
-    # s'assurer qu'on a toujours ARMY_SIZE slots
-    if units.size() == 0:
+    # S'assurer qu'on a toujours ARMY_SIZE slots
+    if units.is_empty():
+        units.resize(ARMY_SIZE)
         for i in ARMY_SIZE:
-            units.append(null)
+            units[i] = null
+
+
+func get_unit_at(index: int) -> UnitData:
+    if index < 0 or index >= units.size():
+        return null
+    var u = units[index]
+    if u == null:
+        return null
+    return u as UnitData
 
 
 func set_unit_at(index: int, unit: UnitData) -> void:
     if index < 0 or index >= ARMY_SIZE:
         return
+
+    # S'assurer que le tableau est à la bonne taille
+    if units.size() < ARMY_SIZE:
+        var old_size := units.size()
+        units.resize(ARMY_SIZE)
+        for i in range(old_size, ARMY_SIZE):
+            if units[i] == null:
+                units[i] = null
+
     units[index] = unit
 
 
-func get_unit_at(index: int) -> UnitData:
-    if index < 0 or index >= ARMY_SIZE:
-        return null
-    return units[index]
+func clear_unit_at(index: int) -> void:
+    if index < 0 or index >= units.size():
+        return
+    units[index] = null
 
 
-
-# Called when the node enters the scene tree for the first time.
-func _ready() -> void:
-    pass # Replace with function body.
-
-
-# Called every frame. 'delta' is the elapsed time since the previous frame.
-func _process(delta: float) -> void:
-    pass
+func get_units_count() -> int:
+    return units.size()

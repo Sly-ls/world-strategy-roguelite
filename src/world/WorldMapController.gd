@@ -16,7 +16,7 @@ var world_grid: Array = []
 
 @onready var event_ui: ColorRect = $UI_Layer/EventOverlay
 @onready var date_label: Label = $UI_Layer/DateLabel
-
+@onready var rest_label: Label = $UI_Layer/RestLabel
 func _ready() -> void:
     if camera:
         camera.make_current()
@@ -31,13 +31,35 @@ func _ready() -> void:
     _update_camera()
     
 func _process(delta: float) -> void:
-    # Avancer le temps global
+    # Avance le temps global
     WorldState.advance_time(delta)
-
-    # Mettre à jour l'affichage de la date
     _update_date_ui()
-    
-    # (le reste de ton _process si tu as déjà des choses)
+    if WorldState.resting:
+        _update_rest_timer(delta)
+        
+func _update_rest_timer(delta: float) -> void:
+    WorldState.rest_seconds_remaining -= delta
+
+    if WorldState.rest_seconds_remaining <= 0.0:
+        _finish_rest()  
+    else :
+        print("Repos commencé pour %.1f secondes" % WorldState.rest_seconds_remaining)
+            
+func _finish_rest() -> void:
+    WorldState.resting = false
+    WorldState.rest_seconds_remaining = 0.0
+
+    # Masquer le label "Zzz"
+    if rest_label:
+        rest_label.visible = false
+
+    # Appliquer les effets de repos à l'armée
+    var cell_type := _get_current_cell_type()
+    _apply_rest_to_army(cell_type)
+
+    print("Repos terminé !")
+    print("Armée soignée et moral restauré.")
+
 
 func _update_date_ui() -> void:
     if date_label:
@@ -117,6 +139,10 @@ func _clamp_camera_to_world() -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
+ if WorldState.resting:
+  print("Impossible d'agir : repos en cours.")
+  return
+
  if event.is_pressed():
   print("Unhanded input:", event)
  # Mouvements
@@ -239,3 +265,76 @@ func _start_battle_from_ruins() -> void:
 
     # 4) changer de scène
     get_tree().change_scene_to_file("res://scenes/CombatScene.tscn")
+
+func start_rest() -> void:
+    if WorldState.resting:
+        return
+
+    WorldState.resting = true
+    WorldState.rest_seconds_remaining = WorldState.REST_DURATION_SECONDS
+    if rest_label:
+        rest_label.visible = true
+
+    print("Repos commencé pour %.1f secondes" % WorldState.rest_seconds_remaining)
+
+func _on_rest_button_pressed() -> void:
+    print("Signal RestButton reçu")
+    start_rest()
+    
+func _get_current_cell_type() -> int:
+    if army_grid_pos.y < 0 or army_grid_pos.y >= GRID_HEIGHT:
+        return CellType.EMPTY
+    if army_grid_pos.x < 0 or army_grid_pos.x >= GRID_WIDTH:
+        return CellType.EMPTY
+    return world_grid[army_grid_pos.y][army_grid_pos.x]
+
+func _apply_rest_to_army(cell_type: int) -> void:
+    if WorldState.player_army == null:
+        return
+
+    var army := WorldState.player_army
+
+    var heal_ratio_hp := 0.25   # proportion de PV manquants rendus
+    var heal_ratio_morale := 0.25
+
+    # Modificateur selon la zone
+    match cell_type:
+        CellType.TOWN:
+            # En ville : très bon repos
+            heal_ratio_hp = 0.8
+            heal_ratio_morale = 0.8
+        CellType.FOREST_SHRINE:
+            # Sanctuaire forestier : bon moral, soin correct
+            heal_ratio_hp = 0.5
+            heal_ratio_morale = 0.9
+        CellType.RUINS:
+            # Ruines : repos bof, peu rassurant
+            heal_ratio_hp = 0.2
+            heal_ratio_morale = 0.1
+        _:
+            # Plein air standard
+            heal_ratio_hp = 0.3
+            heal_ratio_morale = 0.3
+
+    for i in army.ARMY_SIZE:
+        var unit := army.get_unit_at(i)
+        if unit == null:
+            continue
+        if unit.hp <= 0:
+            continue  # unité morte : pas de miracle ici pour l'instant
+
+        # Soin des PV : on rend une fraction des PV manquants
+        var missing_hp := unit.max_hp - unit.hp
+        if missing_hp > 0:
+            var heal_hp := int(missing_hp * heal_ratio_hp)
+            if heal_hp < 1 and missing_hp > 0:
+                heal_hp = 1  # au moins 1 PV si il manque quelque chose
+            unit.hp = clamp(unit.hp + heal_hp, 0, unit.max_hp)
+
+        # Soin du moral : idem
+        var missing_morale := unit.max_morale - unit.morale
+        if missing_morale > 0:
+            var heal_morale := int(missing_morale * heal_ratio_morale)
+            if heal_morale < 1 and missing_morale > 0:
+                heal_morale = 1
+            unit.morale = clamp(unit.morale + heal_morale, 0, unit.max_morale)

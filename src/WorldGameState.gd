@@ -21,6 +21,14 @@ var current_day: int = 1            # 1..15
 var current_phase: int = 0          # 0..3
 var _time_accumulator: float = 0.0  # temps cumulé dans la phase en cours
 
+const REST_DURATION_PHASES := 2
+const REST_DURATION_SECONDS := REST_DURATION_PHASES * PHASE_DURATION_SECONDS  # Un repos = 2 phases (ajustable)
+const REST_HEAL_PERCENT := 0.15   # Soigne 15% des PV max
+const REST_MORALE_GAIN := 10      # +10 moral
+
+var resting: bool = false
+var phase_elapsed: float = 0.0  
+var rest_seconds_remaining: float = 0.0 
 
 func advance_time(delta: float) -> void:
     _time_accumulator += delta
@@ -54,3 +62,4 @@ func get_formatted_date() -> String:
     var season_name := SEASONS[current_season]
     var phase_name := DAY_PHASES[current_phase]
     return "%s %02d - %s" % [season_name, current_day, phase_name]
+    
