@@ -59,9 +59,9 @@ func _draw() -> void:
     CellType.TOWN:
      draw_circle(cell_pos, 6.0, Color(0, 1, 0))
     CellType.RUINS:
-     draw_circle(cell_pos, 6.0, Color(0.294, 0.148, 0.016, 1.0))
+     draw_circle(cell_pos, 6.0, Color(1.0, 1.0, 1.0, 1.0))
     CellType.FOREST_SHRINE:
-     draw_circle(cell_pos, 6.0, Color(0.973, 0.447, 0.791, 1.0))
+     draw_circle(cell_pos, 6.0, Color(0.852, 0.121, 0.654, 1.0))
 
 func grid_to_world(grid_pos: Vector2i) -> Vector2:
  return Vector2(
@@ -158,13 +158,15 @@ func _on_enter_cell(grid_pos: Vector2i) -> void:
             event_ui.show_event(ev)
         CellType.RUINS:
             print("Vous découvrez des ruines à", grid_pos)
-            var ev := EventData.new()
-            ev.id = "ruins_intro"
-            ev.title = "Ruines anciennes"
-            ev.description = "Les pierres portent des inscriptions oubliées. Une aura de magie plane dans l'air."
-            ev.choice_a_text = "Explorer rapidement"
-            ev.choice_b_text = "Passer votre chemin"
-            event_ui.show_event(ev)
+            _start_battle_from_ruins()
+            # pour l'instant : ruines = combat
+            #var ev := EventData.new()
+            #ev.id = "ruins_intro"
+            #ev.title = "Ruines anciennes"
+            #ev.description = "Les pierres portent des inscriptions oubliées. Une aura de magie plane dans l'air."
+            #ev.choice_a_text = "Explorer rapidement"
+            #ev.choice_b_text = "Passer votre chemin"
+            #event_ui.show_event(ev)
         CellType.FOREST_SHRINE:
             print("Sanctuaire forestier trouvé à", grid_pos)
             var ev := EventData.new()
@@ -180,3 +182,46 @@ func _change_zoom(delta: float) -> void:
  if camera:
   camera.zoom = Vector2(zoom_level, zoom_level)
   _clamp_camera_to_world()
+
+func _start_battle_from_ruins() -> void:
+    # 1) récupérer l'armée du joueur depuis l'UI
+    var army_ui := $UI_Layer/ArmyPanel/HBoxContainer/VBoxContainer_Army as VBoxContainer
+    var army_controller := army_ui as ArmyUIController
+    var player_army := army_controller.get_army_data()
+
+    # 2) fabriquer une armée ennemie temporaire
+    var enemy_army := ArmyData.new()
+
+    enemy_army.units.resize(ArmyData.ARMY_SIZE)
+    for i in enemy_army.units.size():
+        enemy_army.units[i] = null
+
+    var enemy_knight := UnitData.new()
+    enemy_knight.name = "Gobelins"
+    enemy_knight.max_hp = 100
+    enemy_knight.hp = 100
+    enemy_knight.ranged_power = 0
+    enemy_knight.melee_power = 40
+    enemy_knight.magic_power = 0
+    enemy_knight.count = 5
+
+    var enemy_archer := UnitData.new()
+    enemy_archer.name = "Archers Gobelins"
+    enemy_archer.max_hp = 250
+    enemy_archer.hp = 250
+    enemy_archer.ranged_power = 50
+    enemy_archer.melee_power = 0
+    enemy_archer.magic_power = 0
+    enemy_archer.count = 8
+
+    enemy_army.set_unit_at(0, enemy_knight)
+    enemy_army.set_unit_at(1, enemy_archer)
+
+    # 3) stocker dans GameState
+    WorldState.player_army = player_army
+    WorldState.enemy_army = enemy_army
+    # WorldGameState.player_army = player_army
+    # WorldGameState.enemy_army = enemy_army
+
+    # 4) changer de scène
+    get_tree().change_scene_to_file("res://scenes/CombatScene.tscn")

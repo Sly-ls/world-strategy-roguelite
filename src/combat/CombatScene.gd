@@ -6,7 +6,8 @@ const GRID_SIZE := COLS * ROWS
 
 @onready var grid_allies: GridContainer = $GridAllies
 @onready var grid_enemies: GridContainer = $GridEnemies
-
+var turn_counter:int = 0;
+var battle_over: bool = false
 var ally_slots: Array = []
 var enemy_slots: Array = []
 
@@ -21,14 +22,39 @@ const TICK_INTERVAL := 0.2  # secondes entre deux ticks de combat
 func _ready() -> void:
     ally_slots = grid_allies.get_children()
     enemy_slots = grid_enemies.get_children()
-    _init_test_armies()
+    #_init_test_armies()
+    _init_from_game_state()
     _refresh_all_slots()
+    
+func _init_from_game_state() -> void:
+    allies.clear()
+    enemies.clear()
 
+    allies.resize(GRID_SIZE)
+    enemies.resize(GRID_SIZE)
+
+    for i in GRID_SIZE:
+        allies[i] = null
+        enemies[i] = null
+
+    if WorldState.player_army != null:
+        for i in min(WorldState.player_army.units.size(), GRID_SIZE):
+            var unit: UnitData = WorldState.player_army.units[i]
+            if unit != null:
+                allies[i] = _make_combat_unit(unit)
+
+    if WorldState.enemy_army != null:
+        for i in min(WorldState.enemy_army.units.size(), GRID_SIZE):
+            var unit_e: UnitData = WorldState.enemy_army.units[i]
+            if unit_e != null:
+                enemies[i] = _make_combat_unit(unit_e)
+                
 
 func _process(delta: float) -> void:
     tick_timer += delta
     if tick_timer >= TICK_INTERVAL:
         tick_timer -= TICK_INTERVAL
+        turn_counter += 1
         _combat_tick()
 
 func _refresh_all_slots() -> void:
@@ -50,13 +76,17 @@ func _refresh_slots_for_side(slots: Array, units: Array, is_ally: bool) -> void:
             var data: UnitData = u["unit_data"]
             var hp: int = u["hp"]
             slot.tooltip_text = "%s\nPV: %d / %d" % [data.name, hp, data.max_hp]
-
+            
 func _combat_tick() -> void:
+    if battle_over:
+        return
+    print("Tour %d" % turn_counter)
+
     # 1. Phase distance
     _phase_attack(allies, enemies, "ranged")
     _phase_attack(enemies, allies, "ranged")
 
-    # 2. Phase CàC (seulement frontline)
+    # 2. Phase CàC
     _phase_attack(allies, enemies, "melee")
     _phase_attack(enemies, allies, "melee")
 
@@ -67,15 +97,21 @@ func _combat_tick() -> void:
     # 4. Renforts
     _apply_reinforcements_for_both()
 
-    # 5. Rafraîchir UI + fin de combat
+    # 5. UI + fin
     _refresh_all_slots()
     _check_end_of_combat()
-func _phase_attack(attacking_side: Array, defending_side: Array, phase: String) -> void:
-    for col in COLS:
-        var attacker_idx = get_front_index_for_col(attacking_side, col)
-        if attacker_idx == -1:
-            continue
 
+    
+func _phase_attack(attacking_side: Array, defending_side: Array, phase: String) -> void:
+    # On regarde d'abord s'il y a au moins une cible sur la ligne de front adverse
+    if get_front_target_index_for_side(defending_side) == -1:
+        return
+
+    var front_row := 0
+
+    for col in COLS:
+        # Attaquant = unité sur la ligne de front, dans cette colonne
+        var attacker_idx := index_from_rc(front_row, col)
         var attacker = attacking_side[attacker_idx]
         if attacker == null or attacker["hp"] <= 0:
             continue
@@ -94,11 +130,15 @@ func _phase_attack(attacking_side: Array, defending_side: Array, phase: String) 
         if power <= 0:
             continue
 
-        var target_idx = get_front_index_for_col(defending_side, col)
+        # Cible : toujours la première unité vivante de la ligne adverse (colonne 0 → 1 → 2)
+        var target_idx := get_front_target_index_for_side(defending_side)
         if target_idx == -1:
-            continue
+            break  # plus personne à frapper
 
         var target = defending_side[target_idx]
+        if target == null or target["hp"] <= 0:
+            continue
+
         var target_data: UnitData = target["unit_data"]
         var target_hp: int = target["hp"]
 
@@ -112,6 +152,11 @@ func _phase_attack(attacking_side: Array, defending_side: Array, phase: String) 
         if target_hp <= 0:
             print("%s meurt" % target_data.name)
             defending_side[target_idx] = null
+
+        # si plus aucune cible vivante après ce coup, on s'arrête pour cette phase
+        if get_front_target_index_for_side(defending_side) == -1:
+            break
+
 
 
 func _side_attack(attacking_side: Array, defending_side: Array) -> void:
@@ -169,6 +214,7 @@ func _is_side_dead(side: Array) -> bool:
         if u != null and u["hp"] > 0:
             return false
     return true
+    
 func _init_test_armies() -> void:
     allies.clear()
     enemies.clear()
@@ -278,14 +324,35 @@ func apply_reinforcements(side: Array) -> void:
                     side[target_idx] = unit
                     side[idx] = null
                 write_row += 1
+                
 func _check_end_of_combat() -> void:
-    if _is_side_dead(allies):
-        print("Défaite !")
-        set_process(false)
-    elif _is_side_dead(enemies):
-        print("Victoire !")
-        set_process(false)
+    var allies_dead := _is_side_dead(allies)
+    var enemies_dead := _is_side_dead(enemies)
 
+    if allies_dead and enemies_dead:
+        print("Match nul : les deux camps sont morts.")
+        _apply_results_to_player_army("draw")
+        WorldState.last_battle_result = "draw"
+        _end_battle()
+    elif allies_dead:
+        print("Défaite !")
+        _apply_results_to_player_army("defeat")
+        WorldState.last_battle_result = "defeat"
+        _end_battle()
+    elif enemies_dead:
+        print("Victoire !")
+        _apply_results_to_player_army("victory")
+        WorldState.last_battle_result = "victory"
+        _end_battle()
+
+func get_front_target_index_for_side(side: Array) -> int:
+    var front_row := 0
+    for col in COLS:
+        var idx := index_from_rc(front_row, col)
+        var u = side[idx]
+        if u != null and u["hp"] > 0:
+            return idx
+    return -1
 
 
 func index_from_rc(row: int, col: int) -> int:
@@ -293,3 +360,59 @@ func index_from_rc(row: int, col: int) -> int:
 
 func rc_from_index(index: int) -> Vector2i:
     return Vector2i(index / COLS, index % COLS) # row, col
+
+func _on_QuitButton_pressed() -> void:
+    print("Quit combat requested (retreat)")
+    if not battle_over:
+        _apply_results_to_player_army("retreat")
+        WorldState.last_battle_result = "retreat"
+    _end_battle()
+
+func _apply_results_to_player_army(result: String) -> void:
+    if WorldState.player_army == null:
+        return
+
+    var army := WorldState.player_army
+
+    for i in GRID_SIZE:
+        var combat_unit = allies[i]
+        var data: UnitData = army.get_unit_at(i)
+
+        if data == null:
+            continue
+        
+        if combat_unit == null or combat_unit["hp"] <= 0:
+            # L'unité est détruite → on libère le slot dans l'armée
+            army.set_unit_at(i, null)
+            continue
+        else:
+            var hp_after := int(combat_unit["hp"])
+            data.hp = clamp(hp_after, 0, data.max_hp)
+
+
+    # moral en bonus/malus, comme on avait fait
+    match result:
+        "victory":
+            for i in GRID_SIZE:
+                var u := army.get_unit_at(i)
+                if u != null:
+                    u.morale = clamp(u.morale + 10, 0, u.max_morale)
+        "defeat", "retreat":
+            for i in GRID_SIZE:
+                var u := army.get_unit_at(i)
+                if u != null:
+                    u.morale = clamp(u.morale - 15, 0, u.max_morale)
+        "draw":
+            for i in GRID_SIZE:
+                var u := army.get_unit_at(i)
+                if u != null:
+                    u.morale = clamp(u.morale - 5, 0, u.max_morale)
+
+                 
+func _end_battle() -> void:
+    if battle_over:
+        return
+    battle_over = true
+    set_process(false)
+    # Retour à la world map
+    get_tree().change_scene_to_file("res://scenes/WorldMap.tscn")

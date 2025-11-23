@@ -27,7 +27,6 @@ color = Color(0.21125883, 0.46627516, 0.43454394, 1)
 [node name="ArmyPanel" type="Control" parent="UI_Layer"]
 custom_minimum_size = Vector2(200, 0)
 layout_mode = 3
-anchors_preset = 12
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
