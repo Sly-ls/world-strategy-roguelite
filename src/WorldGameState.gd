@@ -30,6 +30,16 @@ var resting: bool = false
 var phase_elapsed: float = 0.0  
 var rest_seconds_remaining: float = 0.0 
 
+const MOVE_COST := {
+    GameEnums.CellType.PLAINE: 3.0,        # Plaine
+    GameEnums.CellType.TOWN: 2.0,         # Ville (routes)
+    GameEnums.CellType.FOREST_SHRINE: 4.0,
+    GameEnums.CellType.RUINS: 5.0,
+    # rajoute les futurs biomes ici
+}
+
+const DEFAULT_MOVE_COST := 4.0   # Si jamais un biome ne figure pas dans le dictionnaire
+
 func advance_time(delta: float) -> void:
     _time_accumulator += delta
 

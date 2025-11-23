@@ -1,11 +1,10 @@
-[gd_scene load_steps=7 format=3 uid="uid://rsluj5frvxd7"]
+[gd_scene load_steps=6 format=3 uid="uid://rsluj5frvxd7"]
 
 [ext_resource type="Script" uid="uid://xdmr8m2ndsc" path="res://src/world/WorldMapController.gd" id="1_ej7nn"]
 [ext_resource type="Texture2D" uid="uid://chae0j1m6ist4" path="res://icon.svg" id="2_fgl0d"]
 [ext_resource type="Script" uid="uid://b2d7ptwgkqxle" path="res://src/army/ArmyUIController.gd" id="2_pj4xh"]
 [ext_resource type="Texture2D" uid="uid://btw082oe5852g" path="res://assets/maps/worldmap_1.png" id="3_8rtnk"]
 [ext_resource type="Script" uid="uid://ejrvpnnrxs8x" path="res://src/events/EventUIController.gd" id="4_0laof"]
-[ext_resource type="Texture2D" uid="uid://b2d6mm23decvg" path="res://assets/maps/cthulluh_DOWN_0.png" id="5_jsexe"]
 
 [node name="WorldMap" type="Node2D"]
 script = ExtResource("1_ej7nn")
@@ -323,7 +322,7 @@ size_flags_vertical = 8
 top_level = true
 
 [node name="Sprite2D" type="Sprite2D" parent="ArmyMarker"]
-texture = ExtResource("5_jsexe")
+texture = ExtResource("2_fgl0d")
 
 [node name="Background" type="Sprite2D" parent="."]
 z_index = -1
