@@ -24,7 +24,13 @@ var is_moving: bool = false
 
 const BASE_SPEED_PX := 30.0  # vitesse "de référence" en pixels/s
 
+@onready var event_panel: EventPanel = $UI_Layer/EventPanel
+
+var event_open: bool = false
+
 func _ready() -> void:
+    if event_panel:
+        event_panel.choice_made.connect(_on_event_choice_made)
     if camera:
         camera.make_current()
 
@@ -115,9 +121,121 @@ func _update_army_grid_pos_from_world() -> void:
 
     if new_pos != old_pos:
         army_grid_pos = new_pos
-        _on_enter_cell(new_pos) # si tu as déjà une logique de POI / combat ici
+        #_on_enter_cell(new_pos) # si tu as déjà une logique de POI / combat ici
+    _check_enter_poi()
+
+func _check_enter_poi() -> void:
+    if event_open:
+        return
+
+    var cell_type := _get_current_cell_type()
+
+    match cell_type:
+        CellType.TOWN:
+            _show_town_event()
+        CellType.FOREST_SHRINE:
+            _show_shrine_event()
+        CellType.RUINS:
+            _show_ruins_event()
+        _:
+            # Rien de spécial
+            pass
+func _show_town_event() -> void:
+    event_open = true
+    is_moving = false  # on stoppe tout mouvement auto
+
+    event_panel.show_event(
+        "Ville",
+        "Vous arrivez dans une ville animée.\n\nQue voulez-vous faire ?",
+        "Se reposer (auberge)",
+        "town_rest",
+        "Continuer la route",
+		"close"
+    )
 
 
+func _show_shrine_event() -> void:
+    event_open = true
+    is_moving = false
+
+    event_panel.show_event(
+        "Sanctuaire de forêt",
+        "Un sanctuaire ancien baigne dans une lumière douce.\n\nVous sentez une magie apaisante.",
+        "Prendre le temps de se reposer",
+        "shrine_rest",
+        "Passer votre chemin",
+		"close"
+    )
+
+
+func _show_ruins_event() -> void:
+    event_open = true
+    is_moving = false
+
+    event_panel.show_event(
+        "Ruines anciennes",
+        "Vous découvrez des ruines envahies par la végétation.\n\nLes lieux semblent à la fois prometteurs et dangereux.",
+        "Explorer (risque de combat)",
+        "ruins_explore",
+        "Les éviter",
+		"close"
+    )
+
+func _on_event_choice_made(choice_id: String) -> void:
+    event_open = false
+
+    match choice_id:
+        "close":
+            # rien de spécial, on reprend la main
+            return
+
+        "town_rest":
+            _do_town_rest()
+        "shrine_rest":
+            _do_shrine_rest()
+        "ruins_explore":
+            _do_ruins_explore()
+        _:
+            print("Choix d'événement inconnu :", choice_id)
+func _do_town_rest() -> void:
+    print("Repos spécial en ville")
+    var cell_type := CellType.TOWN
+    _apply_rest_to_army(cell_type)
+func _do_shrine_rest() -> void:
+    print("Repos spécial au sanctuaire")
+    var cell_type := CellType.FOREST_SHRINE
+    _apply_rest_to_army(cell_type)
+func _do_ruins_explore() -> void:
+    print("Exploration des ruines → combat")
+
+    # 1) Récupérer l'armée du joueur
+    var army_ui := $UI_Layer/ArmyPanel/HBoxContainer/VBoxContainer_Army as VBoxContainer
+    var army_controller := army_ui as ArmyUIController
+    var player_army := army_controller.get_army_data()
+
+    # 2) Fabriquer une armée ennemie simple
+    var enemy_army := ArmyData.new()
+    enemy_army.units.resize(ArmyData.ARMY_SIZE)
+    for i in enemy_army.units.size():
+        enemy_army.units[i] = null
+
+    var enemy_knight := UnitData.new()
+    enemy_knight.name = "Gardiens des ruines"
+    enemy_knight.max_hp = 400
+    enemy_knight.hp = 400
+    enemy_knight.melee_power = 18
+    enemy_knight.attack_interval = 1.6
+    enemy_knight.count = 5
+
+    enemy_army.set_unit_at(0, enemy_knight)
+
+    # 3) Stocker dans GlobalState
+    WorldState.player_army = player_army
+    WorldState.enemy_army = enemy_army
+    WorldState.last_battle_result = ""
+
+    # 4) Lancer la scène de combat
+    get_tree().change_scene_to_file("res://scenes/CombatScene.tscn")
 
 func _process_auto_move() -> void: 
     if move_queue.is_empty():
@@ -276,7 +394,9 @@ func _unhandled_input(event: InputEvent) -> void:
         return
     if WorldState.resting:
         return
-
+    if event_open:
+          # On ignore les déplacements tant qu'une fenêtre d'événement est ouverte
+          return
     # Clic gauche sur la carte
     if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
         _on_world_click(event.position)
