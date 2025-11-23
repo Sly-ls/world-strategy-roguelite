@@ -24,6 +24,19 @@ color = Color(0.21125883, 0.46627516, 0.43454394, 1)
 
 [node name="UI_Layer" type="CanvasLayer" parent="."]
 
+[node name="DateLabel" type="Label" parent="UI_Layer"]
+anchors_preset = 10
+anchor_right = 1.0
+offset_right = 292.0
+offset_bottom = 42.0
+grow_horizontal = 2
+size_flags_horizontal = 3
+theme_override_constants/outline_size = 2
+theme_override_constants/shadow_outline_size = 3
+theme_override_font_sizes/font_size = 30
+text = "Printemps 01 - Aube"
+autowrap_mode = 1
+
 [node name="ArmyPanel" type="Control" parent="UI_Layer"]
 custom_minimum_size = Vector2(200, 0)
 layout_mode = 3

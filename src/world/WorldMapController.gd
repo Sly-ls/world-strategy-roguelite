@@ -15,6 +15,7 @@ enum CellType { EMPTY, TOWN, RUINS, FOREST_SHRINE }
 var world_grid: Array = []
 
 @onready var event_ui: ColorRect = $UI_Layer/EventOverlay
+@onready var date_label: Label = $UI_Layer/DateLabel
 
 func _ready() -> void:
     if camera:
@@ -29,6 +30,19 @@ func _ready() -> void:
     _update_army_world_position()
     _update_camera()
     
+func _process(delta: float) -> void:
+    # Avancer le temps global
+    WorldState.advance_time(delta)
+
+    # Mettre à jour l'affichage de la date
+    _update_date_ui()
+    
+    # (le reste de ton _process si tu as déjà des choses)
+
+func _update_date_ui() -> void:
+    if date_label:
+        date_label.text = WorldState.get_formatted_date()
+        
 func _init_world_grid() -> void:
  world_grid.clear()
 
