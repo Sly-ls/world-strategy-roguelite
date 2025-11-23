@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="world-strategy-roguelite"
-run/main_scene="uid://rsluj5frvxd7"
+run/main_scene="uid://bh7xtdnugcefb"
 config/features=PackedStringArray("4.5", "Forward Plus")
 config/icon="res://icon.svg"
 
