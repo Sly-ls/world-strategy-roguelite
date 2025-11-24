@@ -328,7 +328,7 @@ func _clamp_camera_to_world() -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-    if WorldState.resting:
+    if WorldState.resting && event != null:
         print("Impossible d'agir : repos en cours.")
         return
     if WorldState.resting:
@@ -497,7 +497,7 @@ func _apply_rest_to_army(cell_type: int) -> void:
             if heal_hp < 1 and missing_hp > 0:
                 heal_hp = 1  # au moins 1 PV si il manque quelque chose
             unit.hp = clamp(unit.hp + heal_hp, 0, unit.max_hp)
-            print(unit.name, " soigne ", heal_hp)
+            print(unit.name, " soigne ", heal_hp, " ses pv sont maintenant de ", unit.hp,"/",unit.max_hp)
 
         # Soin du moral : idem
         var missing_morale := unit.max_morale - unit.morale
