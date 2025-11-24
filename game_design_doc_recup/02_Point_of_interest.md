@@ -1,4 +1,4 @@
-#🟥 BLOC 2 — POINTS D’INTÉRÊT (POI)
+# 🟥 BLOC 2 — POINTS D’INTÉRÊT (POI)
 
 Les POI sont des éléments essentiels du monde. Ils sont :
 - générés procéduralement
@@ -13,7 +13,7 @@ Ils sont aussi utilisés par :
 - le gameplay du joueur
 
 ## 2.1 Catégories de POI
-###🟩 A. POI Civils
+### 🟩 A. POI Civils
 1. Villages
 - faible population
 - vulnérables
@@ -41,7 +41,7 @@ peuvent être :
 - cible prioritaire pour factions agressives
 - peut un jour être détruite (et laisser un “scar” d’ère)
 
-###🟪 B. POI Naturels
+### 🟪 B. POI Naturels
 1. Forêts sacrées
 - boost nature
 - croissance rapide
@@ -60,7 +60,7 @@ peuvent être :
 - peuvent changer naturellement
 - peuvent se bloquer / sécher
 
-###🟥 C. POI Magiques
+### 🟥 C. POI Magiques
 1. Nexus arcanique
 - amplifie magie
 - effets aléatoires
@@ -80,7 +80,7 @@ peuvent être :
 - couleurs instables
 - effets : mutation, buff/débuff
 
-###🟫 D. POI Corrompus
+### 🟫 D. POI Corrompus
 1. Nids démoniaques
 - spawn continu d’unités
 - rituels démoniaques
@@ -94,7 +94,7 @@ peuvent être :
 - propagation lente
 - transformation de villages proches
 
-###🟧 E. POI Technologiques
+### 🟧 E. POI Technologiques
 1. Complexe industriel
 - bâtiments techno
 - drones, robots, lasers (si techno 3)
@@ -108,7 +108,7 @@ peuvent être :
 3. Laboratoires
 - recherche hybride techno/magie
 
-###🟦 F. POI Divins
+### 🟦 F. POI Divins
 1. Temples
 - bénédictions / quêtes
 - influence axes divins
@@ -121,7 +121,7 @@ peuvent être :
 - restes d’anciens dieux
 - augmentent la probabilité d’événements épiques
 
-###🟈 G. POI de Quête
+### 🟈 G. POI de Quête
 - labyrinthes de ravins
 - donjons
 - cités en ruines
@@ -144,7 +144,7 @@ Ces changements sont causés par :
 ✔ propagation naturelle
 ✔ actions du joueur
 
-#🟥 BLOC 2 — ARMÉE
+# 🟥 BLOC 2 — ARMÉE
 
 Le joueur contrôle une seule armée.
 
@@ -157,7 +157,7 @@ Elle se compose de :
 - Moral & Santé
 
 ## 2.3 Structure de l’armée
-###🧍‍♂️ 1. Général
+### 🧍‍♂️ 1. Général
 Il a :
 - race
 - classe
@@ -166,7 +166,7 @@ Il a :
 - pouvoirs débloqués dans la run
 - traits (moral, commandement, stratégie, magie, techno)
 
-###🪖 2. Troupes
+### 🪖 2. Troupes
 Grille 5 lignes × 4 colonnes :
 - Ligne 1 : front
 - Ligne 2 : soutien
@@ -185,25 +185,25 @@ Chaque troupe possède :
 - Taille (1×1, 1×2, 2×2…)
 
 ## 2.4 Ressources & Logistique
-###📦 Ressources armée
+### 📦 Ressources armée
 - Nourriture (permet déplacements + repos)
 - Or (récrutement, interactions)
 - Transport :
-**  chariots
-**  mules
-**  chevaux
-**  bottes (si plus rien)
+  *  chariots
+  *  mules
+  *  chevaux
+  *  bottes (si plus rien)
 - Reliques (pouvoirs permanents)
 - Objets spéciaux (objets de quête)
 - Équipement du général ou des troupes
 
-###⛺ Infrastructures transportables
+### ⛺ Infrastructures transportables
 Tente → accélère repos
 Tente médicale → soin PV après combat
 Feux de camp → augmente moral
 Autel portable → possibilités divines
 
-#🟥 BLOC 2 — UI FINALE (SCHÉMA VALIDÉ)
+# 🟥 BLOC 2 — UI FINALE (SCHÉMA VALIDÉ)
 ✔ Map : plein écran
 ✔ Mini-map : en haut à droite
 
