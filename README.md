@@ -46,7 +46,7 @@ Tous les fichiers se trouvent dans :
 
 Une partie des documents de conception historiques, exploratoires ou alternatifs est conservée dans le dossier :
 
-👉 **[game_design_doc_recup/readme_2.md](game_design_doc_recup/readme_2.md)**
+👉 **[readme_2.md](readme_2.md)**
 
 Ce dossier contient les versions initiales ou détaillées des éléments suivants :  
 - premières ébauches de la world map  
