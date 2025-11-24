@@ -42,21 +42,15 @@ Tous les fichiers se trouvent dans :
 👉 [10_roadmap_dev.md](game_design_doc/10_roadmap_dev.md)
 
 ---
-### 📁 Documentation complémentaire (archives & versions anciennes)
+### 📁 Documentation complémentaire (archives & exhaustives)
 
-Une partie des documents de conception historiques, exploratoires ou alternatifs est conservée dans le dossier :
+Une partie des documents de conception exhaustives et exploratoires est conservée dans le dossier :
 
 👉 **[readme_2.md](README_2.md)**
 
-Ce dossier contient les versions initiales ou détaillées des éléments suivants :  
-- premières ébauches de la world map  
-- anciens systèmes de combat  
-- générations procédurales de factions  
-- anciennes roadmaps  
-- catalogues d’événements  
-- notes diverses et techniques  
+Ce dossier contient les versions discuté avec ChatGPT et détaillées.
 
-Ces documents servent de **référence** et permettent de retracer l’évolution du projet, mais le **Game Design Document principal** se trouve dans le dossier `game_design_doc/`.
+Ces documents servent de **référence** et permettent de retracer l’évolution du projet.
 
 
 ## 🎮 État actuel du projet
