@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="UnitData" load_steps=2 format=3 uid="uid://c5c724rvkfviy"]
+
+[ext_resource type="Script" uid="uid://c736tby0g6cjp" path="res://src/army/UnitData.gd" id="1_kq0qy"]
+
+[resource]
+script = ExtResource("1_kq0qy")
+id = "gobelinsArcher"
+name = "Archers Gobelins"
+max_hp = 250
+ranged_power = 50
+metadata/_custom_type_script = "uid://c736tby0g6cjp"

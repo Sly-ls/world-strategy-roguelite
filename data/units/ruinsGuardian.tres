@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="UnitData" load_steps=2 format=3 uid="uid://byih5aogwilmp"]
+
+[ext_resource type="Script" uid="uid://c736tby0g6cjp" path="res://src/army/UnitData.gd" id="1_rtep0"]
+
+[resource]
+script = ExtResource("1_rtep0")
+id = "ruinsGuardian"
+name = "Gardiens des ruines"
+max_hp = 400
+max_morale = 400
+count = 5
+melee_power = 18
+attack_interval = 1.6
+tags = Array[String](["relentless", "armored"])
+metadata/_custom_type_script = "uid://c736tby0g6cjp"

@@ -219,14 +219,7 @@ func _do_ruins_explore() -> void:
     for i in enemy_army.units.size():
         enemy_army.units[i] = null
 
-    var enemy_knight := UnitData.new()
-    enemy_knight.name = "Gardiens des ruines"
-    enemy_knight.max_hp = 400
-    enemy_knight.hp = 400
-    enemy_knight.melee_power = 18
-    enemy_knight.attack_interval = 1.6
-    enemy_knight.count = 5
-
+    var enemy_knight := UnitFactory.create_unit("ruinsGuardian")
     enemy_army.set_unit_at(0, enemy_knight)
 
     # 3) Stocker dans GlobalState
@@ -539,24 +532,8 @@ func _start_battle_from_ruins() -> void:
     for i in enemy_army.units.size():
         enemy_army.units[i] = null
 
-    var enemy_knight := UnitData.new()
-    enemy_knight.name = "Gobelins"
-    enemy_knight.max_hp = 100
-    enemy_knight.hp = 100
-    enemy_knight.ranged_power = 0
-    enemy_knight.melee_power = 40
-    enemy_knight.magic_power = 0
-    enemy_knight.count = 5
-
-    var enemy_archer := UnitData.new()
-    enemy_archer.name = "Archers Gobelins"
-    enemy_archer.max_hp = 250
-    enemy_archer.hp = 250
-    enemy_archer.ranged_power = 50
-    enemy_archer.melee_power = 0
-    enemy_archer.magic_power = 0
-    enemy_archer.count = 8
-
+    var enemy_knight := UnitFactory.create_unit("gobelins")
+    var enemy_archer := UnitFactory.create_unit("gobelinsArcher")
     enemy_army.set_unit_at(0, enemy_knight)
     enemy_army.set_unit_at(1, enemy_archer)
 

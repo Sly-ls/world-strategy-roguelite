@@ -20,6 +20,7 @@ config/icon="res://icon.svg"
 Rng="*res://src/utils/RNG.gd"
 EventBus="*res://src/systems/EventBus.gd"
 WorldState="*res://src/WorldGameState.gd"
+UnitFactory="*res://scripts/UnitCatalog.gd"
 
 [input]
 

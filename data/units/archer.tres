@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="UnitData" load_steps=2 format=3 uid="uid://vr45rqmyje13"]
+
+[ext_resource type="Script" uid="uid://c736tby0g6cjp" path="res://src/army/UnitData.gd" id="1_2754n"]
+
+[resource]
+script = ExtResource("1_2754n")
+id = "archer"
+name = "Archers"
+max_hp = 300
+max_morale = 80
+count = 10
+melee_power = 8
+ranged_power = 18
+attack_interval = 1.2
+tags = Array[String](["ranged"])
+metadata/_custom_type_script = "uid://c736tby0g6cjp"

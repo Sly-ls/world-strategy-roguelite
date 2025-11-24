@@ -28,36 +28,24 @@ func get_army_data() -> ArmyData:
 func _create_test_army() -> void:
     army_data = ArmyData.new()
 
-    # fabriquer quelques unités de test
-    var unit1 := UnitData.new()
-    unit1.name = "Chevaliers"
-    unit1.max_hp = 600
-    unit1.hp = 480
-    unit1.max_morale = 100
-    unit1.morale = 75
-    unit1.count = 6
-    # unit1.icon = preload("res://assets/icons/chevaliers.png")  # à mettre quand tu auras une icône
+    # Côté joueur
+    var knight  := UnitFactory.create_unit("knight")
+    var archer  := UnitFactory.create_unit("archer")
+    var mage    := UnitFactory.create_unit("mage")
 
-    var unit2 := UnitData.new()
-    unit2.name = "Archers"
-    unit2.max_hp = 300
-    unit2.hp = 280
-    unit2.max_morale = 100
-    unit2.morale = 85
-    unit2.count = 10
+    var knight2 := UnitFactory.create_unit("knight")
+    knight2.name +="_2"
+    var archer2 := UnitFactory.create_unit("archer")
+    archer2.name +="_2"
+    var mage2   := UnitFactory.create_unit("mage")
+    mage2.name +="_2"
 
-    var unit3 := UnitData.new()
-    unit3.name = "Mages"
-    unit3.max_hp = 200
-    unit3.hp = 150
-    unit3.max_morale = 120
-    unit3.morale = 90
-    unit3.count = 4
-
-    # placer ces unités dans les 3 premières cases
-    army_data.set_unit_at(0, unit1)
-    army_data.set_unit_at(1, unit2)
-    army_data.set_unit_at(2, unit3)
+    army_data.units[0] = knight
+    army_data.units[1] = archer
+    army_data.units[2] = mage
+    army_data.units[3] = knight2
+    army_data.units[4] = archer2
+    army_data.units[5] = mage2
 
 
 func _refresh_slots() -> void:
