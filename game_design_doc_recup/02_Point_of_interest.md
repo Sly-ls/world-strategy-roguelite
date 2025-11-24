@@ -189,10 +189,10 @@ Chaque troupe possède :
 - Nourriture (permet déplacements + repos)
 - Or (récrutement, interactions)
 - Transport :
---  chariots
---  mules
---  chevaux
---  bottes (si plus rien)
+**  chariots
+**  mules
+**  chevaux
+**  bottes (si plus rien)
 - Reliques (pouvoirs permanents)
 - Objets spéciaux (objets de quête)
 - Équipement du général ou des troupes
