@@ -1,9 +1,10 @@
-[gd_scene load_steps=7 format=3 uid="uid://rsluj5frvxd7"]
+[gd_scene load_steps=8 format=3 uid="uid://rsluj5frvxd7"]
 
 [ext_resource type="Script" uid="uid://xdmr8m2ndsc" path="res://src/world/WorldMapController.gd" id="1_ej7nn"]
 [ext_resource type="Texture2D" uid="uid://chae0j1m6ist4" path="res://icon.svg" id="2_fgl0d"]
 [ext_resource type="Script" uid="uid://b2d7ptwgkqxle" path="res://src/army/ArmyUIController.gd" id="2_pj4xh"]
 [ext_resource type="Texture2D" uid="uid://btw082oe5852g" path="res://assets/maps/worldmap_1.png" id="3_8rtnk"]
+[ext_resource type="Script" uid="uid://ejrvpnnrxs8x" path="res://src/events/EventUIController.gd" id="4_0laof"]
 [ext_resource type="PackedScene" uid="uid://dkr8plpd6ejj4" path="res://scenes/EventPanel.tscn" id="5_05f3n"]
 [ext_resource type="Texture2D" uid="uid://b2d6mm23decvg" path="res://assets/maps/cthulluh_DOWN_0.png" id="5_jsexe"]
 
@@ -226,6 +227,60 @@ text = "Food : 50"
 [node name="Logistic" type="Label" parent="UI_Layer/ArmyPanel/HBoxContainer/VBoxContainer_Ressources"]
 layout_mode = 2
 text = "Logistic : 3 carts"
+
+[node name="EventOverlay" type="ColorRect" parent="UI_Layer"]
+visible = false
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 1)
+script = ExtResource("4_0laof")
+
+[node name="EventPanel" type="Panel" parent="UI_Layer/EventOverlay"]
+custom_minimum_size = Vector2(400, 0.2)
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -20.0
+offset_top = -20.0
+offset_right = 20.0
+offset_bottom = 20.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="UI_Layer/EventOverlay/EventPanel"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="TitleLabel" type="Label" parent="UI_Layer/EventOverlay/EventPanel/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 0
+
+[node name="DescriptionLabel" type="Label" parent="UI_Layer/EventOverlay/EventPanel/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 4
+
+[node name="HBoxContainer" type="HBoxContainer" parent="UI_Layer/EventOverlay/EventPanel/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 8
+
+[node name="ChoiceAButton" type="Button" parent="UI_Layer/EventOverlay/EventPanel/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 0
+size_flags_vertical = 8
+
+[node name="ChoiceBButton" type="Button" parent="UI_Layer/EventOverlay/EventPanel/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 8
+size_flags_vertical = 8
 
 [node name="EventPanel" parent="UI_Layer" instance=ExtResource("5_05f3n")]
 

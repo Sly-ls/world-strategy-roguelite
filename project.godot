@@ -21,6 +21,8 @@ Rng="*res://src/utils/RNG.gd"
 EventBus="*res://src/systems/EventBus.gd"
 WorldState="*res://src/WorldGameState.gd"
 UnitFactory="*res://scripts/UnitCatalog.gd"
+ArmyFactory="*res://scripts/ArmyCatalog.gd"
+WorldEventFactory="*res://scripts/WorldEventCatalog.gd"
 
 [input]
 

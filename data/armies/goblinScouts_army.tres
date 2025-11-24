@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="ArmyData" load_steps=5 format=3 uid="uid://3gnjxigbbxjv"]
+
+[ext_resource type="Script" uid="uid://bu8vnu82flrua" path="res://src/army/ArmyData.gd" id="1_sjx8h"]
+[ext_resource type="Script" uid="uid://c736tby0g6cjp" path="res://src/army/UnitData.gd" id="2_2cl3t"]
+[ext_resource type="Resource" uid="uid://cukvd86y5c58l" path="res://data/units/gobelins.tres" id="3_n63st"]
+[ext_resource type="Resource" uid="uid://c5c724rvkfviy" path="res://data/units/gobelinsArcher.tres" id="4_f3072"]
+
+[resource]
+script = ExtResource("1_sjx8h")
+units = Array[ExtResource("2_2cl3t")]([ExtResource("3_n63st"), ExtResource("4_f3072"), ExtResource("4_f3072")])
+metadata/_custom_type_script = "uid://bu8vnu82flrua"

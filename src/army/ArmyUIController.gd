@@ -26,28 +26,8 @@ func get_army_data() -> ArmyData:
     return army_data
 
 func _create_test_army() -> void:
-    army_data = ArmyData.new()
-
-    # Côté joueur
-    var knight  := UnitFactory.create_unit("knight")
-    var archer  := UnitFactory.create_unit("archer")
-    var mage    := UnitFactory.create_unit("mage")
-
-    var knight2 := UnitFactory.create_unit("knight")
-    knight2.name +="_2"
-    var archer2 := UnitFactory.create_unit("archer")
-    archer2.name +="_2"
-    var mage2   := UnitFactory.create_unit("mage")
-    mage2.name +="_2"
-
-    army_data.units[0] = knight
-    army_data.units[1] = archer
-    army_data.units[2] = mage
-    army_data.units[3] = knight2
-    army_data.units[4] = archer2
-    army_data.units[5] = mage2
-
-
+    army_data = ArmyFactory.create_army("player_start")
+    
 func _refresh_slots() -> void:
     if army_data == null:
         return

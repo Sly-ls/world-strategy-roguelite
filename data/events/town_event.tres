@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="WorldEvent" load_steps=6 format=3 uid="uid://dtf5w13r112of"]
+
+[ext_resource type="Script" uid="uid://c3o04p771bixj" path="res://scripts/events/WorldEventChoice.gd" id="1_g2jg3"]
+[ext_resource type="Script" uid="uid://ea33dc1iovsq" path="res://scripts/events/TownArrivalHandler.gd" id="2_3xtcx"]
+[ext_resource type="Script" uid="uid://cx4twfeq5xy57" path="res://scripts/events/WorldEvent.gd" id="2_iilas"]
+
+[sub_resource type="Resource" id="Resource_iilas"]
+script = ExtResource("1_g2jg3")
+text = "Se reposer à l'auberge"
+choice_id = "town_rest"
+metadata/_custom_type_script = "uid://c3o04p771bixj"
+
+[sub_resource type="Resource" id="Resource_3xtcx"]
+script = ExtResource("1_g2jg3")
+text = "town_rest"
+choice_id = "close"
+metadata/_custom_type_script = "uid://c3o04p771bixj"
+
+[resource]
+script = ExtResource("2_iilas")
+id = "town_arrival"
+title = "Ville"
+body = "Vous arrivez dans une ville animée.\\nQue voulez-vous faire ?"
+choices = Array[ExtResource("1_g2jg3")]([SubResource("Resource_iilas"), SubResource("Resource_3xtcx")])
+logic_script = ExtResource("2_3xtcx")
+metadata/_custom_type_script = "uid://cx4twfeq5xy57"

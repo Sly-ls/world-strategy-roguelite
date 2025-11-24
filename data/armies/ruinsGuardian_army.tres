@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="ArmyData" load_steps=4 format=3 uid="uid://bwrub46dj8kx4"]
+
+[ext_resource type="Script" uid="uid://bu8vnu82flrua" path="res://src/army/ArmyData.gd" id="1_m7qjv"]
+[ext_resource type="Script" uid="uid://c736tby0g6cjp" path="res://src/army/UnitData.gd" id="2_4gw2s"]
+[ext_resource type="Resource" uid="uid://byih5aogwilmp" path="res://data/units/ruinsGuardian.tres" id="3_p5s1m"]
+
+[resource]
+script = ExtResource("1_m7qjv")
+id = "ruinsGuardianArmy"
+units = Array[ExtResource("2_4gw2s")]([ExtResource("3_p5s1m"), ExtResource("3_p5s1m")])
+metadata/_custom_type_script = "uid://bu8vnu82flrua"

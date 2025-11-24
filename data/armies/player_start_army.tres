@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="ArmyData" load_steps=6 format=3 uid="uid://delxsmmmjiw3v"]
+
+[ext_resource type="Script" uid="uid://bu8vnu82flrua" path="res://src/army/ArmyData.gd" id="1_3g8dy"]
+[ext_resource type="Script" uid="uid://c736tby0g6cjp" path="res://src/army/UnitData.gd" id="2_h7xjh"]
+[ext_resource type="Resource" uid="uid://b8ikxwsq7amv" path="res://data/units/knight.tres" id="3_pnj0a"]
+[ext_resource type="Resource" uid="uid://vr45rqmyje13" path="res://data/units/archer.tres" id="4_yafrm"]
+[ext_resource type="Resource" uid="uid://hicf0gjryav8" path="res://data/units/mage.tres" id="5_g1x7r"]
+
+[resource]
+script = ExtResource("1_3g8dy")
+id = "player_start"
+units = Array[ExtResource("2_h7xjh")]([ExtResource("3_pnj0a"), ExtResource("4_yafrm"), ExtResource("5_g1x7r"), ExtResource("3_pnj0a"), ExtResource("4_yafrm")])
+metadata/_custom_type_script = "uid://bu8vnu82flrua"

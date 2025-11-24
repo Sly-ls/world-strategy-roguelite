@@ -1,32 +1,36 @@
 extends Node2D
 
+#world map part
 const TILE_SIZE := 64
 var GRID_WIDTH: int
 var GRID_HEIGHT: int
-@onready var background: Sprite2D = $Background
-
-@onready var camera: Camera2D = $Camera2D
-@onready var army_marker: Node2D = $ArmyMarker
-
-var army_grid_pos: Vector2i = Vector2i(10, 6)
-var zoom_level: float = 1.0
-
 const CellType = GameEnums.CellType
 var world_grid: Array = []
+var zoom_level: float = 1.0
+@onready var background: Sprite2D = $Background
+@onready var camera: Camera2D = $Camera2D
 
+#Army Part
+@onready var army_marker: Node2D = $ArmyMarker
+var army_grid_pos: Vector2i = Vector2i(10, 6)
+
+#UI part
 @onready var event_ui: ColorRect = $UI_Layer/EventOverlay
 @onready var date_label: Label = $UI_Layer/DateLabel
 @onready var rest_label: Label = $UI_Layer/RestLabel
+
+#move part
 var move_queue: Array[Vector2i] = []
 var is_auto_moving: bool = false
 var move_target: Vector2 = Vector2.ZERO
 var is_moving: bool = false
-
 const BASE_SPEED_PX := 30.0  # vitesse "de référence" en pixels/s
 
+#event part
 @onready var event_panel: EventPanel = $UI_Layer/EventPanel
-
 var event_open: bool = false
+var current_event: WorldEvent = null
+var current_event_handler: WorldEventHandler = null
 
 func _ready() -> void:
     if event_panel:
@@ -130,105 +134,49 @@ func _check_enter_poi() -> void:
 
     var cell_type := _get_current_cell_type()
 
-    match cell_type:
-        CellType.TOWN:
-            _show_town_event()
-        CellType.FOREST_SHRINE:
-            _show_shrine_event()
-        CellType.RUINS:
-            _show_ruins_event()
-        _:
-            # Rien de spécial
-            pass
-func _show_town_event() -> void:
-    event_open = true
-    is_moving = false  # on stoppe tout mouvement auto
+    var event_id: String = GameEnums.CELL_ENUM[cell_type].event_id
+    if event_id:
+        _start_world_event(event_id)
 
-    event_panel.show_event(
-        "Ville",
-        "Vous arrivez dans une ville animée.\n\nQue voulez-vous faire ?",
-        "Se reposer (auberge)",
-        "town_rest",
-        "Continuer la route",
-		"close"
-    )
+func _start_world_event(event_id: String) -> void:
+    var evt := WorldEventFactory.get_event(event_id)
+    if evt == null:
+        return
 
-
-func _show_shrine_event() -> void:
     event_open = true
     is_moving = false
+    current_event = evt
 
-    event_panel.show_event(
-        "Sanctuaire de forêt",
-        "Un sanctuaire ancien baigne dans une lumière douce.\n\nVous sentez une magie apaisante.",
-        "Prendre le temps de se reposer",
-        "shrine_rest",
-        "Passer votre chemin",
-		"close"
-    )
+    # instancier le handler si présent
+    current_event_handler = null
+    if evt.logic_script != null:
+        var obj :Variant = evt.logic_script.new()
+        if obj is WorldEventHandler:
+            current_event_handler = obj
+        else:
+            push_warning("World event %s: logic_script n'étend pas WorldEventHandler" % evt.id)
 
+    # convertir les choices en format compris par EventPanel
+    var ui_choices: Array[Dictionary] = []
+    for c in evt.choices:
+        if c == null:
+            continue
+        ui_choices.append({
+            "text": c.text,
+            "choice_id": c.choice_id
+        })
 
-func _show_ruins_event() -> void:
-    event_open = true
-    is_moving = false
-
-    event_panel.show_event(
-        "Ruines anciennes",
-        "Vous découvrez des ruines envahies par la végétation.\n\nLes lieux semblent à la fois prometteurs et dangereux.",
-        "Explorer (risque de combat)",
-        "ruins_explore",
-        "Les éviter",
-		"close"
-    )
+    event_panel.show_event(evt.title, evt.body, ui_choices)
 
 func _on_event_choice_made(choice_id: String) -> void:
-    event_open = false
+       event_open = false
 
-    match choice_id:
-        "close":
-            # rien de spécial, on reprend la main
-            return
+       if current_event_handler != null:
+              current_event_handler.execute_choice(choice_id, self)
 
-        "town_rest":
-            _do_town_rest()
-        "shrine_rest":
-            _do_shrine_rest()
-        "ruins_explore":
-            _do_ruins_explore()
-        _:
-            print("Choix d'événement inconnu :", choice_id)
-func _do_town_rest() -> void:
-    print("Repos spécial en ville")
-    var cell_type := CellType.TOWN
-    _apply_rest_to_army(cell_type)
-func _do_shrine_rest() -> void:
-    print("Repos spécial au sanctuaire")
-    var cell_type := CellType.FOREST_SHRINE
-    _apply_rest_to_army(cell_type)
-func _do_ruins_explore() -> void:
-    print("Exploration des ruines → combat")
-
-    # 1) Récupérer l'armée du joueur
-    var army_ui := $UI_Layer/ArmyPanel/HBoxContainer/VBoxContainer_Army as VBoxContainer
-    var army_controller := army_ui as ArmyUIController
-    var player_army := army_controller.get_army_data()
-
-    # 2) Fabriquer une armée ennemie simple
-    var enemy_army := ArmyData.new()
-    enemy_army.units.resize(ArmyData.ARMY_SIZE)
-    for i in enemy_army.units.size():
-        enemy_army.units[i] = null
-
-    var enemy_knight := UnitFactory.create_unit("ruinsGuardian")
-    enemy_army.set_unit_at(0, enemy_knight)
-
-    # 3) Stocker dans GlobalState
-    WorldState.player_army = player_army
-    WorldState.enemy_army = enemy_army
-    WorldState.last_battle_result = ""
-
-    # 4) Lancer la scène de combat
-    get_tree().change_scene_to_file("res://scenes/CombatScene.tscn")
+       # On peut remettre current_event à null si on veut
+       current_event = null
+       current_event_handler = null
 
 func _process_auto_move() -> void: 
     if move_queue.is_empty():
@@ -252,8 +200,6 @@ func _update_rest_timer(delta: float) -> void:
 
     if WorldState.rest_seconds_remaining <= 0.0:
         _finish_rest()  
-    else :
-        print("Repos commencé pour %.1f secondes" % WorldState.rest_seconds_remaining)
             
 func _finish_rest() -> void:
     WorldState.resting = false
@@ -476,75 +422,11 @@ func _try_move_army(delta_grid: Vector2i) -> void:
     _update_army_world_position()
     _update_camera()
 
-
-func _on_enter_cell(grid_pos: Vector2i) -> void:
-    var cell: int = world_grid[grid_pos.y][grid_pos.x]
-
-    match cell:
-        CellType.PLAINE:
-            return
-        CellType.TOWN:
-            print("Vous entrez dans une ville à", grid_pos)
-            var ev := EventData.new()
-            ev.id = "town_intro"
-            ev.title = "Ville frontalière"
-            ev.description = "Vous arrivez dans une petite ville en bordure du royaume. Les habitants semblent tendus."
-            ev.choice_a_text = "Entrer en ville"
-            ev.choice_b_text = "Continuer la route"
-            event_ui.show_event(ev)
-        CellType.RUINS:
-            print("Vous découvrez des ruines à", grid_pos)
-            _start_battle_from_ruins()
-            # pour l'instant : ruines = combat
-            #var ev := EventData.new()
-            #ev.id = "ruins_intro"
-            #ev.title = "Ruines anciennes"
-            #ev.description = "Les pierres portent des inscriptions oubliées. Une aura de magie plane dans l'air."
-            #ev.choice_a_text = "Explorer rapidement"
-            #ev.choice_b_text = "Passer votre chemin"
-            #event_ui.show_event(ev)
-        CellType.FOREST_SHRINE:
-            print("Sanctuaire forestier trouvé à", grid_pos)
-            var ev := EventData.new()
-            ev.id = "forest_shrine"
-            ev.title = "Sanctuaire forestier"
-            ev.description = "La végétation se fait dense et silencieuse. Devant vous, un autel recouvert de mousse."
-            ev.choice_a_text = "Prier"
-            ev.choice_b_text = "Ne pas déranger le lieu"
-            event_ui.show_event(ev)
-
 func _change_zoom(delta: float) -> void:
  zoom_level = clamp(zoom_level + delta, 0.5, 2.5)
  if camera:
   camera.zoom = Vector2(zoom_level, zoom_level)
   _clamp_camera_to_world()
-
-func _start_battle_from_ruins() -> void:
-    # 1) récupérer l'armée du joueur depuis l'UI
-    var army_ui := $UI_Layer/ArmyPanel/HBoxContainer/VBoxContainer_Army as VBoxContainer
-    var army_controller := army_ui as ArmyUIController
-    var player_army := army_controller.get_army_data()
-
-    # 2) fabriquer une armée ennemie temporaire
-    var enemy_army := ArmyData.new()
-
-    enemy_army.units.resize(ArmyData.ARMY_SIZE)
-    for i in enemy_army.units.size():
-        enemy_army.units[i] = null
-
-    var enemy_knight := UnitFactory.create_unit("gobelins")
-    var enemy_archer := UnitFactory.create_unit("gobelinsArcher")
-    enemy_army.set_unit_at(0, enemy_knight)
-    enemy_army.set_unit_at(1, enemy_archer)
-
-    # 3) stocker dans GameState
-    WorldState.player_army = player_army
-    WorldState.enemy_army = enemy_army
-    # WorldGameState.player_army = player_army
-    # WorldGameState.enemy_army = enemy_army
-
-    # 4) changer de scène
-    get_tree().change_scene_to_file("res://scenes/CombatScene.tscn")
 
 func start_rest() -> void:
     if WorldState.resting:
@@ -570,9 +452,12 @@ func _get_current_cell_type() -> int:
         return CellType.PLAINE
     return world_grid[army_grid_pos.y][army_grid_pos.x]
 
+func change_scene(path: String) -> void:
+    get_tree().change_scene_to_file(path)
+    
 func _apply_rest_to_army(cell_type: int) -> void:
     if WorldState.player_army == null:
-        return
+     return
 
     var army := WorldState.player_army
 
@@ -608,10 +493,11 @@ func _apply_rest_to_army(cell_type: int) -> void:
         # Soin des PV : on rend une fraction des PV manquants
         var missing_hp := unit.max_hp - unit.hp
         if missing_hp > 0:
-            var heal_hp := int(missing_hp * heal_ratio_hp)
+            var heal_hp := int(unit.max_hp * heal_ratio_hp)
             if heal_hp < 1 and missing_hp > 0:
                 heal_hp = 1  # au moins 1 PV si il manque quelque chose
             unit.hp = clamp(unit.hp + heal_hp, 0, unit.max_hp)
+            print(unit.name, " soigne ", heal_hp)
 
         # Soin du moral : idem
         var missing_morale := unit.max_morale - unit.morale

@@ -21,7 +21,7 @@ var current_day: int = 1            # 1..15
 var current_phase: int = 0          # 0..3
 var _time_accumulator: float = 0.0  # temps cumulé dans la phase en cours
 
-const REST_DURATION_PHASES := 2
+const REST_DURATION_PHASES := 1
 const REST_DURATION_SECONDS := REST_DURATION_PHASES * PHASE_DURATION_SECONDS  # Un repos = 2 phases (ajustable)
 const REST_HEAL_PERCENT := 0.15   # Soigne 15% des PV max
 const REST_MORALE_GAIN := 10      # +10 moral

@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="WorldEvent" load_steps=6 format=3 uid="uid://dc4ykf3vdunt5"]
+
+[ext_resource type="Script" uid="uid://c3o04p771bixj" path="res://scripts/events/WorldEventChoice.gd" id="1_p44ey"]
+[ext_resource type="Script" uid="uid://cvwywbr4ihv8h" path="res://scripts/events/ForestShrineHandler.gd" id="2_8axmx"]
+[ext_resource type="Script" uid="uid://cx4twfeq5xy57" path="res://scripts/events/WorldEvent.gd" id="2_fyjjw"]
+
+[sub_resource type="Resource" id="Resource_fyjjw"]
+script = ExtResource("1_p44ey")
+text = "Se reposer"
+choice_id = "shrine_rest"
+metadata/_custom_type_script = "uid://c3o04p771bixj"
+
+[sub_resource type="Resource" id="Resource_8axmx"]
+script = ExtResource("1_p44ey")
+text = "Partir"
+choice_id = "close"
+metadata/_custom_type_script = "uid://c3o04p771bixj"
+
+[resource]
+script = ExtResource("2_fyjjw")
+id = "forest_shrine"
+title = "Sanctuaire de forêt"
+body = "Un sanctuaire ancien baigne dans une lumière douce.\\n\\nVous sentez une magie apaisante."
+choices = Array[ExtResource("1_p44ey")]([SubResource("Resource_fyjjw"), SubResource("Resource_8axmx")])
+logic_script = ExtResource("2_8axmx")
+metadata/_custom_type_script = "uid://cx4twfeq5xy57"
