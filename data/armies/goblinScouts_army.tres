@@ -7,5 +7,6 @@
 
 [resource]
 script = ExtResource("1_sjx8h")
+id = "goblinScouts_army"
 units = Array[ExtResource("2_2cl3t")]([ExtResource("3_n63st"), ExtResource("4_f3072"), ExtResource("4_f3072")])
 metadata/_custom_type_script = "uid://bu8vnu82flrua"

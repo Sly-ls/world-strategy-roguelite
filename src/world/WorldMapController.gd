@@ -484,7 +484,7 @@ func _apply_rest_to_army(cell_type: int) -> void:
             heal_ratio_morale = 0.3
 
     for i in army.ARMY_SIZE:
-        var unit := army.get_unit_at(i)
+        var unit := army.get_unit_at_index(i)
         if unit == null:
             continue
         if unit.hp <= 0:

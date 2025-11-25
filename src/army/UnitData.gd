@@ -19,7 +19,7 @@ var morale: int = 100
 @export var attack_interval: float = 1.5
 
 @export var tags: Array[String] = []
-
+@export var icon: Texture2D
 
 func clone_runtime() -> UnitData:
     # On ne veut jamais modifier le template .tres directement.
@@ -42,5 +42,18 @@ func clone_runtime() -> UnitData:
     u.attack_interval = attack_interval
 
     u.tags = tags.duplicate()
-
+    u.icon = icon
+    
     return u
+    
+func describe() -> String:
+    var description: String = id + "\n"
+    description +=  "id: " + id + "\n"
+    description +=   "name: " + name + "\n"
+    description +=   "hp: " + str(hp) + "/"+ str(max_hp) + "\n"
+    description +=   "morale: " + str(morale) + "/"+ str(max_morale) + "\n"
+    description +=   "count: " + str(count) + "\n"
+    description +=   "melee_power: " + str(melee_power) + "\n"
+    description +=   "ranged_power: " + str(ranged_power) + "\n"
+    description +=   "magic_power: " + str(magic_power) + "\n"
+    return description

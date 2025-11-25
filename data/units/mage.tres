@@ -1,6 +1,7 @@
-[gd_resource type="Resource" script_class="UnitData" load_steps=2 format=3 uid="uid://hicf0gjryav8"]
+[gd_resource type="Resource" script_class="UnitData" load_steps=3 format=3 uid="uid://hicf0gjryav8"]
 
 [ext_resource type="Script" uid="uid://c736tby0g6cjp" path="res://src/army/UnitData.gd" id="1_85r4g"]
+[ext_resource type="Texture2D" uid="uid://chae0j1m6ist4" path="res://icon.svg" id="1_yviga"]
 
 [resource]
 script = ExtResource("1_85r4g")
@@ -12,4 +13,5 @@ count = 4
 magic_power = 30
 attack_interval = 2.0
 tags = Array[String](["magic", "glass_cannon"])
+icon = ExtResource("1_yviga")
 metadata/_custom_type_script = "uid://c736tby0g6cjp"

@@ -1,6 +1,7 @@
-[gd_resource type="Resource" script_class="UnitData" load_steps=2 format=3 uid="uid://cukvd86y5c58l"]
+[gd_resource type="Resource" script_class="UnitData" load_steps=3 format=3 uid="uid://cukvd86y5c58l"]
 
 [ext_resource type="Script" uid="uid://c736tby0g6cjp" path="res://src/army/UnitData.gd" id="1_54kor"]
+[ext_resource type="Texture2D" uid="uid://chae0j1m6ist4" path="res://icon.svg" id="1_o2gl1"]
 
 [resource]
 script = ExtResource("1_54kor")
@@ -9,4 +10,5 @@ name = "Gobelins"
 count = 12
 melee_power = 40
 tags = Array[String](["weak"])
+icon = ExtResource("1_o2gl1")
 metadata/_custom_type_script = "uid://c736tby0g6cjp"

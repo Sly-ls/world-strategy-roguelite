@@ -1,6 +1,7 @@
-[gd_resource type="Resource" script_class="UnitData" load_steps=2 format=3 uid="uid://vr45rqmyje13"]
+[gd_resource type="Resource" script_class="UnitData" load_steps=3 format=3 uid="uid://vr45rqmyje13"]
 
 [ext_resource type="Script" uid="uid://c736tby0g6cjp" path="res://src/army/UnitData.gd" id="1_2754n"]
+[ext_resource type="Texture2D" uid="uid://chae0j1m6ist4" path="res://icon.svg" id="1_xswrj"]
 
 [resource]
 script = ExtResource("1_2754n")
@@ -13,4 +14,5 @@ melee_power = 8
 ranged_power = 18
 attack_interval = 1.2
 tags = Array[String](["ranged"])
+icon = ExtResource("1_xswrj")
 metadata/_custom_type_script = "uid://c736tby0g6cjp"

@@ -8,6 +8,6 @@
 
 [resource]
 script = ExtResource("1_3g8dy")
-id = "player_start"
+id = "player_start_army"
 units = Array[ExtResource("2_h7xjh")]([ExtResource("3_pnj0a"), ExtResource("4_yafrm"), ExtResource("5_g1x7r"), ExtResource("3_pnj0a"), ExtResource("4_yafrm")])
 metadata/_custom_type_script = "uid://bu8vnu82flrua"

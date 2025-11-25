@@ -1,5 +1,6 @@
-[gd_resource type="Resource" script_class="UnitData" load_steps=2 format=3 uid="uid://byih5aogwilmp"]
+[gd_resource type="Resource" script_class="UnitData" load_steps=3 format=3 uid="uid://byih5aogwilmp"]
 
+[ext_resource type="Texture2D" uid="uid://b2d6mm23decvg" path="res://assets/maps/cthulluh_DOWN_0.png" id="1_5sp7e"]
 [ext_resource type="Script" uid="uid://c736tby0g6cjp" path="res://src/army/UnitData.gd" id="1_rtep0"]
 
 [resource]
@@ -12,4 +13,5 @@ count = 5
 melee_power = 18
 attack_interval = 1.6
 tags = Array[String](["relentless", "armored"])
+icon = ExtResource("1_5sp7e")
 metadata/_custom_type_script = "uid://c736tby0g6cjp"

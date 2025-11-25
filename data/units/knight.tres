@@ -1,6 +1,7 @@
-[gd_resource type="Resource" script_class="UnitData" load_steps=2 format=3 uid="uid://b8ikxwsq7amv"]
+[gd_resource type="Resource" script_class="UnitData" load_steps=3 format=3 uid="uid://b8ikxwsq7amv"]
 
 [ext_resource type="Script" uid="uid://c736tby0g6cjp" path="res://src/army/UnitData.gd" id="1_7sqbm"]
+[ext_resource type="Texture2D" uid="uid://chae0j1m6ist4" path="res://icon.svg" id="1_nc7ly"]
 
 [resource]
 script = ExtResource("1_7sqbm")
@@ -10,4 +11,5 @@ max_hp = 600
 count = 6
 melee_power = 25
 tags = Array[String](["frontline", "armored"])
+icon = ExtResource("1_nc7ly")
 metadata/_custom_type_script = "uid://c736tby0g6cjp"
