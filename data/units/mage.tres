@@ -1,7 +1,7 @@
 [gd_resource type="Resource" script_class="UnitData" load_steps=3 format=3 uid="uid://hicf0gjryav8"]
 
 [ext_resource type="Script" uid="uid://c736tby0g6cjp" path="res://src/army/UnitData.gd" id="1_85r4g"]
-[ext_resource type="Texture2D" uid="uid://chae0j1m6ist4" path="res://icon.svg" id="1_yviga"]
+[ext_resource type="Texture2D" uid="uid://e1mf6580l6v" path="res://assets/units/lady_mage_DOWN_0.png" id="1_yviga"]
 
 [resource]
 script = ExtResource("1_85r4g")

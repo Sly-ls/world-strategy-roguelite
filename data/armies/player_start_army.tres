@@ -1,13 +1,16 @@
-[gd_resource type="Resource" script_class="ArmyData" load_steps=6 format=3 uid="uid://delxsmmmjiw3v"]
+[gd_resource type="Resource" script_class="ArmyData" load_steps=9 format=3 uid="uid://delxsmmmjiw3v"]
 
 [ext_resource type="Script" uid="uid://bu8vnu82flrua" path="res://src/army/ArmyData.gd" id="1_3g8dy"]
 [ext_resource type="Script" uid="uid://c736tby0g6cjp" path="res://src/army/UnitData.gd" id="2_h7xjh"]
 [ext_resource type="Resource" uid="uid://b8ikxwsq7amv" path="res://data/units/knight.tres" id="3_pnj0a"]
 [ext_resource type="Resource" uid="uid://vr45rqmyje13" path="res://data/units/archer.tres" id="4_yafrm"]
 [ext_resource type="Resource" uid="uid://hicf0gjryav8" path="res://data/units/mage.tres" id="5_g1x7r"]
+[ext_resource type="Resource" uid="uid://c5c724rvkfviy" path="res://data/units/gobelinsArcher.tres" id="6_p5lt1"]
+[ext_resource type="Resource" uid="uid://byih5aogwilmp" path="res://data/units/ruinsGuardian.tres" id="7_om8jf"]
+[ext_resource type="Resource" uid="uid://cukvd86y5c58l" path="res://data/units/gobelins.tres" id="8_wkqnr"]
 
 [resource]
 script = ExtResource("1_3g8dy")
 id = "player_start_army"
-units = Array[ExtResource("2_h7xjh")]([ExtResource("3_pnj0a"), ExtResource("4_yafrm"), ExtResource("5_g1x7r"), ExtResource("3_pnj0a"), ExtResource("4_yafrm")])
+units = Array[ExtResource("2_h7xjh")]([ExtResource("3_pnj0a"), ExtResource("4_yafrm"), ExtResource("5_g1x7r"), ExtResource("3_pnj0a"), ExtResource("4_yafrm"), ExtResource("6_p5lt1"), ExtResource("5_g1x7r"), ExtResource("7_om8jf"), ExtResource("8_wkqnr")])
 metadata/_custom_type_script = "uid://bu8vnu82flrua"

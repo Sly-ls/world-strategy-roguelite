@@ -14,10 +14,15 @@ func _init() -> void:
     if units.size() != ARMY_SIZE:
         units.resize(ARMY_SIZE)
 
-
+func rc_from_index(idx: int) -> Vector2:
+    # Convertit un index linéaire (0..ARMY_SIZE-1) en (col, row)
+    # col = x, row = y
+    return Vector2(idx % ARMY_COLS, idx / ARMY_COLS) # row, col
+    
 func index_from_rc(row: int, col: int) -> int:
     # row = 0..4, col = 0..2
     return row * ARMY_COLS + col
+
 
 
 func get_unit_at_index(idx: int) -> UnitData:
@@ -26,6 +31,12 @@ func get_unit_at_index(idx: int) -> UnitData:
     return units[idx]
 
 
+func set_unit_at_position(col: int, row: int, unit: UnitData) -> void:
+    # Helper pratique pour travailler en (col = x, row = y)
+    set_unit_rc(row, col, unit)
+
+
+         
 func set_unit_at_index(idx: int, unit: UnitData) -> void:
     if idx < 0 or idx >= units.size():
         return

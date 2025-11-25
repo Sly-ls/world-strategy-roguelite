@@ -1,7 +1,7 @@
 [gd_resource type="Resource" script_class="UnitData" load_steps=3 format=3 uid="uid://b8ikxwsq7amv"]
 
 [ext_resource type="Script" uid="uid://c736tby0g6cjp" path="res://src/army/UnitData.gd" id="1_7sqbm"]
-[ext_resource type="Texture2D" uid="uid://chae0j1m6ist4" path="res://icon.svg" id="1_nc7ly"]
+[ext_resource type="Texture2D" uid="uid://bt77rxaetdgd3" path="res://assets/units/HalflingAssassin.png" id="1_nc7ly"]
 
 [resource]
 script = ExtResource("1_7sqbm")

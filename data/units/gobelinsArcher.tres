@@ -1,6 +1,6 @@
 [gd_resource type="Resource" script_class="UnitData" load_steps=3 format=3 uid="uid://c5c724rvkfviy"]
 
-[ext_resource type="Texture2D" uid="uid://chae0j1m6ist4" path="res://icon.svg" id="1_8yytl"]
+[ext_resource type="Texture2D" uid="uid://bmgkfl55q75pd" path="res://assets/units/GoblinArcher.png" id="1_8yytl"]
 [ext_resource type="Script" uid="uid://c736tby0g6cjp" path="res://src/army/UnitData.gd" id="1_kq0qy"]
 
 [resource]

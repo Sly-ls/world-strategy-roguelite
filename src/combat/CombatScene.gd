@@ -49,15 +49,15 @@ func _refresh_slots_for_side(slots: Array, units: Array, is_ally: bool) -> void:
         var slot := slots[i] as TextureRect
         slot.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
-        var u = units[i]
-        if u == null:
+        var unit = units[i]
+        if unit == null:
             slot.modulate = Color(0.2, 0.2, 0.2)
             slot.tooltip_text = ""
+            slot.texture = null
         else:
             slot.modulate = Color(0.6, 0.6, 1.0) if is_ally else Color(1.0, 0.6, 0.6)
-            var data: UnitData = u
-            var hp: int = u["hp"]
-            slot.tooltip_text = "%s\nPV: %d / %d" % [data.name, hp, data.max_hp]
+            slot.texture = unit.icon
+            slot.tooltip_text = "%s\nPV: %d / %d" % [unit.name, unit.hp, unit.max_hp]
             
 func _combat_tick() -> void:
     if battle_over:

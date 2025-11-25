@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://b2d6mm23decvg"
-path="res://.godot/imported/cthulluh_DOWN_0.png-02dd80b2622a27b7a95864b90bbdff51.ctex"
+uid="uid://bt77rxaetdgd3"
+path="res://.godot/imported/HalflingAssassin.png-6d7152b2cb409ad55d1749a199f9416c.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/maps/cthulluh_DOWN_0.png"
-dest_files=["res://.godot/imported/cthulluh_DOWN_0.png-02dd80b2622a27b7a95864b90bbdff51.ctex"]
+source_file="res://assets/units/HalflingAssassin.png"
+dest_files=["res://.godot/imported/HalflingAssassin.png-6d7152b2cb409ad55d1749a199f9416c.ctex"]
 
 [params]
 
