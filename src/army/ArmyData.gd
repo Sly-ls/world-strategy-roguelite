@@ -78,7 +78,7 @@ func describe():
 func clone_runtime() -> ArmyData:
     var a := ArmyData.new()
     a.id = id
-    a.units.resize(units.size())
+    a.units.resize(ARMY_SIZE)
 
     for i in units.size():
         var u := units[i]

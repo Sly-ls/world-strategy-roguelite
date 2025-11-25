@@ -206,7 +206,7 @@ func _try_drop(to_index: int) -> void:
         if target_unit != null:
             print("✓ Échange réussi : %s ↔ %s" % [dragged_unit.name, target_unit.name])
         else:
-            print("✓ Déplacement réussi : %s vers (col=%d, row=%d)" % [dragged_unit.name, to_col, to_row])
+            print("✓ Déplacement réussi : %s vers (col=%d, row=%d), idx=%d" % [dragged_unit.name, to_col, to_row, army_data.index_from_rc(to_row, to_col)])
 
         # Appliquer le compactage "Puissance 4" après chaque déplacement
         _compact_army_columns()
@@ -399,24 +399,28 @@ func _refresh_slots() -> void:
     if army_data == null:
         for slot in slots:
             if slot is TextureRect:
+                slot.visible = true
                 slot.texture = null
                 slot.modulate = Color(1, 1, 1, 0)
                 slot.tooltip_text = ""
         return
 
     for i in range(slots.size()):
-        var slot :TextureRect = slots[i]
-        if not (slot is TextureRect):
+        var slot := slots[i] as TextureRect
+        if slot == null:
             continue
 
+        # On force le slot à être visible, même vide
+        slot.visible = true
+
         # Index UI -> (col, row) dans l'armée
-        var coords: Vector2 = army_data.rc_from_index(i)
-        var combat_col := int(coords.x)
-        var combat_row := int(coords.y)
+        var coords: Vector2 = army_data.rc_from_index(i) # x=col, y=row
+        var col := int(coords.x)
+        var row := int(coords.y)
 
         # --- Soulignement rouge de la première ligne (front) ---
         var underline: ColorRect = slot.get_node_or_null("FrontLineUnderline")
-        if combat_row == 0:
+        if row == 0:
             if underline == null:
                 underline = ColorRect.new()
                 underline.name = "FrontLineUnderline"
@@ -434,12 +438,12 @@ func _refresh_slots() -> void:
                 underline.visible = false
         # --------------------------------------------------------
 
-        var unit: UnitData = army_data.get_unit_at_position(combat_row, combat_col)
+        # ATTENTION : get_unit_at_position(row, col)
+        var unit: UnitData = army_data.get_unit_at_index(i)
 
         if unit != null and unit.hp > 0:
-            # Affiche l'unité
-            slot.visible = true
-            slot.texture = unit.icon if unit.icon != null else null
+            # Affichage d'une unité
+            slot.texture = unit.icon if unit.icon != null else load("res://icon.svg")
             slot.modulate = Color(1, 1, 1, 1)
             slot.tooltip_text = "%s\nPV : %d / %d\nMoral : %d / %d" % [
                 unit.name,
@@ -451,12 +455,13 @@ func _refresh_slots() -> void:
             slot.texture = null
             slot.tooltip_text = "[Case vide]\n\nDéposez une unité ici"
 
-            if combat_row == 0:
-                # Emplacement vide sur la ligne de front → bien visible
+            if row == 0:
+                # Emplacement vide sur la ligne de front → très visible
                 slot.modulate = Color(1, 0.9, 0.9, 1.0)
             else:
                 # Case vide normale
                 slot.modulate = Color(1, 1, 1, 0.2)
+
 
 
 
