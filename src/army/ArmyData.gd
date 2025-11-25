@@ -1,41 +1,68 @@
 extends Resource
 class_name ArmyData
 
-const ARMY_COLS := 3
-const ARMY_ROWS := 5
+const ARMY_COLS := 3   # colonnes (gauche→droite) sur le champ de bataille
+const ARMY_ROWS := 5   # lignes (0 = front)
 const ARMY_SIZE := ARMY_COLS * ARMY_ROWS
+const BASE_SPEED_PX := 50.0  # vitesse "de référence" en pixels/s
 
-@export var id: String = ""              # pour les templates (optionnel mais utile)
-@export var units: Array[UnitData] = []  # taille = ARMY_SIZE
+@export var id: String = ""
+@export var units: Array[UnitData] = []
 
 
 func _init() -> void:
-    if units.is_empty():
+    if units.size() != ARMY_SIZE:
         units.resize(ARMY_SIZE)
 
 
-func rc_from_index(index: int) -> Vector2i:
-    return Vector2i(index / ARMY_COLS, index % ARMY_COLS) # row, col
-    
-func index_from_rc(col: int, row: int) -> int:
-    # row = 0 = ligne de front
+func index_from_rc(row: int, col: int) -> int:
+    # row = 0..4, col = 0..2
     return row * ARMY_COLS + col
-    
-func set_unit_at_index(col: int, row: int, unit: UnitData) -> void:
-    var idx := index_from_rc(col, row)
+
+
+func get_unit_at_index(idx: int) -> UnitData:
+    if idx < 0 or idx >= units.size():
+        return null
+    return units[idx]
+
+
+func set_unit_at_index(idx: int, unit: UnitData) -> void:
     if idx < 0 or idx >= units.size():
         return
     units[idx] = unit
 
 
-func get_unit_at_position(col: int, row: int) -> UnitData:
-    var index := index_from_rc(col, row)
-    return get_unit_at_index(index)
+func get_unit_at_position(row: int, col: int) -> UnitData:
+    return get_unit_at_index(index_from_rc(row, col))
 
-func get_unit_at_index(index: int) -> UnitData:
-    if index < 0 or index >= units.size():
-        return null
-    return units[index]
+
+func set_unit_rc(row: int, col: int, unit: UnitData) -> void:
+    set_unit_at_index(index_from_rc(row, col), unit)
+
+
+func compact_columns() -> void:
+    # "Puissance 4" : on fait tomber les unités vers row 0 dans chaque colonne
+    for col in range(ARMY_COLS):
+        var stack: Array[UnitData] = []
+
+        for row in range(ARMY_ROWS):
+            var u := get_unit_at_position(row, col)
+            if u != null and u.hp > 0:
+                stack.append(u)
+
+        var row_index := 0
+        for u in stack:
+            set_unit_rc(row_index, col, u)
+            row_index += 1
+
+        while row_index < ARMY_ROWS:
+            set_unit_rc(row_index, col, null)
+            row_index += 1
+
+func describe():
+        for unit in units:
+            print(unit.describe())
+
 
 func clone_runtime() -> ArmyData:
     var a := ArmyData.new()
@@ -51,20 +78,6 @@ func clone_runtime() -> ArmyData:
             a.units[i] = null
 
     return a
-
-func clear_unit_at(index: int) -> void:
-    if index < 0 or index >= units.size():
-        return
-    units[index] = null
-
-func is_dead() -> bool:
-    for unit in units:
-        if unit != null and unit.hp > 0:
-            return false
-    return true
-
-func get_units_count() -> int:
-    return units.size()
 
 
 func get_front_target_index_for_side() -> int:
@@ -86,7 +99,22 @@ func get_front_index_for_col(side: ArmyData, col: int) -> int:
         var u: UnitData = side.units[idx]
         if u != null and u.hp > 0:
             return idx
-    return -1
+    return -1    
+
+func is_dead() -> bool:
+    for unit in units:
+        if unit != null and unit.hp > 0:
+            return false
+    return true
+
+func get_all_ready_units(action :String, phase: String) -> Array[UnitData] :
+        var readyUnits: Array[UnitData] = []
+        for col in range(ARMY_COLS):
+            var unit :UnitData = get_unit_at_position(0,col)
+            if unit != null:
+                if unit.is_ready_for(action, phase):
+                    readyUnits.append(unit)
+        return readyUnits;
 
 
 func apply_reinforcements() -> void:
@@ -109,33 +137,16 @@ func apply_reinforcements() -> void:
             if cu != null and cu.hp > 0:
                 found_idx = idx
                 break
-
-        if found_idx != -1:
-            units[front_index] = units[found_idx]
-            units[found_idx] = null
-            
-func compact_columns() -> void:
-    # Pour chaque colonne, on fait tomber les unités vers row 0
-    for col in ARMY_COLS:
-        var stack: Array[UnitData] = []
-
-        # On parcourt les rows de front (0) vers fond (rows-1)
-        for row in ARMY_ROWS:
-            var u := get_unit_at_position(col, row)
-            if u != null and u.hp > 0:
-                stack.append(u)
-
-        # On remplit depuis row 0 avec ce qu'on a trouvé
-        var row_index := 0
-        for u in stack:
-            set_unit_at_index(col, row_index, u)
-            row_index += 1
-
-        # Les lignes restantes deviennent vides
-        while row_index < ARMY_ROWS:
-            set_unit_at_index(col, row_index, null)
-            row_index += 1
-
-func describe():
-        for unit in units:
-            print(unit.describe())
+      
+func get_attacks(defenders : ArmyData, action: String, phase: String) -> Array[AttackData] :
+        var attacks: Array[AttackData] = []
+        var readyUnits: Array[UnitData] = get_all_ready_units(action, phase)
+        if !readyUnits.is_empty():
+            for attacker :UnitData in readyUnits:
+                var targets = attacker.get_targets(defenders)
+                if !targets.is_empty():
+                    var power:int = attacker.get_score(action)
+                    var attack :AttackData = AttackData.new(attacker, targets, action,  phase, power)
+                    attacks.append(attack)
+                       
+        return attacks;

@@ -19,6 +19,7 @@ var morale: int = 100
 @export var attack_interval: float = 1.5
 
 @export var tags: Array[String] = []
+@export var powers: Array[String] = []
 @export var icon: Texture2D
 
 func clone_runtime() -> UnitData:
@@ -40,8 +41,9 @@ func clone_runtime() -> UnitData:
     u.magic_power = magic_power
 
     u.attack_interval = attack_interval
-
+    
     u.tags = tags.duplicate()
+    u.powers = powers.duplicate()
     u.icon = icon
     
     return u
@@ -57,3 +59,90 @@ func describe() -> String:
     description +=   "ranged_power: " + str(ranged_power) + "\n"
     description +=   "magic_power: " + str(magic_power) + "\n"
     return description
+    
+func has_power(power_searched: String) -> int:
+    for power :String in powers :
+        if power == power_searched :
+            return 1
+    return 0
+    
+func get_targets_order() -> Array[int] :
+    var targets_order :Array[int] = []
+    targets_order.resize(3)
+    var power_rank :int = has_power("FLANKER")
+    if power_rank > 0:
+        targets_order[0] = 2
+        targets_order[1] = 1
+        targets_order[2] = 0
+    else :
+        targets_order[0] = 0
+        targets_order[1] = 1
+        targets_order[2] = 2
+
+    return targets_order
+    
+func is_dead() -> bool:
+    return hp <= 0
+    
+func is_ready() -> bool:
+    return true
+            
+func get_targets(defender :ArmyData) -> Array[UnitData]:
+    var targets_order :Array[int] = get_targets_order()
+    var nbShot :int = 1 +  has_power("MULTISHOT") #pour l'instant sera toujours -1 car pas de pouvoir implementer
+    var targets :Array[UnitData] = []
+    if nbShot > 0:
+        for index :int in defender.ARMY_COLS:
+            var target :UnitData = defender.get_unit_at_position(0, targets_order[index])
+            if !target.is_dead():
+                targets.append(target)
+                nbShot -= 1
+                if nbShot <= 0:
+                    break
+    return targets;
+  
+func is_ready_for(action :String, phase: String) -> bool :
+    var ready :bool = !is_dead() && is_ready()
+    if ready:
+        if phase:
+            var phase_ok = get_score(phase)
+            if phase_ok > 0:
+                ready=true
+            else:
+                ready=false
+        else:
+            ready = true
+        
+        if ready:
+            ready = get_score(action) > 0
+    return ready
+
+func get_score(action :String) -> int :
+    match action:
+        "melee":
+            return melee_power
+        "ranged":
+            return ranged_power
+        "magic":
+            return magic_power
+        _:
+            return has_power(action)
+            
+func get_protection(action :String) -> int :
+    match action:
+        "melee":
+            return has_power("armored")
+        "ranged":
+            return has_power("dodge")
+        "magic":
+            return has_power("magic_resistance")
+        _:
+            return 0
+    
+func take_damage(action :String, damage :int) -> void :
+    var protection :int = get_protection(action)
+    hp -= clamp(damage - protection, 0, damage)
+    if hp < 0:
+        hp = 0
+    if hp <= 0:
+        print("%s meurt" % name)

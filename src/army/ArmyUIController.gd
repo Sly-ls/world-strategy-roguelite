@@ -53,7 +53,7 @@ func _refresh_slots() -> void:
         var combat_row := ui_col        # 0..4
         var combat_col := ui_row        # 0..2
 
-        var unit :UnitData = army_data.get_unit_rc(combat_row, combat_col)
+        var unit :UnitData = army_data.get_unit_at_position(combat_row, combat_col)
 
         if unit != null and unit.hp > 0:
             if unit.icon != null:

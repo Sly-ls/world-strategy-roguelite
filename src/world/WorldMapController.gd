@@ -15,7 +15,6 @@ var zoom_level: float = 1.0
 var army_grid_pos: Vector2i = Vector2i(10, 6)
 
 #UI part
-@onready var event_ui: ColorRect = $UI_Layer/EventOverlay
 @onready var date_label: Label = $UI_Layer/DateLabel
 @onready var rest_label: Label = $UI_Layer/RestLabel
 
@@ -24,7 +23,6 @@ var move_queue: Array[Vector2i] = []
 var is_auto_moving: bool = false
 var move_target: Vector2 = Vector2.ZERO
 var is_moving: bool = false
-const BASE_SPEED_PX := 30.0  # vitesse "de référence" en pixels/s
 
 #event part
 @onready var event_panel: EventPanel = $UI_Layer/EventPanel
@@ -79,7 +77,7 @@ func _update_army_movement(delta: float) -> void:
     # Biome actuel = cell logique actuelle
     var cell_type_current := _get_current_cell_type()
     var speed_mul :float = GameEnums.CELL_ENUM[cell_type_current].move_cost
-    var effective_speed := BASE_SPEED_PX * speed_mul
+    var effective_speed := WorldState.player_army.BASE_SPEED_PX * speed_mul
 
     var step := effective_speed * delta
 
