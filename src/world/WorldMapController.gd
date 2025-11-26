@@ -12,7 +12,6 @@ var zoom_level: float = 1.0
 
 #Army Part
 @onready var army_marker: Node2D = $ArmyMarker
-var army_grid_pos: Vector2i = Vector2i(10, 6)
 
 #UI part
 @onready var date_label: Label = $UI_Layer/DateLabel
@@ -44,7 +43,35 @@ func _ready() -> void:
     _init_world_grid()
     _update_army_world_position()
     _update_camera()
-        
+  
+ 
+func _update_army_world_position() -> void:
+    if army_marker:
+        army_marker.position = grid_to_world(WorldState.army_grid_pos)
+        print("Army position:", army_marker.position)
+        print("x", army_marker.position, army_marker.position.x / TILE_SIZE)
+        print("y",  army_marker.position.y / TILE_SIZE, )
+    else:
+        print("Army marker is NULL!")
+    queue_redraw()
+               
+func _init_world_grid() -> void:
+ world_grid.clear()
+
+ for y in GRID_HEIGHT:
+  var row: Array[CellType] = []
+  for x in GRID_WIDTH:
+   row.append(CellType.PLAINE)
+  world_grid.append(row)
+
+ world_grid[5][5] = CellType.TOWN
+ world_grid[6][8] = CellType.RUINS
+ world_grid[4][10] = CellType.FOREST_SHRINE
+ world_grid[7][7] = CellType.WATER
+ world_grid[7][8] = CellType.WATER
+ world_grid[7][9] = CellType.WATER
+ world_grid[7][10] = CellType.WATER
+
 func _process(delta: float) -> void:
     # Avance le temps global
     WorldState.advance_time(delta)
@@ -117,11 +144,11 @@ func _update_army_grid_pos_from_world() -> void:
     gx = clamp(gx, 0, GRID_WIDTH - 1)
     gy = clamp(gy, 0, GRID_HEIGHT - 1)
 
-    var old_pos := army_grid_pos
+    var old_pos := WorldState. army_grid_pos
     var new_pos := Vector2i(gx, gy)
 
     if new_pos != old_pos:
-        army_grid_pos = new_pos
+        WorldState.army_grid_pos = new_pos
         #_on_enter_cell(new_pos) # si tu as déjà une logique de POI / combat ici
     _check_enter_poi()
 
@@ -217,7 +244,7 @@ func _start_auto_move_to(target_grid: Vector2i) -> void:
     move_queue.clear()
     is_auto_moving = false
 
-    var start := army_grid_pos
+    var start := WorldState.army_grid_pos
     var end := target_grid
 
     var dx :int = abs(end.x - start.x)
@@ -255,27 +282,11 @@ func _start_auto_move_to(target_grid: Vector2i) -> void:
 func _update_date_ui() -> void:
     if date_label:
         date_label.text = WorldState.get_formatted_date()
-        
-func _init_world_grid() -> void:
- world_grid.clear()
 
- for y in GRID_HEIGHT:
-  var row: Array[CellType] = []
-  for x in GRID_WIDTH:
-   row.append(CellType.PLAINE)
-  world_grid.append(row)
-
- world_grid[5][5] = CellType.TOWN
- world_grid[6][8] = CellType.RUINS
- world_grid[4][10] = CellType.FOREST_SHRINE
- world_grid[7][7] = CellType.WATER
- world_grid[7][8] = CellType.WATER
- world_grid[7][9] = CellType.WATER
- world_grid[7][10] = CellType.WATER
 
 func _draw() -> void:
  # armée (cercle rouge)
- var pos = grid_to_world(army_grid_pos)
+ var pos = grid_to_world(WorldState.army_grid_pos)
  draw_circle(pos, 8.0, Color(1, 0, 0))
 
  # POI
@@ -290,23 +301,11 @@ func grid_to_world(grid_pos: Vector2i) -> Vector2:
   float(grid_pos.x) * TILE_SIZE + TILE_SIZE * 0.5,
   float(grid_pos.y) * TILE_SIZE + TILE_SIZE * 0.5
  )
- 
-func _update_army_world_position() -> void:
- if army_marker:
-  army_marker.position = grid_to_world(army_grid_pos)
-  print("Army position:", army_marker.position)
-  print("x", army_marker.position, army_marker.position.x / TILE_SIZE)
-  print("y",  army_marker.position.y / TILE_SIZE, )
- else:
-  print("Army marker is NULL!")
- queue_redraw()
-
 
 func _update_camera() -> void:
  if camera:
   camera.position = army_marker.position
   _clamp_camera_to_world()
-
 
 func _clamp_camera_to_world() -> void:
  var world_width  = GRID_WIDTH * TILE_SIZE
@@ -395,7 +394,7 @@ func _try_move_army(delta_grid: Vector2i) -> void:
     if WorldState.resting:
         return
 
-    var new_pos := army_grid_pos + delta_grid
+    var new_pos := WorldState.army_grid_pos + delta_grid
 
     # 1) limites de la carte
     if new_pos.x < 0 or new_pos.x >= GRID_WIDTH:
@@ -415,7 +414,7 @@ func _try_move_army(delta_grid: Vector2i) -> void:
     WorldState.advance_time(move_cost)
 
     # 4) Déplacer l’armée
-    army_grid_pos = new_pos
+    WorldState.army_grid_pos = new_pos
     _update_army_world_position()
     _update_camera()
 
@@ -443,11 +442,11 @@ func _on_rest_button_pressed() -> void:
     start_rest()
 
 func _get_current_cell_type() -> int:
-    if army_grid_pos.y < 0 or army_grid_pos.y >= GRID_HEIGHT:
+    if WorldState.army_grid_pos.y < 0 or WorldState.army_grid_pos.y >= GRID_HEIGHT:
         return CellType.PLAINE
-    if army_grid_pos.x < 0 or army_grid_pos.x >= GRID_WIDTH:
+    if WorldState.army_grid_pos.x < 0 or WorldState.army_grid_pos.x >= GRID_WIDTH:
         return CellType.PLAINE
-    return world_grid[army_grid_pos.y][army_grid_pos.x]
+    return world_grid[WorldState.army_grid_pos.y][WorldState.army_grid_pos.x]
 
 func change_scene(path: String) -> void:
     get_tree().change_scene_to_file(path)

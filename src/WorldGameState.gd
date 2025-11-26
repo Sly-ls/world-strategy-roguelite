@@ -1,47 +1,38 @@
 extends Node
 class_name WorldGameState
 
+# --- Global Variable ---
 var player_army: ArmyData = null
-var enemy_army: ArmyData = null
+var army_grid_pos: Vector2i = Vector2i(10, 6)
 
+# --- BATTLE ---
+var enemy_army: ArmyData = null
 # --- battle result ---
 var last_battle_result: String = ""  # "victory", "defeat", "draw", "retreat"
 var allies_death: Array[UnitData] = []
 var ennemies_death: Array[UnitData] = []
 
 # --- Temps global ---
-
 const SEASONS : Array[String] = ["Printemps", "Été", "Automne", "Hiver"]
 const DAY_PHASES : Array[String] = ["Aube", "Jour", "Crépuscule", "Nuit"]
-
 const DAYS_PER_SEASON := 15
 const PHASES_PER_DAY := 4
 const DAY_DURATION_SECONDS := 60.0  # 1 minute par jour
 const PHASE_DURATION_SECONDS := DAY_DURATION_SECONDS / PHASES_PER_DAY  # 15s
-
 var current_season: int = 0         # 0..3
 var current_day: int = 1            # 1..15
 var current_phase: int = 0          # 0..3
 var _time_accumulator: float = 0.0  # temps cumulé dans la phase en cours
 
+# --- REST ---
 const REST_DURATION_PHASES := 1
 const REST_DURATION_SECONDS := REST_DURATION_PHASES * PHASE_DURATION_SECONDS  # Un repos = 2 phases (ajustable)
 const REST_HEAL_PERCENT := 0.15   # Soigne 15% des PV max
 const REST_MORALE_GAIN := 10      # +10 moral
-
 var resting: bool = false
-var phase_elapsed: float = 0.0  
 var rest_seconds_remaining: float = 0.0 
 
-const MOVE_COST := {
-    GameEnums.CellType.PLAINE: 3.0,        # Plaine
-    GameEnums.CellType.TOWN: 2.0,         # Ville (routes)
-    GameEnums.CellType.FOREST_SHRINE: 4.0,
-    GameEnums.CellType.RUINS: 5.0,
-    # rajoute les futurs biomes ici
-}
 
-const DEFAULT_MOVE_COST := 4.0   # Si jamais un biome ne figure pas dans le dictionnaire
 
 func advance_time(delta: float) -> void:
     _time_accumulator += delta
