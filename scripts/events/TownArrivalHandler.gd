@@ -1,4 +1,3 @@
-# res://scripts/events/ForestShrineHandler.gd
 extends WorldEventHandler
 
 func execute_choice(choice_id: String, world_controller: Node) -> void:
