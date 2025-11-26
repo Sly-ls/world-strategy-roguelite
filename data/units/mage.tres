@@ -10,8 +10,11 @@ name = "Mage"
 max_hp = 300
 max_morale = 90
 count = 4
-magic_power = 30
 attack_interval = 2.0
 tags = Array[String](["magic", "glass_cannon"])
+powers = Dictionary[int, int]({
+2: 75,
+4: 1
+})
 icon = ExtResource("1_yviga")
 metadata/_custom_type_script = "uid://c736tby0g6cjp"

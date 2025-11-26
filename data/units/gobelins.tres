@@ -8,7 +8,10 @@ script = ExtResource("1_54kor")
 id = "gobelins"
 name = "Gobelins"
 count = 12
-melee_power = 40
 tags = Array[String](["weak"])
+powers = Dictionary[int, int]({
+0: 30,
+9: 5
+})
 icon = ExtResource("1_o2gl1")
 metadata/_custom_type_script = "uid://c736tby0g6cjp"

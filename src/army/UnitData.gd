@@ -12,14 +12,10 @@ var morale: int = 100
 
 @export var count: int = 1
 
-@export var melee_power: int = 0
-@export var ranged_power: int = 0
-@export var magic_power: int = 0
-
-@export var attack_interval: float = 1.5
+@export var attack_interval: float = 1.0
 
 @export var tags: Array[String] = []
-@export var powers: Array[String] = []
+@export var powers: Dictionary[PowerEnums.PowerType, int] = {}
 @export var icon: Texture2D
 
 func clone_runtime() -> UnitData:
@@ -36,10 +32,6 @@ func clone_runtime() -> UnitData:
 
     u.count = count
 
-    u.melee_power = melee_power
-    u.ranged_power = ranged_power
-    u.magic_power = magic_power
-
     u.attack_interval = attack_interval
     
     u.tags = tags.duplicate()
@@ -55,21 +47,14 @@ func describe() -> String:
     description +=   "hp: " + str(hp) + "/"+ str(max_hp) + "\n"
     description +=   "morale: " + str(morale) + "/"+ str(max_morale) + "\n"
     description +=   "count: " + str(count) + "\n"
-    description +=   "melee_power: " + str(melee_power) + "\n"
-    description +=   "ranged_power: " + str(ranged_power) + "\n"
-    description +=   "magic_power: " + str(magic_power) + "\n"
+    for key in powers.keys():
+        description +=   key + str(powers[key]) + "\n"
     return description
-    
-func has_power(power_searched: String) -> int:
-    for power :String in powers :
-        if power == power_searched :
-            return 1
-    return 0
     
 func get_targets_order() -> Array[int] :
     var targets_order :Array[int] = []
     targets_order.resize(3)
-    var power_rank :int = has_power("FLANKER")
+    var power_rank :int = get_score(PowerEnums.PowerType.FLANKER)
     if power_rank > 0:
         targets_order[0] = 2
         targets_order[1] = 1
@@ -89,7 +74,7 @@ func is_ready() -> bool:
             
 func get_targets(defender :ArmyData) -> Array[UnitData]:
     var targets_order :Array[int] = get_targets_order()
-    var nbShot :int = 1 +  has_power("MULTISHOT") #pour l'instant sera toujours -1 car pas de pouvoir implementer
+    var nbShot :int = 1 +  get_score(PowerEnums.PowerType.MULTISHOT) #pour l'instant sera toujours -1 car pas de pouvoir implementer
     var targets :Array[UnitData] = []
     if nbShot > 0:
         for index :int in defender.ARMY_COLS:
@@ -101,48 +86,46 @@ func get_targets(defender :ArmyData) -> Array[UnitData]:
                     break
     return targets;
   
-func is_ready_for(action :String, phase: String) -> bool :
+func is_ready_for(action :PowerEnums.PowerType, phase: PowerEnums.PowerType) -> bool :
     var ready :bool = !is_dead() && is_ready()
     if ready:
-        if phase:
+        if phase == PowerEnums.PowerType.NORMAL:
+            var phase_ok = get_score(PowerEnums.PowerType.INITIATIVE)
+            phase_ok += get_score(PowerEnums.PowerType.SLOW)
+            if phase_ok <= 0:
+                ready=true
+            else:
+                ready=false
+        elif  phase == PowerEnums.PowerType.INITIATIVE || phase == PowerEnums.PowerType.SLOW:
             var phase_ok = get_score(phase)
             if phase_ok > 0:
                 ready=true
             else:
                 ready=false
-        else:
-            ready = true
         
         if ready:
             ready = get_score(action) > 0
     return ready
 
-func get_score(action :String) -> int :
-    match action:
-        "melee":
-            return melee_power
-        "ranged":
-            return ranged_power
-        "magic":
-            return magic_power
-        _:
-            return has_power(action)
+func get_score(action :PowerEnums.PowerType) -> int :
+    if powers.has(action):
+        return int(powers[action])
+    else :
+        return 0
             
-func get_protection(action :String) -> int :
+func get_protection(action :PowerEnums.PowerType) -> int :
     match action:
-        "melee":
-            return has_power("armored")
-        "ranged":
-            return has_power("dodge")
-        "magic":
-            return has_power("magic_resistance")
+        PowerEnums.PowerType.MELEE:
+            return get_score(PowerEnums.PowerType.ARMOR)
+        PowerEnums.PowerType.RANGED:
+            return get_score(PowerEnums.PowerType.DODGE)
+        PowerEnums.PowerType.MAGIC:
+            return get_score(PowerEnums.PowerType.MAGIC_RESISTANCE)
         _:
             return 0
     
-func take_damage(action :String, damage :int) -> void :
+func take_damage(action :PowerEnums.PowerType, damage :int) -> void :
     var protection :int = get_protection(action)
     hp -= clamp(damage - protection, 0, damage)
     if hp < 0:
         hp = 0
-    if hp <= 0:
-        print("%s meurt" % name)

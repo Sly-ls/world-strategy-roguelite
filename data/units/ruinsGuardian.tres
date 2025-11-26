@@ -10,8 +10,11 @@ name = "Gardiens des ruines"
 max_hp = 400
 max_morale = 400
 count = 5
-melee_power = 18
 attack_interval = 1.6
 tags = Array[String](["relentless", "armored"])
+powers = Dictionary[int, int]({
+0: 40,
+2: 40
+})
 icon = ExtResource("1_5sp7e")
 metadata/_custom_type_script = "uid://c736tby0g6cjp"

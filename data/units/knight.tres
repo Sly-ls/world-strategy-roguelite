@@ -9,7 +9,10 @@ id = "knight"
 name = "Chevaliers"
 max_hp = 600
 count = 6
-melee_power = 25
 tags = Array[String](["frontline", "armored"])
+powers = Dictionary[int, int]({
+0: 40,
+8: 5
+})
 icon = ExtResource("1_nc7ly")
 metadata/_custom_type_script = "uid://c736tby0g6cjp"

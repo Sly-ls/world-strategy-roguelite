@@ -15,8 +15,8 @@ var pending_attacks : Array[AttackData]= []
 
 var tick_timer: float = 0.0
 const TICK_INTERVAL := 0.2  # secondes entre deux ticks de combat
-var combat_phases: Array[String] = ["Initiative", "", "Lent"]
 
+var combat_phases: Array[PowerEnums.PowerType] = [PowerEnums.PowerType.INITIATIVE, PowerEnums.PowerType.NORMAL, PowerEnums.PowerType.SLOW]
 
 func _ready() -> void:
     ally_slots = grid_allies.get_children()
@@ -42,7 +42,6 @@ func _refresh_all_slots() -> void:
 
 
 func _refresh_slots_for_side(slots: Array, units: Array, is_ally: bool) -> void:
-    print("size:", units.size())
     for i in slots.size():
         if i >= units.size():
             break
@@ -65,16 +64,16 @@ func _combat_tick() -> void:
     print("Tour %d" % turn_counter)
     
     # 1. Phase distance
-    for phase :String in combat_phases:
-        do_attack("ranged", phase)
+    for phase :PowerEnums.PowerType in combat_phases:
+        do_attack(PowerEnums.PowerType.RANGED, phase)
     
     # 2. Phase CàC
-    for phase :String in combat_phases:
-        do_attack("melee", phase)
+    for phase :PowerEnums.PowerType in  combat_phases:
+        do_attack(PowerEnums.PowerType.MELEE, phase)
     
     # 3. Phase magie
-    for phase :String in combat_phases:
-        do_attack("magic", phase)
+    for phase :PowerEnums.PowerType in  combat_phases:
+        do_attack(PowerEnums.PowerType.MAGIC, phase)
         
     # 4. Renforts
     allies.apply_reinforcements()
@@ -84,7 +83,7 @@ func _combat_tick() -> void:
     _refresh_all_slots()
     _check_end_of_combat()
     
-func do_attack(action: String, phase :String) -> void :
+func do_attack(action: PowerEnums.PowerType, phase :PowerEnums.PowerType) -> void :
     pending_attacks.clear()
     var attacks : Array[AttackData]= allies.get_attacks(enemies, action, phase)
     pending_attacks.append_array(attacks)

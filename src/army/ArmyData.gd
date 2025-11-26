@@ -118,7 +118,7 @@ func is_dead() -> bool:
             return false
     return true
 
-func get_all_ready_units(action :String, phase: String) -> Array[UnitData] :
+func get_all_ready_units(action :PowerEnums.PowerType, phase: PowerEnums.PowerType) -> Array[UnitData] :
         var readyUnits: Array[UnitData] = []
         for col in range(ARMY_COLS):
             var unit :UnitData = get_unit_at_position(0,col)
@@ -149,7 +149,7 @@ func apply_reinforcements() -> void:
                 found_idx = idx
                 break
       
-func get_attacks(defenders : ArmyData, action: String, phase: String) -> Array[AttackData] :
+func get_attacks(defenders : ArmyData, action: PowerEnums.PowerType, phase: PowerEnums.PowerType) -> Array[AttackData] :
         var attacks: Array[AttackData] = []
         var readyUnits: Array[UnitData] = get_all_ready_units(action, phase)
         if !readyUnits.is_empty():

@@ -10,9 +10,10 @@ name = "Archers"
 max_hp = 300
 max_morale = 80
 count = 10
-melee_power = 8
-ranged_power = 18
 attack_interval = 1.2
 tags = Array[String](["ranged"])
+powers = Dictionary[int, int]({
+1: 40
+})
 icon = ExtResource("1_xswrj")
 metadata/_custom_type_script = "uid://c736tby0g6cjp"

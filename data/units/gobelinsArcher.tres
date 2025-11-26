@@ -8,6 +8,9 @@ script = ExtResource("1_kq0qy")
 id = "gobelinsArcher"
 name = "Archers Gobelins"
 max_hp = 250
-ranged_power = 50
+powers = Dictionary[int, int]({
+1: 25,
+9: 5
+})
 icon = ExtResource("1_8yytl")
 metadata/_custom_type_script = "uid://c736tby0g6cjp"
