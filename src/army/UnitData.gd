@@ -17,8 +17,9 @@ var morale: int = 100
 @export var tags: Array[String] = []
 @export var powers: Dictionary[PowerEnums.PowerType, int] = {}
 @export var icon: Texture2D
+var player: bool = false
 
-func clone_runtime() -> UnitData:
+func clone_runtime(_player: bool = false) -> UnitData:
     # On ne veut jamais modifier le template .tres directement.
     var u := UnitData.new()
     u.id = id
@@ -37,6 +38,7 @@ func clone_runtime() -> UnitData:
     u.tags = tags.duplicate()
     u.powers = powers.duplicate()
     u.icon = icon
+    u.player = _player
     
     return u
     

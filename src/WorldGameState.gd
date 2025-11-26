@@ -4,7 +4,10 @@ class_name WorldGameState
 var player_army: ArmyData = null
 var enemy_army: ArmyData = null
 
+# --- battle result ---
 var last_battle_result: String = ""  # "victory", "defeat", "draw", "retreat"
+var allies_death: Array[UnitData] = []
+var ennemies_death: Array[UnitData] = []
 
 # --- Temps global ---
 

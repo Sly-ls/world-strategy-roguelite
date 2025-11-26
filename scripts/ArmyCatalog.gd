@@ -51,10 +51,10 @@ func _load_army_templates() -> void:
     print("ArmyCatalog: %d templates d'armées chargés." % templates.size())
 
 
-func create_army(id: String) -> ArmyData:
+func create_army(id: String, _player: bool = false) -> ArmyData:
     if not templates.has(id):
         push_error("ArmyCatalog: aucun template pour l'armée id '%s'" % id)
         return null
 
     var template := templates[id] as ArmyData
-    return template.clone_runtime()
+    return template.clone_runtime(_player)

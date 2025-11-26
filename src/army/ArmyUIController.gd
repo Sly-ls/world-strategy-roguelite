@@ -38,7 +38,7 @@ func _ready() -> void:
 
 
 func _create_test_army() -> void:
-    army_data = ArmyFactory.create_army("player_start_army")
+    army_data = ArmyFactory.create_army("player_start_army", true)
 
 
 func _process(delta: float) -> void:

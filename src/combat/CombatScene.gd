@@ -2,13 +2,10 @@ extends Control
 
 @onready var grid_allies: GridContainer = $GridAllies
 @onready var grid_enemies: GridContainer = $GridEnemies
-var turn_counter:int = 0;
+var turn_counter:int = 1;
 var battle_over: bool = false
 var ally_slots: Array = []
 var enemy_slots: Array = []
-# Chaque entrée sera un dictionnaire { unit_data: UnitData, hp: int, attack_cd: float }
-# var allies: Array = []
-# var enemies: Array = []
 var allies: ArmyData = null
 var enemies: ArmyData = null
 var pending_attacks : Array[AttackData]= []
@@ -18,12 +15,22 @@ const TICK_INTERVAL := 0.2  # secondes entre deux ticks de combat
 
 var combat_phases: Array[PowerEnums.PowerType] = [PowerEnums.PowerType.INITIATIVE, PowerEnums.PowerType.NORMAL, PowerEnums.PowerType.SLOW]
 var combat_actions: Array[PowerEnums.PowerType] = [PowerEnums.PowerType.RANGED, PowerEnums.PowerType.MELEE, PowerEnums.PowerType.MAGIC]
+@onready var result_panel: BattleResultPanel = $BattleResultPanel
+
+@onready var phase_label: Label = $TopInfo/ActionInfo/PhaseLabel
+@onready var round_label: Label = $TopInfo/ActionInfo/RoundLabel
+@onready var combat_log: RichTextLabel = $TopInfo/CombatLog
 
 func _ready() -> void:
     ally_slots = grid_allies.get_children()
     enemy_slots = grid_enemies.get_children()
+    
+    round_label.text = "Round : %d" % turn_counter
+    # combat_actions.clear() quandje mets ça, plus rien ne s'affiche
+    log_message("Debut du combat")
     _init_from_game_state()
     _refresh_all_slots()
+    result_panel.result_closed.connect(_on_battle_result_closed)
     
 func _init_from_game_state() -> void:
     allies = WorldState.player_army
@@ -34,8 +41,8 @@ func _process(delta: float) -> void:
     tick_timer += delta
     if tick_timer >= TICK_INTERVAL:
         tick_timer -= TICK_INTERVAL
-        turn_counter += 1
         _combat_tick()
+        turn_counter += 1
 
 func _refresh_all_slots() -> void:
     _refresh_slots_for_side(ally_slots, allies.units, true)
@@ -58,7 +65,7 @@ func _refresh_slots_for_side(slots: Array, units: Array, is_ally: bool) -> void:
             slot.modulate = Color(0.6, 0.6, 1.0) if is_ally else Color(1.0, 0.6, 0.6)
             slot.texture = unit.icon
             slot.tooltip_text = "%s\nPV: %d / %d" % [unit.name, unit.hp, unit.max_hp]
-            
+         
 func _combat_tick() -> void:
     if battle_over:
         return
@@ -66,6 +73,7 @@ func _combat_tick() -> void:
     
     for action :PowerEnums.PowerType in  combat_actions:
         for phase :PowerEnums.PowerType in combat_phases:
+            _update_round_phase_ui(action, phase)
             do_attack(action, phase)
         
     # 4. Renforts
@@ -75,6 +83,25 @@ func _combat_tick() -> void:
     # 5. UI + fin
     _refresh_all_slots()
     _check_end_of_combat()
+
+func log_messages(messages: Array[String]) -> void:
+    for message in messages:
+        log_message(message)
+    
+func log_message(message: String) -> void:
+    if combat_log == null:
+        print("ERROR : %s" % message)
+        return
+    combat_log.append_text(message + "\n")
+    combat_log.scroll_to_line(combat_log.get_line_count() - 1)
+    print(message)
+    
+func _update_round_phase_ui(action: PowerEnums.PowerType, phase :PowerEnums.PowerType) -> void:
+    var action_name :String = PowerEnums.POWER_ENUM[action].name
+    var phase_name :String = PowerEnums.POWER_ENUM[phase].name
+    print("Phase : %s - %s (%d-%d)" % [action_name, phase_name,action,phase])
+    phase_label.text = "Phase : %s - %s (%d-%d)" % [action_name, phase_name,action,phase]
+    round_label.text = "Round : %d" % turn_counter
     
 func do_attack(action: PowerEnums.PowerType, phase :PowerEnums.PowerType) -> void :
     pending_attacks.clear()
@@ -83,7 +110,8 @@ func do_attack(action: PowerEnums.PowerType, phase :PowerEnums.PowerType) -> voi
     var attacks_2 : Array[AttackData]= enemies.get_attacks(allies, action, phase)
     pending_attacks.append_array(attacks_2)
     for attack :AttackData in pending_attacks:
-        attack.apply()
+        var messages : Array[String]= attack.apply()
+        log_messages(messages)
     
         
 func get_front_index_for_col(side: ArmyData, col: int) -> int:
@@ -150,5 +178,20 @@ func _end_battle() -> void:
     var army := WorldState.player_army
     if army != null:
         army.compact_columns()
-    # Retour à la world map
+    var result = WorldState.last_battle_result
+    var player_army = WorldState.allies_death
+    var enemy_army = WorldState.ennemies_death
+
+    # Optionnel : récupérer quelques lignes du combat_log si tu as un RichTextLabel,je ne l'utilise pas,je ne sais pas quoi en faire pour l'instant
+    var extra_text := ""
+    if combat_log != null && false:
+        extra_text = combat_log.text
+
+    # Afficher le panneau
+    result_panel.show_result(result, player_army, enemy_army, extra_text)
+    
+func _on_battle_result_closed() -> void:
+    # Ici, le résultat est déjà dans WorldGameState.last_battle_result
+    # Tu peux retourner à la worldmap
+    print("go to world map")
     get_tree().change_scene_to_file("res://scenes/WorldMap.tscn")

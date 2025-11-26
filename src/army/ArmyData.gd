@@ -8,12 +8,29 @@ const BASE_SPEED_PX := 50.0  # vitesse "de référence" en pixels/s
 
 @export var id: String = ""
 @export var units: Array[UnitData] = []
+var player: bool = false
 
 
-func _init() -> void:
+func _init(_player: bool = false) -> void:
+    player = _player
     if units.size() != ARMY_SIZE:
         units.resize(ARMY_SIZE)
+        
+func clone_runtime(_player: bool = false) -> ArmyData:
+    var a := ArmyData.new(_player)
+    a.id = id
+    a.units.resize(ARMY_SIZE)
 
+    for i in units.size():
+        var u := units[i]
+        if u != null:
+            # très important : on clone aussi les unités
+            a.units[i] = u.clone_runtime(_player)
+        else:
+            a.units[i] = null
+
+    return a
+    
 func rc_from_index(idx: int) -> Vector2:
     # Convertit un index linéaire (0..ARMY_SIZE-1) en (col, row)
     # col = x, row = y
@@ -74,21 +91,6 @@ func describe():
         for unit in units:
             print(unit.describe())
 
-
-func clone_runtime() -> ArmyData:
-    var a := ArmyData.new()
-    a.id = id
-    a.units.resize(ARMY_SIZE)
-
-    for i in units.size():
-        var u := units[i]
-        if u != null:
-            # très important : on clone aussi les unités
-            a.units[i] = u.clone_runtime()
-        else:
-            a.units[i] = null
-
-    return a
 
 
 func get_front_target_index_for_side() -> int:

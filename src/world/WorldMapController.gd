@@ -44,7 +44,6 @@ func _ready() -> void:
     _init_world_grid()
     _update_army_world_position()
     _update_camera()
-    
         
 func _process(delta: float) -> void:
     # Avance le temps global

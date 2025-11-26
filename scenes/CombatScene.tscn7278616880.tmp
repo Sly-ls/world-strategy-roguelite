@@ -1,9 +1,8 @@
-[gd_scene load_steps=5 format=3 uid="uid://bh7xtdnugcefb"]
+[gd_scene load_steps=4 format=3 uid="uid://bh7xtdnugcefb"]
 
 [ext_resource type="Script" uid="uid://c74ootueqj7oc" path="res://src/combat/CombatScene.gd" id="1_gc2ly"]
 [ext_resource type="Texture2D" uid="uid://bfs05wxe1k2iw" path="res://assets/combat/Battle Backgrounds_0.png" id="2_4j82b"]
 [ext_resource type="Texture2D" uid="uid://chae0j1m6ist4" path="res://icon.svg" id="3_rx5ct"]
-[ext_resource type="PackedScene" uid="uid://dbrk8f1wf3w8j" path="res://scenes/BattleResultPanel.tscn" id="4_h7esm"]
 
 [node name="CombatScene" type="Control"]
 layout_mode = 3
@@ -304,15 +303,16 @@ text = "Quit"
 
 [node name="TopInfo" type="VBoxContainer" parent="."]
 layout_mode = 1
-anchors_preset = 10
-anchor_right = 1.0
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -51.0
+offset_right = 51.0
 offset_bottom = 27.0
 grow_horizontal = 2
 
 [node name="ActionInfo" type="HBoxContainer" parent="TopInfo"]
 layout_mode = 2
-size_flags_horizontal = 4
-size_flags_vertical = 4
 
 [node name="RoundLabel" type="Label" parent="TopInfo/ActionInfo"]
 layout_mode = 2
@@ -324,15 +324,9 @@ layout_mode = 2
 text = "Phase"
 
 [node name="CombatLog" type="RichTextLabel" parent="TopInfo"]
-custom_minimum_size = Vector2(350, 100)
 layout_mode = 2
-size_flags_horizontal = 4
 size_flags_vertical = 3
-text = "PLACE_HOLDER"
 fit_content = true
 scroll_following = true
-
-[node name="BattleResultPanel" parent="." instance=ExtResource("4_h7esm")]
-layout_mode = 1
 
 [connection signal="pressed" from="HBoxContainer/QuitButton" to="." method="_on_quit_button_pressed"]
