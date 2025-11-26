@@ -17,6 +17,7 @@ var tick_timer: float = 0.0
 const TICK_INTERVAL := 0.2  # secondes entre deux ticks de combat
 
 var combat_phases: Array[PowerEnums.PowerType] = [PowerEnums.PowerType.INITIATIVE, PowerEnums.PowerType.NORMAL, PowerEnums.PowerType.SLOW]
+var combat_actions: Array[PowerEnums.PowerType] = [PowerEnums.PowerType.RANGED, PowerEnums.PowerType.MELEE, PowerEnums.PowerType.MAGIC]
 
 func _ready() -> void:
     ally_slots = grid_allies.get_children()
@@ -63,17 +64,9 @@ func _combat_tick() -> void:
         return
     print("Tour %d" % turn_counter)
     
-    # 1. Phase distance
-    for phase :PowerEnums.PowerType in combat_phases:
-        do_attack(PowerEnums.PowerType.RANGED, phase)
-    
-    # 2. Phase CàC
-    for phase :PowerEnums.PowerType in  combat_phases:
-        do_attack(PowerEnums.PowerType.MELEE, phase)
-    
-    # 3. Phase magie
-    for phase :PowerEnums.PowerType in  combat_phases:
-        do_attack(PowerEnums.PowerType.MAGIC, phase)
+    for action :PowerEnums.PowerType in  combat_actions:
+        for phase :PowerEnums.PowerType in combat_phases:
+            do_attack(action, phase)
         
     # 4. Renforts
     allies.apply_reinforcements()

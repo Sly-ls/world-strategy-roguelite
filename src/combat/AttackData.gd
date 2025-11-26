@@ -22,8 +22,10 @@ func apply() -> void:
     for target :UnitData in targets:
         var power:int = attacker.get_score(action)
         target.take_damage(action, power)
+        var action_name :String = PowerEnums.POWER_ENUM[action].name
+        var phase_name :String = PowerEnums.POWER_ENUM[phase].name
         print("%s (%s-%s) frappe %s pour %d dégâts (PV restants: %d)" % [
-            attacker.name, action, phase, target.name, power, target.hp
+            attacker.name, action_name, phase_name, target.name, power, target.hp
         ])
         if target.hp <= 0:
             print("%s meurt" % target.name)

@@ -77,9 +77,9 @@ func get_targets(defender :ArmyData) -> Array[UnitData]:
     var nbShot :int = 1 +  get_score(PowerEnums.PowerType.MULTISHOT) #pour l'instant sera toujours -1 car pas de pouvoir implementer
     var targets :Array[UnitData] = []
     if nbShot > 0:
-        for index :int in defender.ARMY_COLS:
+        for index :int in targets_order.size():
             var target :UnitData = defender.get_unit_at_position(0, targets_order[index])
-            if !target.is_dead():
+            if target!= null && !target.is_dead():
                 targets.append(target)
                 nbShot -= 1
                 if nbShot <= 0:

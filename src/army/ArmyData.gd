@@ -31,7 +31,7 @@ func get_unit_at_index(idx: int) -> UnitData:
     return units[idx]
 
 
-func set_unit_at_position(col: int, row: int, unit: UnitData) -> void:
+func set_unit_at_position(row: int, col: int, unit: UnitData) -> void:
     # Helper pratique pour travailler en (col = x, row = y)
     set_unit_rc(row, col, unit)
 
@@ -131,23 +131,17 @@ func get_all_ready_units(action :PowerEnums.PowerType, phase: PowerEnums.PowerTy
 func apply_reinforcements() -> void:
     # units = array 1D de taille GRID_COLS * GRID_ROWS
     for col in ARMY_COLS:
-        # si la case de front est vide
-        var front_index := col  # si row 0 = front : index = row*cols + col = 0*cols + col
-        if front_index >= units.size():
-            break
-        if units[front_index] != null and units[front_index].hp > 0:
-            continue
-
-        # cherche la première unité vivante plus loin dans la colonne
-        var found_idx := -1
-        for row in range(1, ARMY_ROWS):
-            var idx := row * ARMY_COLS + col
-            if idx >= units.size():
-                break
-            var cu := units[idx]
-            if cu != null and cu.hp > 0:
-                found_idx = idx
-                break
+        var unit :UnitData = get_unit_at_position(0, col)
+        if unit == null || unit.hp <= 0:
+            units[index_from_rc(0, col)] = null
+            for row in range(1,ARMY_ROWS):
+                var reinforcmeent:UnitData = get_unit_at_position(row, col)
+                if reinforcmeent != null && reinforcmeent.hp >= 0:
+                    set_unit_at_position(0, col, reinforcmeent)
+                    units[index_from_rc(row, col)] = null
+                    compact_columns()
+                    break
+      
       
 func get_attacks(defenders : ArmyData, action: PowerEnums.PowerType, phase: PowerEnums.PowerType) -> Array[AttackData] :
         var attacks: Array[AttackData] = []
