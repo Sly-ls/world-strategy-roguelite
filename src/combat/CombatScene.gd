@@ -12,6 +12,7 @@ var pending_attacks : Array[AttackData]= []
 
 var tick_timer: float = 0.0
 const TICK_INTERVAL := 0.2  # secondes entre deux ticks de combat
+var is_resolving_round := false
 
 var combat_phases: Array[PowerEnums.PowerType] = [PowerEnums.PowerType.INITIATIVE, PowerEnums.PowerType.NORMAL, PowerEnums.PowerType.SLOW]
 var combat_actions: Array[PowerEnums.PowerType] = [PowerEnums.PowerType.RANGED, PowerEnums.PowerType.MELEE, PowerEnums.PowerType.MAGIC]
@@ -20,6 +21,7 @@ var combat_actions: Array[PowerEnums.PowerType] = [PowerEnums.PowerType.RANGED, 
 @onready var phase_label: Label = $TopInfo/ActionInfo/PhaseLabel
 @onready var round_label: Label = $TopInfo/ActionInfo/RoundLabel
 @onready var combat_log: RichTextLabel = $TopInfo/CombatLog
+@onready var next_turn_button: Button = $NextTurnButton
 
 func _ready() -> void:
     ally_slots = grid_allies.get_children()
@@ -30,7 +32,9 @@ func _ready() -> void:
     log_message("Debut du combat")
     _init_from_game_state()
     _refresh_all_slots()
+    _update_next_button_label()
     result_panel.result_closed.connect(_on_battle_result_closed)
+    next_turn_button.pressed.connect(_on_next_turn_button_pressed)
     
 func _init_from_game_state() -> void:
     allies = WorldState.player_army
@@ -41,13 +45,15 @@ func _process(delta: float) -> void:
     tick_timer += delta
     if tick_timer >= TICK_INTERVAL:
         tick_timer -= TICK_INTERVAL
-        _combat_tick()
-        turn_counter += 1
+
+func _run_one_round() -> void:
+    _combat_tick()
+    _update_next_button_label()
+    turn_counter += 1
 
 func _refresh_all_slots() -> void:
     _refresh_slots_for_side(ally_slots, allies.units, true)
     _refresh_slots_for_side(enemy_slots, enemies.units, false)
-
 
 func _refresh_slots_for_side(slots: Array, units: Array, is_ally: bool) -> void:
     for i in slots.size():
@@ -174,6 +180,16 @@ func _end_battle() -> void:
         return
     battle_over = true
     set_process(false)
+    _update_next_button_label()
+    
+func _update_next_button_label() -> void:
+    if battle_over:
+        next_turn_button.text = "Rapport de bataille"
+    else:
+        next_turn_button.text = "Jouer le tour %d" % (turn_counter + 1)
+          
+
+func _show_battle_result() -> void:
     # tu as déjà mis à jour WorldState.player_army depuis le combat
     var army := WorldState.player_army
     if army != null:
@@ -189,7 +205,19 @@ func _end_battle() -> void:
 
     # Afficher le panneau
     result_panel.show_result(result, player_army, enemy_army, extra_text)
-    
+
+func _on_next_turn_button_pressed() -> void:
+    if is_resolving_round:
+        return
+    is_resolving_round = true
+    if battle_over:
+        _show_battle_result()
+        next_turn_button.visible = false
+    else:
+    # await _run_one_round_async() a utiliser quand il y aura mles animation
+        _run_one_round()
+        is_resolving_round = false
+
 func _on_battle_result_closed() -> void:
     # Ici, le résultat est déjà dans WorldGameState.last_battle_result
     # Tu peux retourner à la worldmap

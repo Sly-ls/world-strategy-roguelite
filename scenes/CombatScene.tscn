@@ -335,4 +335,18 @@ scroll_following = true
 [node name="BattleResultPanel" parent="." instance=ExtResource("4_h7esm")]
 layout_mode = 1
 
+[node name="NextTurnButton" type="Button" parent="."]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -100.0
+offset_top = -40.0
+offset_right = 100.0
+grow_horizontal = 2
+grow_vertical = 0
+text = "Affrontement !"
+
 [connection signal="pressed" from="HBoxContainer/QuitButton" to="." method="_on_quit_button_pressed"]
