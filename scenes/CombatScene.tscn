@@ -153,6 +153,27 @@ size_flags_vertical = 3
 texture = ExtResource("3_rx5ct")
 expand_mode = 2
 
+[node name="RetreatButtons" type="HBoxContainer" parent="."]
+layout_mode = 0
+offset_top = 109.0
+offset_right = 384.0
+offset_bottom = 167.0
+
+[node name="RetreatButtonCol0" type="Button" parent="RetreatButtons"]
+layout_mode = 2
+text = "Retreat"
+
+[node name="RetreatButtonCol1" type="Button" parent="RetreatButtons"]
+layout_mode = 2
+size_flags_horizontal = 5
+text = "Retreat"
+
+[node name="RetreatButtonCol2" type="Button" parent="RetreatButtons"]
+layout_mode = 2
+size_flags_horizontal = 9
+text = "Retreat"
+icon_alignment = 1
+
 [node name="GridEnemies" type="GridContainer" parent="."]
 layout_mode = 1
 anchors_preset = 11

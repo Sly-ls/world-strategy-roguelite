@@ -22,7 +22,13 @@ var combat_actions: Array[PowerEnums.PowerType] = [PowerEnums.PowerType.RANGED, 
 @onready var round_label: Label = $TopInfo/ActionInfo/RoundLabel
 @onready var combat_log: RichTextLabel = $TopInfo/CombatLog
 @onready var next_turn_button: Button = $NextTurnButton
+@onready var retreat_buttons: Array[Button] = [
+    $RetreatButtons/RetreatButtonCol0,
+    $RetreatButtons/RetreatButtonCol1,
+    $RetreatButtons/RetreatButtonCol2,
+]
 
+@onready var retreat_status: Array[bool] = [true,true,true]
 func _ready() -> void:
     ally_slots = grid_allies.get_children()
     enemy_slots = grid_enemies.get_children()
@@ -32,9 +38,11 @@ func _ready() -> void:
     log_message("Debut du combat")
     _init_from_game_state()
     _refresh_all_slots()
-    _update_next_button_label()
+    update_buttons_status()
     result_panel.result_closed.connect(_on_battle_result_closed)
     next_turn_button.pressed.connect(_on_next_turn_button_pressed)
+    for col in retreat_buttons.size():
+        retreat_buttons[col].pressed.connect(_on_retreat_button_pressed.bind(col))
     
 func _init_from_game_state() -> void:
     allies = WorldState.player_army
@@ -46,11 +54,28 @@ func _process(delta: float) -> void:
     if tick_timer >= TICK_INTERVAL:
         tick_timer -= TICK_INTERVAL
 
-func _run_one_round() -> void:
-    _combat_tick()
+func update_buttons_status() -> void:
     _update_next_button_label()
+    _update_retreat_buttons()
+    
+func _update_retreat_buttons() -> void:
+    var show_retreat :bool = !battle_over && !is_resolving_round
+    var idx: int = 0
+    for btn:Button  in retreat_buttons:
+        btn.visible = show_retreat && retreat_status[idx]
+        idx += 1
+        
+func _run_one_round() -> void:
+    is_resolving_round = true
+    _combat_tick()
+    is_resolving_round = false
+    refresh_retreat_status()
+    update_buttons_status()
     turn_counter += 1
 
+func refresh_retreat_status() -> void:
+    retreat_status = [true,true,true]
+        
 func _refresh_all_slots() -> void:
     _refresh_slots_for_side(ally_slots, allies.units, true)
     _refresh_slots_for_side(enemy_slots, enemies.units, false)
@@ -118,16 +143,7 @@ func do_attack(action: PowerEnums.PowerType, phase :PowerEnums.PowerType) -> voi
     for attack :AttackData in pending_attacks:
         var messages : Array[String]= attack.apply()
         log_messages(messages)
-    
-        
-func get_front_index_for_col(side: ArmyData, col: int) -> int:
-    for row in side.ARMY_ROWS:
-        var idx = side.index_from_rc(row, col)
-        var u = side.units[idx]
-        if u != null and u["hp"] > 0:
-            return idx
-    return -1
-    
+   
                 
 func _check_end_of_combat() -> void:
     var allies_dead := allies.is_dead()
@@ -180,7 +196,7 @@ func _end_battle() -> void:
         return
     battle_over = true
     set_process(false)
-    _update_next_button_label()
+    update_buttons_status()
     
 func _update_next_button_label() -> void:
     if battle_over:
@@ -209,17 +225,22 @@ func _show_battle_result() -> void:
 func _on_next_turn_button_pressed() -> void:
     if is_resolving_round:
         return
-    is_resolving_round = true
     if battle_over:
         _show_battle_result()
         next_turn_button.visible = false
     else:
     # await _run_one_round_async() a utiliser quand il y aura mles animation
         _run_one_round()
-        is_resolving_round = false
 
 func _on_battle_result_closed() -> void:
     # Ici, le résultat est déjà dans WorldGameState.last_battle_result
     # Tu peux retourner à la worldmap
     print("go to world map")
     get_tree().change_scene_to_file("res://scenes/WorldMap.tscn")
+
+func _on_retreat_button_pressed(col: int) -> void:
+    print("Retreat col ", col)
+    allies.reatreat_front_unit(col)
+    retreat_status[col] = false
+    _refresh_slots_for_side(ally_slots, allies.units, true)   
+    _update_retreat_buttons()

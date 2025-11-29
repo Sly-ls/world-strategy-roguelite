@@ -30,7 +30,14 @@ func clone_runtime(_player: bool = false) -> ArmyData:
             a.units[i] = null
 
     return a
-    
+
+func describe():
+        for unit in units:
+            print(unit.describe())
+
+
+
+# Getter methods
 func rc_from_index(idx: int) -> Vector2:
     # Convertit un index linéaire (0..ARMY_SIZE-1) en (col, row)
     # col = x, row = y
@@ -39,87 +46,39 @@ func rc_from_index(idx: int) -> Vector2:
 func index_from_rc(row: int, col: int) -> int:
     # row = 0..4, col = 0..2
     return row * ARMY_COLS + col
-
-
-
+    
 func get_unit_at_index(idx: int) -> UnitData:
     if idx < 0 or idx >= units.size():
         return null
     return units[idx]
-
-
+    
+func get_unit_at_position(row: int, col: int) -> UnitData:
+    return get_unit_at_index(index_from_rc(row, col))
+    
 func set_unit_at_position(row: int, col: int, unit: UnitData) -> void:
     # Helper pratique pour travailler en (col = x, row = y)
     set_unit_rc(row, col, unit)
+    
+    
 
-
-         
+#Setting Methods
 func set_unit_at_index(idx: int, unit: UnitData) -> void:
     if idx < 0 or idx >= units.size():
         return
     units[idx] = unit
-
-
-func get_unit_at_position(row: int, col: int) -> UnitData:
-    return get_unit_at_index(index_from_rc(row, col))
-
-
+    
 func set_unit_rc(row: int, col: int, unit: UnitData) -> void:
     set_unit_at_index(index_from_rc(row, col), unit)
 
 
-func compact_columns() -> void:
-    # "Puissance 4" : on fait tomber les unités vers row 0 dans chaque colonne
-    for col in range(ARMY_COLS):
-        var stack: Array[UnitData] = []
 
-        for row in range(ARMY_ROWS):
-            var u := get_unit_at_position(row, col)
-            if u != null and u.hp > 0:
-                stack.append(u)
-
-        var row_index := 0
-        for u in stack:
-            set_unit_rc(row_index, col, u)
-            row_index += 1
-
-        while row_index < ARMY_ROWS:
-            set_unit_rc(row_index, col, null)
-            row_index += 1
-
-func describe():
-        for unit in units:
-            print(unit.describe())
-
-
-
-func get_front_target_index_for_side() -> int:
-    var front_row := 0
-    for col in ARMY_COLS:
-        var idx := index_from_rc(front_row, col)
-        if idx >= units.size():
-            return -1
-        var u = units[idx]
-        if u != null and u.hp > 0:
-            return idx
-    return -1
-    
-func get_front_index_for_col(side: ArmyData, col: int) -> int:
-    for row in range(side.ARMY_ROWS):
-        var idx := side.index_from_rc(row, col)
-        if idx < 0 or idx >= side.units.size():
-            continue
-        var u: UnitData = side.units[idx]
-        if u != null and u.hp > 0:
-            return idx
-    return -1    
-
+# test methods
 func is_dead() -> bool:
     for unit in units:
         if unit != null and unit.hp > 0:
             return false
     return true
-
+    
 func get_all_ready_units(action :PowerEnums.PowerType, phase: PowerEnums.PowerType) -> Array[UnitData] :
         var readyUnits: Array[UnitData] = []
         for col in range(ARMY_COLS):
@@ -128,8 +87,42 @@ func get_all_ready_units(action :PowerEnums.PowerType, phase: PowerEnums.PowerTy
                 if unit.is_ready_for(action, phase):
                     readyUnits.append(unit)
         return readyUnits;
+        
+        
+        
+#Organization methods
+func compact_columns() -> void:
+    # "Puissance 4" : on fait tomber les unités vers row 0 dans chaque colonne
+    for col in range(ARMY_COLS):
+        compact_column(col)
 
+func compact_column(col :int) -> void:
+    # "Puissance 4" : on fait tomber les unités vers row 0 dans chaque colonne
+    var stack: Array[UnitData] = []
 
+    for row in range(ARMY_ROWS):
+        var u := get_unit_at_position(row, col)
+        if u != null and u.hp > 0:
+            stack.append(u)
+
+    var row_index := 0
+    for u in stack:
+        set_unit_rc(row_index, col, u)
+        row_index += 1
+
+    while row_index < ARMY_ROWS:
+        set_unit_rc(row_index, col, null)
+        row_index += 1
+                 
+func swap_units(from_col: int, from_row : int, to_col: int, to_row : int) -> void:
+        var from_unit = get_unit_at_position(from_row, from_col)
+        var to_unit = get_unit_at_position(to_row, to_col)
+
+        # Échanger les unités (row, col)
+        set_unit_rc(to_row, to_col, from_unit)
+        set_unit_rc(from_row, from_col, to_unit)       
+            
+# combat methods
 func apply_reinforcements() -> void:
     # units = array 1D de taille GRID_COLS * GRID_ROWS
     for col in ARMY_COLS:
@@ -144,7 +137,6 @@ func apply_reinforcements() -> void:
                     compact_columns()
                     break
       
-      
 func get_attacks(defenders : ArmyData, action: PowerEnums.PowerType, phase: PowerEnums.PowerType) -> Array[AttackData] :
         var attacks: Array[AttackData] = []
         var readyUnits: Array[UnitData] = get_all_ready_units(action, phase)
@@ -157,3 +149,18 @@ func get_attacks(defenders : ArmyData, action: PowerEnums.PowerType, phase: Powe
                     attacks.append(attack)
                        
         return attacks;
+        
+func reatreat_front_unit(col) -> void:
+    var retreating_unit = get_unit_at_position(0, col)
+    var last_row = 0
+    var last_unit = null
+    for row in range (1, ARMY_ROWS):
+        last_row=row
+        var current_unit = get_unit_at_position(row, col)
+        if current_unit != null || last_unit == current_unit:
+            set_unit_rc(row-1, col, current_unit)
+        else:
+            break
+    set_unit_rc(last_row, col, retreating_unit)
+    compact_column(col)
+    

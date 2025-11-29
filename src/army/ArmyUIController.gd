@@ -199,9 +199,7 @@ func _try_drop(to_index: int) -> void:
         # Effectuer l'échange (swap)
         var target_unit = army_data.get_unit_at_position(to_row, to_col)
 
-        # Échanger les unités (row, col)
-        army_data.set_unit_rc(to_row, to_col, dragged_unit)
-        army_data.set_unit_rc(from_row, from_col, target_unit)
+        army_data.swap_units(from_col, from_row, to_col, to_row)
 
         if target_unit != null:
             print("✓ Échange réussi : %s ↔ %s" % [dragged_unit.name, target_unit.name])
@@ -215,8 +213,6 @@ func _try_drop(to_index: int) -> void:
 
     # Nettoyer
     _end_drag()
-
-
                 
 func _compact_army_columns() -> void:
     """
