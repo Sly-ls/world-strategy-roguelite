@@ -1,0 +1,89 @@
+[gd_scene load_steps=2 format=3 uid="uid://b7dxsf8f7qphj"]
+
+[ext_resource type="Script" uid="uid://cp8i8mty38aak" path="res://scenes/components/UnitCard.gd" id="1_xxxxx"]
+
+[node name="UnitCard" type="PanelContainer"]
+custom_minimum_size = Vector2(200, 250)
+offset_right = 200.0
+offset_bottom = 250.0
+script = ExtResource("1_xxxxx")
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+layout_mode = 2
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 10
+
+[node name="UnitName" type="Label" parent="MarginContainer"]
+layout_mode = 2
+size_flags_vertical = 0
+text = "Unit Name"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="IconContainer" type="CenterContainer" parent="MarginContainer"]
+layout_mode = 2
+
+[node name="UnitIcon" type="TextureRect" parent="MarginContainer/IconContainer"]
+custom_minimum_size = Vector2(80, 80)
+layout_mode = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="StatsContainer" type="VBoxContainer" parent="MarginContainer"]
+layout_mode = 2
+size_flags_vertical = 8
+theme_override_constants/separation = 5
+
+[node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer/StatsContainer"]
+layout_mode = 2
+
+[node name="AttackContainer" type="HBoxContainer" parent="MarginContainer/StatsContainer/HBoxContainer"]
+layout_mode = 2
+
+[node name="AttackIcon" type="Label" parent="MarginContainer/StatsContainer/HBoxContainer/AttackContainer"]
+layout_mode = 2
+text = "⚔️ Attaque:"
+
+[node name="AttackValue" type="Label" parent="MarginContainer/StatsContainer/HBoxContainer/AttackContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "50"
+horizontal_alignment = 2
+
+[node name="MoraleContainer" type="HBoxContainer" parent="MarginContainer/StatsContainer/HBoxContainer"]
+layout_mode = 2
+
+[node name="MoraleIcon" type="Label" parent="MarginContainer/StatsContainer/HBoxContainer/MoraleContainer"]
+layout_mode = 2
+text = "💪 Moral:"
+
+[node name="MoraleValue" type="Label" parent="MarginContainer/StatsContainer/HBoxContainer/MoraleContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "100 / 100"
+horizontal_alignment = 2
+
+[node name="HPBar" type="ProgressBar" parent="MarginContainer/StatsContainer"]
+custom_minimum_size = Vector2(0, 25)
+layout_mode = 2
+value = 100.0
+show_percentage = false
+
+[node name="HPLabel" type="Label" parent="MarginContainer/StatsContainer/HPBar"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -20.0
+offset_top = -11.5
+offset_right = 20.0
+offset_bottom = 11.5
+grow_horizontal = 2
+grow_vertical = 2
+text = "100 / 100"
+horizontal_alignment = 1
+vertical_alignment = 1

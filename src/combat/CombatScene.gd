@@ -1,11 +1,16 @@
 extends Control
 
-@onready var grid_allies: GridContainer = $GridAllies
-@onready var grid_enemies: GridContainer = $GridEnemies
+# MODIFICATION: GridAllies et GridEnemies sont maintenant des UnitGridDisplay
+@onready var grid_allies: UnitGridDisplay = $GridAllies
+@onready var grid_enemies: UnitGridDisplay = $GridEnemies
+
 var turn_counter:int = 1;
 var battle_over: bool = false
-var ally_slots: Array = []
-var enemy_slots: Array = []
+
+# SUPPRIMÉ: ally_slots et enemy_slots ne sont plus nécessaires
+# var ally_slots: Array = []
+# var enemy_slots: Array = []
+
 var allies: ArmyData = null
 var enemies: ArmyData = null
 var pending_attacks : Array[AttackData]= []
@@ -29,15 +34,19 @@ var combat_actions: Array[PowerEnums.PowerType] = [PowerEnums.PowerType.RANGED, 
 ]
 
 @onready var retreat_status: Array[bool] = [true,true,true]
+
 func _ready() -> void:
-    ally_slots = grid_allies.get_children()
-    enemy_slots = grid_enemies.get_children()
+    # SUPPRIMÉ: Récupération des slots (maintenant géré par UnitGridDisplay)
+    # ally_slots = grid_allies.get_children()
+    # enemy_slots = grid_enemies.get_children()
     
     round_label.text = "Round : %d" % turn_counter
-    # combat_actions.clear() quandje mets ça, plus rien ne s'affiche
     log_message("Debut du combat")
     _init_from_game_state()
-    _refresh_all_slots()
+    
+    # MODIFICATION: Utiliser set_army() au lieu de _refresh_all_slots()
+    _refresh_all_grids()
+    
     update_buttons_status()
     result_panel.result_closed.connect(_on_battle_result_closed)
     next_turn_button.pressed.connect(_on_next_turn_button_pressed)
@@ -75,27 +84,39 @@ func _run_one_round() -> void:
 
 func refresh_retreat_status() -> void:
     retreat_status = [true,true,true]
-        
-func _refresh_all_slots() -> void:
-    _refresh_slots_for_side(ally_slots, allies.units, true)
-    _refresh_slots_for_side(enemy_slots, enemies.units, false)
 
-func _refresh_slots_for_side(slots: Array, units: Array, is_ally: bool) -> void:
-    for i in slots.size():
-        if i >= units.size():
-            break
-        var slot := slots[i] as TextureRect
-        slot.mouse_filter = Control.MOUSE_FILTER_IGNORE
+# NOUVEAU: Méthode pour rafraîchir les deux grilles
+func _refresh_all_grids() -> void:
+    """Met à jour l'affichage des deux grilles UnitGridDisplay"""
+    if grid_allies:
+        grid_allies.set_army(allies)
+    if grid_enemies:
+        grid_enemies.set_army(enemies)
 
-        var unit = units[i]
-        if unit == null:
-            slot.modulate = Color(0.2, 0.2, 0.2)
-            slot.tooltip_text = ""
-            slot.texture = null
-        else:
-            slot.modulate = Color(0.6, 0.6, 1.0) if is_ally else Color(1.0, 0.6, 0.6)
-            slot.texture = unit.icon
-            slot.tooltip_text = "%s\nPV: %d / %d" % [unit.name, unit.hp, unit.max_hp]
+
+# SUPPRIMÉ: _refresh_all_slots() et _refresh_slots_for_side() ne sont plus nécessaires
+# Ces méthodes sont maintenant gérées par UnitGridDisplay._refresh_display()
+
+# func _refresh_all_slots() -> void:
+#     _refresh_slots_for_side(ally_slots, allies.units, true)
+#     _refresh_slots_for_side(enemy_slots, enemies.units, false)
+#
+# func _refresh_slots_for_side(slots: Array, units: Array, is_ally: bool) -> void:
+#     for i in slots.size():
+#         if i >= units.size():
+#             break
+#         var slot := slots[i] as TextureRect
+#         slot.mouse_filter = Control.MOUSE_FILTER_IGNORE
+#
+#         var unit = units[i]
+#         if unit == null:
+#             slot.modulate = Color(0.2, 0.2, 0.2)
+#             slot.tooltip_text = ""
+#             slot.texture = null
+#         else:
+#             slot.modulate = Color(0.6, 0.6, 1.0) if is_ally else Color(1.0, 0.6, 0.6)
+#             slot.texture = unit.icon
+#             slot.tooltip_text = "%s\nPV: %d / %d" % [unit.name, unit.hp, unit.max_hp]
          
 func _combat_tick() -> void:
     if battle_over:
@@ -112,7 +133,8 @@ func _combat_tick() -> void:
     enemies.apply_reinforcements()
 
     # 5. UI + fin
-    _refresh_all_slots()
+    # MODIFICATION: Utiliser _refresh_all_grids() au lieu de _refresh_all_slots()
+    _refresh_all_grids()
     _check_end_of_combat()
 
 func log_messages(messages: Array[String]) -> void:
@@ -242,5 +264,7 @@ func _on_retreat_button_pressed(col: int) -> void:
     print("Retreat col ", col)
     allies.reatreat_front_unit(col)
     retreat_status[col] = false
-    _refresh_slots_for_side(ally_slots, allies.units, true)   
+    
+    # MODIFICATION: Utiliser update_display() au lieu de _refresh_slots_for_side()
+    grid_allies.update_display()
     _update_retreat_buttons()

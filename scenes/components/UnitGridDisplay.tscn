@@ -1,0 +1,93 @@
+[gd_scene load_steps=3 format=3 uid="uid://8yauwskm03an"]
+
+[ext_resource type="Script" uid="uid://13tr6r5vlnse" path="res://scenes/components/UnitGridDisplay.gd" id="1_grid"]
+[ext_resource type="PackedScene" uid="uid://b7dxsf8f7qphj" path="res://scenes/components/UnitCard.tscn" id="2_card"]
+
+[node name="UnitGridDisplay" type="VBoxContainer"]
+custom_minimum_size = Vector2(650, 0)
+offset_right = 650.0
+offset_bottom = 100.0
+theme_override_constants/separation = 10
+script = ExtResource("1_grid")
+
+[node name="TopContainer" type="MarginContainer" parent="."]
+layout_mode = 2
+theme_override_constants/margin_left = 5
+theme_override_constants/margin_top = 5
+theme_override_constants/margin_right = 5
+theme_override_constants/margin_bottom = 5
+
+[node name="ProgressBar" type="ProgressBar" parent="TopContainer"]
+custom_minimum_size = Vector2(0, 30)
+layout_mode = 2
+max_value = 15.0
+value = 15.0
+show_percentage = false
+
+[node name="ProgressLabel" type="Label" parent="TopContainer/ProgressBar"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -50.0
+offset_top = -11.5
+offset_right = 50.0
+offset_bottom = 11.5
+grow_horizontal = 2
+grow_vertical = 2
+text = "Unités : 15 / 15"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="GridContainer" type="GridContainer" parent="."]
+layout_mode = 2
+theme_override_constants/h_separation = 10
+theme_override_constants/v_separation = 10
+columns = 3
+
+[node name="UnitCard" parent="GridContainer" instance=ExtResource("2_card")]
+layout_mode = 2
+
+[node name="UnitCard2" parent="GridContainer" instance=ExtResource("2_card")]
+layout_mode = 2
+
+[node name="UnitCard3" parent="GridContainer" instance=ExtResource("2_card")]
+layout_mode = 2
+
+[node name="UnitCard4" parent="GridContainer" instance=ExtResource("2_card")]
+layout_mode = 2
+
+[node name="UnitCard5" parent="GridContainer" instance=ExtResource("2_card")]
+layout_mode = 2
+
+[node name="UnitCard6" parent="GridContainer" instance=ExtResource("2_card")]
+layout_mode = 2
+
+[node name="UnitCard7" parent="GridContainer" instance=ExtResource("2_card")]
+layout_mode = 2
+
+[node name="UnitCard8" parent="GridContainer" instance=ExtResource("2_card")]
+layout_mode = 2
+
+[node name="UnitCard9" parent="GridContainer" instance=ExtResource("2_card")]
+layout_mode = 2
+
+[node name="UnitCard10" parent="GridContainer" instance=ExtResource("2_card")]
+layout_mode = 2
+
+[node name="UnitCard11" parent="GridContainer" instance=ExtResource("2_card")]
+layout_mode = 2
+
+[node name="UnitCard12" parent="GridContainer" instance=ExtResource("2_card")]
+layout_mode = 2
+
+[node name="UnitCard13" parent="GridContainer" instance=ExtResource("2_card")]
+layout_mode = 2
+
+[node name="UnitCard14" parent="GridContainer" instance=ExtResource("2_card")]
+layout_mode = 2
+
+[node name="UnitCard15" parent="GridContainer" instance=ExtResource("2_card")]
+layout_mode = 2
