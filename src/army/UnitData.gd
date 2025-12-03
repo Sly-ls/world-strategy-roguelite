@@ -6,9 +6,7 @@ class_name UnitData
 
 @export var max_hp: int = 100
 var hp: int = 100
-
-@export var max_morale: int = 100
-var morale: int = 100
+@export  var morale: int = 3
 
 @export var count: int = 1
 
@@ -28,8 +26,7 @@ func clone_runtime(_player: bool = false) -> UnitData:
     u.max_hp = max_hp
     u.hp = max_hp
 
-    u.max_morale = max_morale
-    u.morale = max_morale
+    u.morale = morale
 
     u.count = count
 
@@ -47,7 +44,7 @@ func describe() -> String:
     description +=  "id: " + id + "\n"
     description +=   "name: " + name + "\n"
     description +=   "hp: " + str(hp) + "/"+ str(max_hp) + "\n"
-    description +=   "morale: " + str(morale) + "/"+ str(max_morale) + "\n"
+    description +=   "morale: " + str(morale) + "\n"
     description +=   "count: " + str(count) + "\n"
     for key in powers.keys():
         description +=   key + str(powers[key]) + "\n"

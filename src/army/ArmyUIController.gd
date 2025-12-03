@@ -441,10 +441,10 @@ func _refresh_slots() -> void:
             # Affichage d'une unité
             slot.texture = unit.icon if unit.icon != null else load("res://icon.svg")
             slot.modulate = Color(1, 1, 1, 1)
-            slot.tooltip_text = "%s\nPV : %d / %d\nMoral : %d / %d" % [
+            slot.tooltip_text = "%s\nPV : %d / %d\nMoral : %d" % [
                 unit.name,
                 unit.hp, unit.max_hp,
-                unit.morale, unit.max_morale
+                unit.morale
             ]
         else:
             # Slot vide

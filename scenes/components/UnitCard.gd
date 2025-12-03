@@ -68,7 +68,7 @@ func _refresh_display() -> void:
     
     # Moral
     if morale_label:
-        morale_label.text = "%d / %d" % [unit_data.morale, unit_data.max_morale]
+        morale_label.text = "%d " % [unit_data.morale]
     
     # Attaque (selon le type d'unité)
     if attack_label:

@@ -495,10 +495,10 @@ func _apply_rest_to_army(cell_type: int) -> void:
             unit.hp = clamp(unit.hp + heal_hp, 0, unit.max_hp)
             print(unit.name, " soigne ", heal_hp, " ses pv sont maintenant de ", unit.hp,"/",unit.max_hp)
 
-        # Soin du moral : idem
-        var missing_morale := unit.max_morale - unit.morale
-        if missing_morale > 0:
-            var heal_morale := int(missing_morale * heal_ratio_morale)
-            if heal_morale < 1 and missing_morale > 0:
-                heal_morale = 1
-            unit.morale = clamp(unit.morale + heal_morale, 0, unit.max_morale)
+    # Soin du moral : idem
+    var missing_morale := army.max_morale - army.morale
+    if missing_morale > 0:
+        var heal_morale := int(missing_morale * heal_ratio_morale)
+        if heal_morale < 1 and missing_morale > 0:
+            heal_morale = 1
+        army.morale = clamp(army.morale + heal_morale, 0, army.max_morale)

@@ -5,8 +5,8 @@ class_name UnitGridDisplay
 ## Les 15 UnitCards sont déjà présentes dans la scène pour un meilleur contrôle visuel
 
 # Références UI
-@onready var progress_bar: ProgressBar = $TopContainer/ProgressBar
-@onready var progress_label: Label = $TopContainer/ProgressBar/ProgressLabel
+@onready var morale_bar: ProgressBar = $TopContainer/ProgressBar
+@onready var morale_bar_label: Label = $TopContainer/ProgressBar/ProgressLabel
 @onready var grid_container: GridContainer = $GridContainer
 
 # Références aux cartes d'unités (récupérées depuis la scène)
@@ -58,7 +58,7 @@ func _refresh_display() -> void:
     
     if army_data == null:
         _clear_all_cards()
-        _update_progress(0, 15)
+        _update_progress()
         return
     
     # Compter les unités vivantes
@@ -86,7 +86,7 @@ func _refresh_display() -> void:
         unit_cards[i].set_unit(null)
     
     # Mettre à jour la barre de progression
-    _update_progress(alive_count, total_count)
+    _update_progress()
 
 
 func _clear_all_cards() -> void:
@@ -95,23 +95,28 @@ func _clear_all_cards() -> void:
         card.set_unit(null)
 
 
-func _update_progress(alive: int, total: int) -> void:
+func _update_progress() -> void:
     """Met à jour la barre de progression"""
-    if progress_bar:
-        progress_bar.max_value = total if total > 0 else 15
-        progress_bar.value = alive
+    var max_morale: int = 100
+    var morale: int = 50
+    if army_data:
+        max_morale = army_data.max_morale
+        morale = army_data.morale
+        
+    morale_bar.max_value = max_morale
+    morale_bar.value = morale
         
         # Couleur selon le pourcentage
-        var percent = float(alive) / float(total) if total > 0 else 0.0
-        if percent > 0.6:
-            progress_bar.modulate = Color(0.2, 0.8, 0.2)  # Vert
-        elif percent > 0.3:
-            progress_bar.modulate = Color(0.9, 0.9, 0.2)  # Jaune
-        else:
-            progress_bar.modulate = Color(0.9, 0.2, 0.2)  # Rouge
+    var percent = float(morale) / float(max_morale) if max_morale > 0 else 0.0
+    if percent > 0.6:
+        morale_bar.modulate = Color(0.2, 0.8, 0.2)  # Vert
+    elif percent > 0.3:
+        morale_bar.modulate = Color(0.9, 0.9, 0.2)  # Jaune
+    else:
+        morale_bar.modulate = Color(0.9, 0.2, 0.2)  # Rouge
     
-    if progress_label:
-        progress_label.text = "Unités : %d / %d" % [alive, total]
+    if morale_bar_label:
+        morale_bar_label.text = "Morale : %d / %d" % [morale, max_morale]
 
 
 func update_display() -> void:

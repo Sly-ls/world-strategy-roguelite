@@ -9,6 +9,8 @@ const BASE_SPEED_PX := 50.0  # vitesse "de référence" en pixels/s
 @export var id: String = ""
 @export var units: Array[UnitData] = []
 var player: bool = false
+var morale :int = 0
+var max_morale: int = 0
 
 
 func _init(_player: bool = false) -> void:
@@ -20,15 +22,17 @@ func clone_runtime(_player: bool = false) -> ArmyData:
     var a := ArmyData.new(_player)
     a.id = id
     a.units.resize(ARMY_SIZE)
-
+    var total_morale: int = 0
     for i in units.size():
         var u := units[i]
         if u != null:
             # très important : on clone aussi les unités
             a.units[i] = u.clone_runtime(_player)
+            total_morale += u.morale
         else:
             a.units[i] = null
-
+    a.morale = total_morale
+    a.max_morale = total_morale
     return a
 
 func describe():
@@ -121,7 +125,39 @@ func swap_units(from_col: int, from_row : int, to_col: int, to_row : int) -> voi
         # Échanger les unités (row, col)
         set_unit_rc(to_row, to_col, from_unit)
         set_unit_rc(from_row, from_col, to_unit)       
-            
+#world method
+
+func rest(cell_type: GameEnums.CellType) -> void:
+    # Modificateur selon la zone
+    var cellInfo : GameEnums.CellInfo = GameEnums.CELL_ENUM[cell_type]
+    var heal_ratio_hp = cellInfo.rest_hp_ratio
+    var heal_ratio_morale =cellInfo.rest_morale_ratio
+       
+
+    for i in ARMY_SIZE:
+        var unit := get_unit_at_index(i)
+        if unit == null:
+            continue
+        if unit.hp <= 0:
+            continue  # unité morte : pas de miracle ici pour l'instant
+
+        # Soin des PV : on rend une fraction des PV manquants
+        var missing_hp := unit.max_hp - unit.hp
+        if missing_hp > 0:
+            var heal_hp := int(unit.max_hp * heal_ratio_hp)
+            if heal_hp < 1 and missing_hp > 0:
+                heal_hp = 1  # au moins 1 PV si il manque quelque chose
+            unit.hp = clamp(unit.hp + heal_hp, 0, unit.max_hp)
+            print(unit.name, " soigne ", heal_hp, " ses pv sont maintenant de ", unit.hp,"/",unit.max_hp)
+
+    # Soin du moral : idem
+    var missing_morale := max_morale - morale
+    if missing_morale > 0:
+        var heal_morale := int(missing_morale * heal_ratio_morale)
+        if heal_morale < 1 and missing_morale > 0:
+            heal_morale = 1
+        morale = clamp(morale + heal_morale, 0, max_morale)
+        
 # combat methods
 func apply_reinforcements() -> void:
     # units = array 1D de taille GRID_COLS * GRID_ROWS
