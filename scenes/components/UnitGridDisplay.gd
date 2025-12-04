@@ -8,7 +8,7 @@ class_name UnitGridDisplay
 @onready var morale_bar: ProgressBar = $TopContainer/ProgressBar
 @onready var morale_bar_label: Label = $TopContainer/ProgressBar/ProgressLabel
 @onready var grid_container: GridContainer = $GridContainer
-
+@export var reverse_columns: bool = false
 # Références aux cartes d'unités (récupérées depuis la scène)
 var unit_cards: Array[UnitCard] = []
 
@@ -41,7 +41,31 @@ func _collect_cards() -> void:
     if unit_cards.size() != 15:
         push_warning("Attention : %d cartes trouvées au lieu de 15" % unit_cards.size())
 
-
+func _get_display_index(army_index: int) -> int:
+    """
+    Convertit un index d'armée en index d'affichage.
+    Si reverse_columns est true, inverse l'ordre des colonnes.
+    
+    Index armée (normal):    Index affichage (reverse):
+    0  1  2                  2  1  0
+    3  4  5                  5  4  3
+    6  7  8                  8  7  6
+    9  10 11                 11 10 9
+    12 13 14                 14 13 12
+    """
+    if not reverse_columns:
+        return army_index
+    
+    # Calculer ligne et colonne
+    var row = army_index / 3
+    var col = army_index % 3
+    
+    # Inverser la colonne
+    var reversed_col = 2 - col
+    
+    # Recalculer l'index
+    return row * 3 + reversed_col
+    
 func set_army(army: ArmyData) -> void:
     """Définit l'armée à afficher"""
     army_data = army
@@ -68,18 +92,19 @@ func _refresh_display() -> void:
     # Afficher chaque unité dans sa carte correspondante
     for i in range(min(unit_cards.size(), army_data.units.size())):
         var unit = army_data.units[i]
+        var display_index = _get_display_index(i)
         
         if unit != null and unit.hp > 0:
-            unit_cards[i].set_unit(unit)
+            unit_cards[display_index].set_unit(unit)
             alive_count += 1
             total_count += 1
         elif unit != null:
             # Unité morte
-            unit_cards[i].set_unit(unit)
+            unit_cards[display_index].set_unit(unit)
             total_count += 1
         else:
             # Pas d'unité
-            unit_cards[i].set_unit(null)
+            unit_cards[display_index].set_unit(null)
     
     # Cartes restantes vides si l'armée a moins de cartes
     for i in range(army_data.units.size(), unit_cards.size()):

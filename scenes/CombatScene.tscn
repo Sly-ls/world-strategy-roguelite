@@ -36,6 +36,7 @@ offset_right = 925.0
 offset_bottom = 810.0
 grow_vertical = 0
 scale = Vector2(0.36000025, 0.31999955)
+reverse_columns = true
 
 [node name="RetreatButtons" type="HBoxContainer" parent="."]
 layout_mode = 0
