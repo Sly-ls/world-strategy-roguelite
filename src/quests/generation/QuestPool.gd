@@ -1,0 +1,237 @@
+# res://src/quests/generation/QuestPool.gd
+extends Node
+
+## Pool dynamique de quêtes disponibles
+## PALIER 2 : Refresh périodique, conditions d'apparition
+
+# ========================================
+# CONFIGURATION
+# ========================================
+
+@export var pool_size: int = 5  ## Nombre de quêtes dans le pool
+@export var refresh_days: int = 3  ## Refresh tous les N jours
+@export var auto_start_quests: bool = false  ## Démarrer automatiquement
+
+# ========================================
+# PROPRIÉTÉS
+# ========================================
+
+var available_quests: Array[QuestInstance] = []  ## Quêtes disponibles
+var last_refresh_day: int = 0
+
+# ========================================
+# SIGNAUX
+# ========================================
+
+signal pool_refreshed(new_quests: Array[QuestInstance])
+signal quest_available(quest: QuestInstance)
+signal quest_expired(quest: QuestInstance)
+
+# ========================================
+# LIFECYCLE
+# ========================================
+
+func _ready() -> void:
+	_initial_generation()
+	print("✓ QuestPool initialisé (%d quêtes)" % available_quests.size())
+
+func _initial_generation() -> void:
+	"""Génère le pool initial"""
+	refresh_pool()
+	last_refresh_day = WorldState.current_day
+
+# ========================================
+# GESTION DU POOL
+# ========================================
+
+func refresh_pool() -> void:
+	"""Régénère complètement le pool"""
+	print("\n🔄 Régénération du pool de quêtes (jour %d)" % WorldState.current_day)
+	
+	# Retirer les quêtes expirées/complétées
+	_cleanup_expired_quests()
+	
+	# Générer nouvelles quêtes
+	var needed := pool_size - available_quests.size()
+	
+	for i in range(needed):
+		var quest := QuestGenerator.generate_random_quest()
+		if quest and _check_quest_conditions(quest):
+			available_quests.append(quest)
+			quest_available.emit(quest)
+			
+			# Auto-start si activé
+			if auto_start_quests:
+				QuestManager.start_quest(quest.template.id, quest.context)
+	
+	last_refresh_day = WorldState.current_day
+	pool_refreshed.emit(available_quests)
+	
+	print("✓ Pool regénéré : %d quêtes disponibles" % available_quests.size())
+
+func refresh_if_needed() -> void:
+	"""Refresh automatique si intervalle écoulé"""
+	var current_day := WorldState.current_day
+	
+	if current_day - last_refresh_day >= refresh_days:
+		refresh_pool()
+
+func _cleanup_expired_quests() -> void:
+	"""Retire les quêtes expirées du pool"""
+	var to_remove: Array[QuestInstance] = []
+	
+	for quest in available_quests:
+		if quest.check_expiration(WorldState.current_day):
+			to_remove.append(quest)
+			quest_expired.emit(quest)
+	
+	for quest in to_remove:
+		available_quests.erase(quest)
+
+# ========================================
+# CONDITIONS D'APPARITION
+# ========================================
+
+func _check_quest_conditions(quest: QuestInstance) -> bool:
+	"""Vérifie si une quête peut apparaître"""
+	
+	# Conditions de base du template
+	if not quest.template.can_appear():
+		return false
+	
+	# Vérifier qu'elle n'est pas déjà active
+	if QuestManager.has_active_quest(quest.template_id):
+		return false
+	
+	# Vérifier qu'on n'a pas trop de quêtes du même tier
+	var same_tier_count := _count_quests_by_tier(quest.template.tier)
+	if same_tier_count >= 3:  # Max 3 quêtes du même tier
+		return false
+	
+	return true
+
+func _count_quests_by_tier(tier: QuestTypes.QuestTier) -> int:
+	"""Compte les quêtes actives d'un tier donné"""
+	var count := 0
+	for quest in QuestManager.get_active_quests():
+		if quest.template.tier == tier:
+			count += 1
+	return count
+
+# ========================================
+# ACCÈS AU POOL
+# ========================================
+
+func get_available_quests() -> Array[QuestInstance]:
+	"""Retourne toutes les quêtes disponibles"""
+	return available_quests.duplicate()
+
+func get_available_quests_by_tier(tier: QuestTypes.QuestTier) -> Array[QuestInstance]:
+	"""Retourne les quêtes disponibles d'un tier donné"""
+	var result: Array[QuestInstance] = []
+	for quest in available_quests:
+		if quest.template.tier == tier:
+			result.append(quest)
+	return result
+
+func get_available_quests_by_category(category: QuestTypes.QuestCategory) -> Array[QuestInstance]:
+	"""Retourne les quêtes disponibles d'une catégorie donnée"""
+	var result: Array[QuestInstance] = []
+	for quest in available_quests:
+		if quest.template.category == category:
+			result.append(quest)
+	return result
+
+func pick_random_quest() -> QuestInstance:
+	"""Choisit une quête aléatoire du pool"""
+	if available_quests.is_empty():
+		return null
+	
+	var index := randi() % available_quests.size()
+	return available_quests[index]
+
+func pick_quest_by_tier(tier: QuestTypes.QuestTier) -> QuestInstance:
+	"""Choisit une quête aléatoire d'un tier donné"""
+	var tier_quests := get_available_quests_by_tier(tier)
+	if tier_quests.is_empty():
+		return null
+	
+	var index := randi() % tier_quests.size()
+	return tier_quests[index]
+
+# ========================================
+# ACTIVATION
+# ========================================
+
+func activate_quest(quest: QuestInstance) -> bool:
+	"""Active une quête du pool (la démarre)"""
+	if not available_quests.has(quest):
+		return false
+	
+	# Démarrer la quête
+	var started := QuestManager.start_quest(quest.template.id, quest.context)
+	
+	if started:
+		# Retirer du pool
+		available_quests.erase(quest)
+		return true
+	
+	return false
+
+func activate_random_quest() -> QuestInstance:
+	"""Active une quête aléatoire du pool"""
+	var quest := pick_random_quest()
+	if quest and activate_quest(quest):
+		return quest
+	return null
+
+# ========================================
+# AJOUT MANUEL
+# ========================================
+
+func add_quest_to_pool(quest: QuestInstance) -> void:
+	"""Ajoute manuellement une quête au pool"""
+	if not available_quests.has(quest):
+		available_quests.append(quest)
+		quest_available.emit(quest)
+
+func remove_quest_from_pool(quest: QuestInstance) -> void:
+	"""Retire manuellement une quête du pool"""
+	available_quests.erase(quest)
+
+# ========================================
+# QUERIES
+# ========================================
+
+func get_pool_size() -> int:
+	"""Retourne la taille actuelle du pool"""
+	return available_quests.size()
+
+func is_pool_full() -> bool:
+	"""Vérifie si le pool est plein"""
+	return available_quests.size() >= pool_size
+
+func is_pool_empty() -> bool:
+	"""Vérifie si le pool est vide"""
+	return available_quests.is_empty()
+
+# ========================================
+# DEBUG
+# ========================================
+
+func print_pool() -> void:
+	"""Affiche le contenu du pool (debug)"""
+	print("\n=== QUEST POOL ===")
+	print("Taille : %d / %d" % [available_quests.size(), pool_size])
+	print("Dernier refresh : Jour %d" % last_refresh_day)
+	print("Prochain refresh : Jour %d" % (last_refresh_day + refresh_days))
+	print("\nQuêtes disponibles :")
+	
+	for quest in available_quests:
+		print("  - %s (Tier %d, %s)" % [
+			quest.template.title,
+			quest.template.tier,
+			QuestTypes.get_category_name(quest.template.category)
+		])
+	
+	print("==================\n")

@@ -1,5 +1,5 @@
 # res://src/quests/QuestTypes.gd
-extends Node
+class_name QuestTypes
 
 ## Enums centralisés pour le système de quêtes
 ## Fusion ChatGPT (Tiers, Tags) + Claude (simplicité)

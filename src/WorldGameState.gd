@@ -40,7 +40,8 @@ func advance_time(delta: float) -> void:
     while _time_accumulator >= PHASE_DURATION_SECONDS:
         _time_accumulator -= PHASE_DURATION_SECONDS
         _increment_phase()
-    QuestManager.check_expirations()
+        QuestManager.check_expirations()
+        QuestPool.refresh_if_needed()
 
 
 func _increment_phase() -> void:

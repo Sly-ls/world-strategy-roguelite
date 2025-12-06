@@ -12,11 +12,30 @@ extends Control
 @onready var no_quests_label: Label = %NoQuestsLabel
 @onready var close_button: Button = %CloseButton
 
+func refresh_display() -> void:
+    # Vider la liste
+    for child in quest_list.get_children():
+        child.queue_free()
+    
+    # Afficher quêtes disponibles
+    for quest in QuestPool.get_available_quests():
+        var button := Button.new()
+        button.text = quest.template.title
+        button.pressed.connect(_on_quest_selected.bind(quest))
+        quest_list.add_child(button)
+
+func _on_quest_selected(quest: QuestInstance) -> void:
+    # Activer la quête
+    QuestPool.activate_quest(quest)
+    refresh_display()
+
+func _on_pool_refreshed(_quests: Array[QuestInstance]) -> void:
+    refresh_display()
 # ========================================
 # TEMPLATES
 # ========================================
 
-const QUEST_ENTRY_SCENE := preload("res://src/ui/QuestEntryUI.gd")
+const QUEST_ENTRY_SCENE := preload("res://scenes/QuestEntryUI.tscn")
 
 # ========================================
 # LIFECYCLE
@@ -26,6 +45,8 @@ func _ready() -> void:
     close_button.pressed.connect(_on_close_pressed)
     hide()
     
+    QuestPool.pool_refreshed.connect(_on_pool_refreshed)
+    refresh_display()
     # Connecter aux signaux du QuestManager
     QuestManager.quest_started.connect(_on_quest_changed)
     QuestManager.quest_completed.connect(_on_quest_changed)
