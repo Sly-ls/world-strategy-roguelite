@@ -34,7 +34,7 @@ func _ready() -> void:
         event_panel.choice_made.connect(_on_event_choice_made)
     if camera:
         camera.make_current()
-    var journal_ui := preload("res://src/ui/QuestJournalUI.gd").instantiate()
+    var journal_ui := preload("res://scenes/QuestJournalUI.tscn").instantiate()
     # Trouver le CanvasLayer existant ou en créer un
     var canvas := get_node_or_null("CanvasLayer")
     if canvas == null:
@@ -74,7 +74,25 @@ func _start_initial_quests() -> void:
     _update_army_world_position()
     _update_camera()
   
- 
+func _find_nearby_poi(poi_type: GameEnums.CellType, max_distance: int) -> Vector2i:
+    var army_pos := WorldState.army_grid_pos
+    var closest_poi := Vector2i(-1, -1)
+    var min_distance := 999999.0
+
+    for y in range(max(0, army_pos.y - max_distance), min(GRID_HEIGHT, army_pos.y + max_distance + 1)):
+        for x in range(max(0, army_pos.x - max_distance), min(GRID_WIDTH, army_pos.x + max_distance + 1)):
+            if world_grid[y][x] == poi_type:
+                var poi_pos := Vector2i(x, y)
+                var distance := _calculate_distance(army_pos, poi_pos)
+                
+                if distance <= max_distance and distance < min_distance:
+                    min_distance = distance
+                    closest_poi = poi_pos
+
+    return closest_poi
+    
+func _calculate_distance(from: Vector2i, to: Vector2i) -> float:
+    return abs(to.x - from.x) + abs(to.y - from.y)
 func _update_army_world_position() -> void:
     if army_marker:
         army_marker.position = grid_to_world(WorldState.army_grid_pos)
@@ -112,7 +130,7 @@ func _process(delta: float) -> void:
     # Mouvement auto
     if not WorldState.resting and is_moving:
         _update_army_movement(delta)
-
+    
 func _update_army_movement(delta: float) -> void:
     if not is_instance_valid(army_marker):
         return
@@ -192,6 +210,7 @@ func _check_enter_poi() -> void:
     var event_id: String = GameEnums.CELL_ENUM[cell_type].event_id
     if event_id:
         _start_world_event(event_id)
+    var quest := QuestGenerator.generate_quest_for_poi(WorldState.army_grid_pos, cell_type)
 
 func _start_world_event(event_id: String) -> void:
     var evt := WorldEventFactory.get_event(event_id)
@@ -246,9 +265,10 @@ func _check_reach_poi_quests(poi_type: GameEnums.CellType) -> void:
                 QuestManager.update_quest_progress_by_id(quest.runtime_id, 1)
 
 func _get_current_poi_type() -> GameEnums.CellType:
-    """Retourne le type de POI à la position actuelle"""
-    return world_map.get_cell_type(WorldState.army_grid_pos)
-             
+    var pos := WorldState.army_grid_pos
+    if pos.x >= 0 and pos.x < GRID_WIDTH and pos.y >= 0 and pos.y < GRID_HEIGHT:
+        return world_grid[pos.y][pos.x]
+    return GameEnums.CellType.PLAINE    
 func _on_event_choice_made(choice_id: String) -> void:
        event_open = false
 
@@ -414,7 +434,6 @@ func _unhandled_input(event: InputEvent) -> void:
         _change_zoom(0.1)
     elif event.is_action_pressed("zoom_out"):
         _change_zoom(-0.1)
-
  # Zoom via molette
     if event is InputEventMouseButton and event.pressed:
         if event.button_index == MOUSE_BUTTON_WHEEL_UP:

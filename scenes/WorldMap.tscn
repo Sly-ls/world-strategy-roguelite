@@ -23,9 +23,9 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0.21125883, 0.46627516, 0.43454394, 1)
 
-[node name="QuestJournalUi" parent="CanvasLayer" instance=ExtResource("2_jsexe")]
-
 [node name="UI_Layer" type="CanvasLayer" parent="."]
+
+[node name="QuestJournalUi" parent="UI_Layer" instance=ExtResource("2_jsexe")]
 
 [node name="DateLabel" type="Label" parent="UI_Layer"]
 anchors_preset = 10
