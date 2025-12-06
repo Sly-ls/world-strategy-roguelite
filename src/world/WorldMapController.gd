@@ -34,13 +34,23 @@ func _ready() -> void:
         event_panel.choice_made.connect(_on_event_choice_made)
     if camera:
         camera.make_current()
-    var journal_ui := preload("res://scenes/QuestJournalUI.tscn").instantiate()
-    # Trouver le CanvasLayer existant ou en créer un
-    var canvas := get_node_or_null("CanvasLayer")
-    if canvas == null:
-        canvas = CanvasLayer.new()
-        add_child(canvas)
-    canvas.add_child(journal_ui)
+    # Instancier le journal avancé
+    var journal_scene := preload("res://scenes/QuestJournalAdvancedUI.tscn")
+    var journal := journal_scene.instantiate()
+    print("📦 Journal créé")
+    # Ajouter dans un CanvasLayer
+    var canvas_layer := CanvasLayer.new()
+    canvas_layer.layer = 100  # Au-dessus de tout
+    add_child(canvas_layer)
+    canvas_layer.add_child(journal)
+    print("✅ Journal ajouté, path:", journal.get_path())
+    print("✅ Journal in tree:", journal.is_inside_tree())
+    print("✅ Journal can_process:", journal.can_process())
+    
+    journal.hide()
+    
+    if QuestManager.get_active_quests().is_empty():
+        _start_initial_quests()
     if QuestManager.get_active_quests().is_empty():
         _start_initial_quests()
 

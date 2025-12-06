@@ -1,0 +1,194 @@
+[gd_scene load_steps=2 format=3 uid="uid://bwcg1gs3umi1u"]
+
+[ext_resource type="Script" uid="uid://bjyq5uv4ckxmj" path="res://src/quests/QuestJournalAdvancedUI.gd" id="1_d14wo"]
+
+[node name="QuestJournalAdvancedUi" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_d14wo")
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 20
+
+[node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="LeftPanel" type="VBoxContainer" parent="MarginContainer/HBoxContainer"]
+custom_minimum_size = Vector2(400, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 10
+
+[node name="TabContainer" type="TabContainer" parent="MarginContainer/HBoxContainer/LeftPanel"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+current_tab = 0
+
+[node name="Actives" type="TabBar" parent="MarginContainer/HBoxContainer/LeftPanel/TabContainer"]
+layout_mode = 2
+tooltip_text = "🎯 Actives"
+metadata/_tab_index = 0
+
+[node name="ScrollContainer" type="ScrollContainer" parent="MarginContainer/HBoxContainer/LeftPanel/TabContainer/Actives"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="ActiveQuestsList" type="VBoxContainer" parent="MarginContainer/HBoxContainer/LeftPanel/TabContainer/Actives/ScrollContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="Complétées" type="TabBar" parent="MarginContainer/HBoxContainer/LeftPanel/TabContainer"]
+visible = false
+layout_mode = 2
+tooltip_text = "✓ Complétées"
+metadata/_tab_index = 1
+
+[node name="ScrollContainer" type="ScrollContainer" parent="MarginContainer/HBoxContainer/LeftPanel/TabContainer/Complétées"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="CompletedQuestsList" type="VBoxContainer" parent="MarginContainer/HBoxContainer/LeftPanel/TabContainer/Complétées/ScrollContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="Échouées" type="TabBar" parent="MarginContainer/HBoxContainer/LeftPanel/TabContainer"]
+visible = false
+layout_mode = 2
+tooltip_text = "✗ Échouées"
+metadata/_tab_index = 2
+
+[node name="ScrollContainer" type="ScrollContainer" parent="MarginContainer/HBoxContainer/LeftPanel/TabContainer/Échouées"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="FailedQuestsList" type="VBoxContainer" parent="MarginContainer/HBoxContainer/LeftPanel/TabContainer/Échouées/ScrollContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="FilterPanel" type="PanelContainer" parent="MarginContainer/HBoxContainer/LeftPanel"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/HBoxContainer/LeftPanel/FilterPanel"]
+layout_mode = 2
+
+[node name="Filtres" type="Label" parent="MarginContainer/HBoxContainer/LeftPanel/FilterPanel/VBoxContainer"]
+layout_mode = 2
+
+[node name="FilterTier" type="OptionButton" parent="MarginContainer/HBoxContainer/LeftPanel/FilterPanel/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="FilterCategory" type="OptionButton" parent="MarginContainer/HBoxContainer/LeftPanel/FilterPanel/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="SortBy" type="OptionButton" parent="MarginContainer/HBoxContainer/LeftPanel/FilterPanel/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="RightPanel" type="VBoxContainer" parent="MarginContainer/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 10
+
+[node name="Header" type="HBoxContainer" parent="MarginContainer/HBoxContainer/RightPanel"]
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 10
+
+[node name="QuestTitleLabel" type="Label" parent="MarginContainer/HBoxContainer/RightPanel/Header"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 24
+
+[node name="CloseButton" type="Button" parent="MarginContainer/HBoxContainer/RightPanel/Header"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(40, 40)
+layout_mode = 2
+text = "X"
+flat = true
+
+[node name="QuestDetailPanel" type="PanelContainer" parent="MarginContainer/HBoxContainer/RightPanel"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="ScrollContainer" type="ScrollContainer" parent="MarginContainer/HBoxContainer/RightPanel/QuestDetailPanel"]
+layout_mode = 2
+horizontal_scroll_mode = 0
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/HBoxContainer/RightPanel/QuestDetailPanel/ScrollContainer"]
+layout_mode = 2
+
+[node name="DescriptionSection" type="VBoxContainer" parent="MarginContainer/HBoxContainer/RightPanel/QuestDetailPanel/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="Description" type="Label" parent="MarginContainer/HBoxContainer/RightPanel/QuestDetailPanel/ScrollContainer/VBoxContainer/DescriptionSection"]
+layout_mode = 2
+
+[node name="QuestDescriptionLabel" type="Label" parent="MarginContainer/HBoxContainer/RightPanel/QuestDetailPanel/ScrollContainer/VBoxContainer/DescriptionSection"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 100)
+layout_mode = 2
+autowrap_mode = 2
+
+[node name="ObjectivesSection" type="VBoxContainer" parent="MarginContainer/HBoxContainer/RightPanel/QuestDetailPanel/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="Objectifs" type="Label" parent="MarginContainer/HBoxContainer/RightPanel/QuestDetailPanel/ScrollContainer/VBoxContainer/ObjectivesSection"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+
+[node name="ObjectivesContainer" type="VBoxContainer" parent="MarginContainer/HBoxContainer/RightPanel/QuestDetailPanel/ScrollContainer/VBoxContainer/ObjectivesSection"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="BranchPanel" type="PanelContainer" parent="MarginContainer/HBoxContainer/RightPanel/QuestDetailPanel/ScrollContainer/VBoxContainer"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/HBoxContainer/RightPanel/QuestDetailPanel/ScrollContainer/VBoxContainer/BranchPanel"]
+layout_mode = 2
+
+[node name="Choix à faire" type="Label" parent="MarginContainer/HBoxContainer/RightPanel/QuestDetailPanel/ScrollContainer/VBoxContainer/BranchPanel/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+
+[node name="BranchChoicesContainer" type="VBoxContainer" parent="MarginContainer/HBoxContainer/RightPanel/QuestDetailPanel/ScrollContainer/VBoxContainer/BranchPanel/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="ActionButtons" type="HBoxContainer" parent="MarginContainer/HBoxContainer/RightPanel"]
+layout_mode = 2
+
+[node name="TrackButton" type="Button" parent="MarginContainer/HBoxContainer/RightPanel/ActionButtons"]
+custom_minimum_size = Vector2(120, 40)
+layout_mode = 2
+text = "📍 Suivre"
+
+[node name="AbandonButton" type="Button" parent="MarginContainer/HBoxContainer/RightPanel/ActionButtons"]
+custom_minimum_size = Vector2(120, 40)
+layout_mode = 2
+text = "❌ Abandonner"
