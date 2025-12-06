@@ -1,7 +1,8 @@
-[gd_scene load_steps=6 format=3 uid="uid://rsluj5frvxd7"]
+[gd_scene load_steps=7 format=3 uid="uid://rsluj5frvxd7"]
 
 [ext_resource type="Script" uid="uid://xdmr8m2ndsc" path="res://src/world/WorldMapController.gd" id="1_ej7nn"]
 [ext_resource type="Texture2D" uid="uid://chae0j1m6ist4" path="res://icon.svg" id="2_fgl0d"]
+[ext_resource type="PackedScene" uid="uid://blk61rgt65ix7" path="res://scenes/QuestJournalUI.tscn" id="2_jsexe"]
 [ext_resource type="Script" uid="uid://b2d7ptwgkqxle" path="res://src/army/ArmyUIController.gd" id="2_pj4xh"]
 [ext_resource type="Texture2D" uid="uid://btw082oe5852g" path="res://assets/maps/worldmap_1.png" id="3_8rtnk"]
 [ext_resource type="PackedScene" uid="uid://dkr8plpd6ejj4" path="res://scenes/EventPanel.tscn" id="5_05f3n"]
@@ -21,6 +22,8 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 color = Color(0.21125883, 0.46627516, 0.43454394, 1)
+
+[node name="QuestJournalUi" parent="CanvasLayer" instance=ExtResource("2_jsexe")]
 
 [node name="UI_Layer" type="CanvasLayer" parent="."]
 

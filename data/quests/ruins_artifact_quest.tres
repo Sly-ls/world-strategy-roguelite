@@ -1,0 +1,40 @@
+[gd_resource type="Resource" script_class="QuestTemplate" load_steps=6 format=3 uid="uid://cwpegvwlodmo6"]
+
+[ext_resource type="Script" uid="uid://bvmqjxdsvyi1m" path="res://src/quests/QuestReward.gd" id="1_4t5pr"]
+[ext_resource type="Script" uid="uid://c2onwn3if64q3" path="res://src/quests/QuestTemplate.gd" id="2_qet41"]
+
+[sub_resource type="Resource" id="Resource_4t5pr"]
+script = ExtResource("1_4t5pr")
+type = 4
+amount = 10
+target_id = "humans"
+description = "+10 réputation avec le Royaume Humain"
+metadata/_custom_type_script = "uid://bvmqjxdsvyi1m"
+
+[sub_resource type="Resource" id="Resource_qet41"]
+script = ExtResource("1_4t5pr")
+type = 6
+target_id = "ruins_cleaner"
+description = "Tag 'Nettoyeur de Ruines'"
+metadata/_custom_type_script = "uid://bvmqjxdsvyi1m"
+
+[sub_resource type="Resource" id="Resource_vyxe6"]
+script = ExtResource("1_4t5pr")
+amount = 50
+description = "+50 Or"
+metadata/_custom_type_script = "uid://bvmqjxdsvyi1m"
+
+[resource]
+script = ExtResource("2_qet41")
+id = "ruins_artifact_1"
+title = "L'Artefact des Ruines Anciennes"
+description = "Des créatures hantent les ruines anciennes. Nettoyez-les et découvrez ce qu'elles protègent. Le Royaume Humain vous en sera reconnaissant."
+required_poi_type = 3
+objective_type = 1
+objective_target = "ruins"
+objective_description = "Nettoyer les ruines en gagnant le combat"
+rewards = Array[ExtResource("1_4t5pr")]([SubResource("Resource_4t5pr"), SubResource("Resource_qet41"), SubResource("Resource_vyxe6")])
+adds_player_tags = Array[String](["ruins_cleaner"])
+adds_world_tags = Array[String](["ruins_cleared"])
+expires_in_days = 10
+metadata/_custom_type_script = "uid://c2onwn3if64q3"

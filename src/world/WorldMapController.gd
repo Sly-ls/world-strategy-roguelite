@@ -34,7 +34,37 @@ func _ready() -> void:
         event_panel.choice_made.connect(_on_event_choice_made)
     if camera:
         camera.make_current()
+    var journal_ui := preload("res://src/ui/QuestJournalUI.gd").instantiate()
+    # Trouver le CanvasLayer existant ou en créer un
+    var canvas := get_node_or_null("CanvasLayer")
+    if canvas == null:
+        canvas = CanvasLayer.new()
+        add_child(canvas)
+    canvas.add_child(journal_ui)
+    if QuestManager.get_active_quests().is_empty():
+        _start_initial_quests()
 
+
+func _check_battle_result() -> void:
+    """Vérifie le résultat du combat et met à jour les quêtes"""
+    if WorldState.last_battle_result == "victory":
+        # Mise à jour des quêtes de type CLEAR_COMBAT
+        var poi_type := _get_current_poi_type()
+        
+        if poi_type == GameEnums.CellType.RUINS:
+            QuestManager.update_quest_progress("ruins_artifact_1", 1)
+        
+        # Autres types de POI à gérer ici
+        
+func _start_initial_quests() -> void:
+    """Démarre les quêtes initiales"""
+    # Quête de survie (toujours disponible)
+    QuestManager.start_quest("survival_5days")
+    
+    # Quête de ruines si proche d'une ruine
+    var nearby_ruins := _find_nearby_poi(GameEnums.CellType.RUINS, 10)
+    if nearby_ruins != Vector2i(-1, -1):
+        QuestManager.start_quest("ruins_artifact_1", {"poi_pos": nearby_ruins})
     # Calcule la taille de la grille à partir de l'image
     var tex := background.texture
     GRID_WIDTH  = int(tex.get_width()  / TILE_SIZE)
@@ -158,6 +188,7 @@ func _check_enter_poi() -> void:
 
     var cell_type := _get_current_cell_type()
 
+    _check_reach_poi_quests(cell_type)
     var event_id: String = GameEnums.CELL_ENUM[cell_type].event_id
     if event_id:
         _start_world_event(event_id)
@@ -192,6 +223,32 @@ func _start_world_event(event_id: String) -> void:
 
     event_panel.show_event(evt.title, evt.body, ui_choices)
 
+func _check_reach_poi_quests(poi_type: GameEnums.CellType) -> void:
+    """Vérifie si on a atteint un POI requis par une quête"""
+    var active_quests := QuestManager.get_active_quests()
+    
+    for quest in active_quests:
+        if quest.template.objective_type != QuestTypes.ObjectiveType.REACH_POI:
+            continue
+        
+        # Vérifier si le POI correspond
+        if quest.template.required_poi_type == poi_type:
+            # Vérifier conditions additionnelles (exemple: avoir la nourriture)
+            var can_complete := true
+            
+            if quest.template.id == "town_delivery_1":
+                # Vérifier qu'on a 10 nourriture
+                can_complete = ResourceManager.has_resource("food", 10)
+                if can_complete:
+                    ResourceManager.remove_resource("food", 10)
+            
+            if can_complete:
+                QuestManager.update_quest_progress_by_id(quest.runtime_id, 1)
+
+func _get_current_poi_type() -> GameEnums.CellType:
+    """Retourne le type de POI à la position actuelle"""
+    return world_map.get_cell_type(WorldState.army_grid_pos)
+             
 func _on_event_choice_made(choice_id: String) -> void:
        event_open = false
 

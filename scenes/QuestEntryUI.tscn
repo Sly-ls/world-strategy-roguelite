@@ -1,0 +1,73 @@
+[gd_scene load_steps=2 format=3 uid="uid://dps82cxap4l3t"]
+
+[ext_resource type="Script" uid="uid://bcd1c0vk0y22y" path="res://src/ui/QuestEntryUI.gd" id="1_xygl2"]
+
+[node name="QuestEntryUi" type="PanelContainer"]
+custom_minimum_size = Vector2(0, 0.15)
+script = ExtResource("1_xygl2")
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+layout_mode = 2
+theme_override_constants/margin_left = 15
+theme_override_constants/margin_top = 15
+theme_override_constants/margin_right = 15
+theme_override_constants/margin_bottom = 15
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="HeaderHBox" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="TierLabel" type="Label" parent="MarginContainer/VBoxContainer/HeaderHBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "Tier 1"
+
+[node name="TitleLabel" type="Label" parent="MarginContainer/VBoxContainer/HeaderHBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "Titre de la quête"
+
+[node name="DescriptionLabel" type="Label" parent="MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+text = "Description de la quête..."
+
+[node name="ObjectiveLabel" type="Label" parent="MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 0.4862745, 1)
+text = "→ Objectif"
+
+[node name="ProgressHBox" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="ProgressBar" type="ProgressBar" parent="MarginContainer/VBoxContainer/ProgressHBox"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+show_percentage = false
+
+[node name="ProgressLabel" type="Label" parent="MarginContainer/VBoxContainer/ProgressHBox"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 8
+text = "0 / 1"
+
+[node name="ExpirationLabel" type="Label" parent="MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "⏰ 5 jours restants"
+
+[node name="RewardsLabel" type="Label" parent="MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(1.2282239, 1.2282239, 1.2282239, 1)
+theme_override_font_sizes/font_size = 12
+text = "Récompenses : ..."

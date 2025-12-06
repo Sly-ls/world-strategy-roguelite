@@ -4,6 +4,12 @@ extends WorldEventHandler
 func execute_choice(choice_id: String, world_controller: Node) -> void:
     match choice_id:
         "ruins_explore":
+            if not QuestManager.has_active_quest("ruins_artifact_1"):
+                var poi_pos :Vector2 = world_controller.army_grid_pos  # ou autre méthode pour avoir la position
+                QuestManager.start_quest("ruins_artifact_1", {
+                    "poi_pos": poi_pos,
+                    "poi_id": "ruins_%d_%d" % [poi_pos.x, poi_pos.y]
+                })
             _do_ruins_explore(world_controller)
         "close":
             pass

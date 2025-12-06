@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="QuestTemplate" load_steps=5 format=3 uid="uid://5jvvlxce7aqf"]
+
+[ext_resource type="Script" uid="uid://bvmqjxdsvyi1m" path="res://src/quests/QuestReward.gd" id="1_14mud"]
+[ext_resource type="Script" uid="uid://c2onwn3if64q3" path="res://src/quests/QuestTemplate.gd" id="2_kornt"]
+
+[sub_resource type="Resource" id="Resource_14mud"]
+script = ExtResource("1_14mud")
+amount = 75
+description = "+75 Or"
+metadata/_custom_type_script = "uid://bvmqjxdsvyi1m"
+
+[sub_resource type="Resource" id="Resource_kornt"]
+script = ExtResource("1_14mud")
+type = 6
+target_id = "survivor"
+description = "Tag 'Survivant'"
+metadata/_custom_type_script = "uid://bvmqjxdsvyi1m"
+
+[resource]
+script = ExtResource("2_kornt")
+id = "survival_5days"
+title = "Survie en Territoire Hostile"
+description = "Les terres sont dangereuses. Prouvez votre valeur en survivant 5 jours dans la nature."
+category = 3
+objective_type = 2
+objective_count = 5
+objective_description = "Survivre 5 jour"
+rewards = Array[ExtResource("1_14mud")]([SubResource("Resource_14mud"), SubResource("Resource_kornt")])
+adds_player_tags = Array[String](["survivor"])
+metadata/_custom_type_script = "uid://c2onwn3if64q3"

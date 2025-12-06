@@ -1,0 +1,31 @@
+[gd_resource type="Resource" script_class="QuestTemplate" load_steps=5 format=3 uid="uid://c0gcbhjbn4kh0"]
+
+[ext_resource type="Script" uid="uid://bvmqjxdsvyi1m" path="res://src/quests/QuestReward.gd" id="1_14mud"]
+[ext_resource type="Script" uid="uid://c2onwn3if64q3" path="res://src/quests/QuestTemplate.gd" id="2_kornt"]
+
+[sub_resource type="Resource" id="Resource_v2tu3"]
+script = ExtResource("1_14mud")
+amount = 100
+description = "+100 Or"
+metadata/_custom_type_script = "uid://bvmqjxdsvyi1m"
+
+[sub_resource type="Resource" id="Resource_ds73h"]
+script = ExtResource("1_14mud")
+type = 6
+target_id = "helpful_trader"
+description = "Tag 'Commerçant Serviable'"
+metadata/_custom_type_script = "uid://bvmqjxdsvyi1m"
+
+[resource]
+script = ExtResource("2_kornt")
+id = "town_delivery_1"
+title = "Livraison Urgente"
+description = "La ville manque de nourriture. Livrez 10 unités de nourriture pour aider les habitants."
+category = 5
+required_poi_type = 1
+objective_target = "town"
+objective_description = "Atteindre la ville avec les vivres"
+rewards = Array[ExtResource("1_14mud")]([SubResource("Resource_v2tu3"), SubResource("Resource_ds73h")])
+adds_player_tags = Array[String](["helpful_trader"])
+expires_in_days = 7
+metadata/_custom_type_script = "uid://c2onwn3if64q3"
