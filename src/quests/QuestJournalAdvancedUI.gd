@@ -292,7 +292,7 @@ func _display_branch(quest: QuestInstanceAdvanced) -> void:
     branch_choices_container.add_child(branch_desc)
     
     # Choix
-    var choices := branch.get_available_choices()
+    var choices :Array[QuestBranch.BranchChoice] = branch.get_available_choices()
     for i in range(choices.size()):
         var choice: QuestBranch.BranchChoice = choices[i]
         var choice_button := Button.new()

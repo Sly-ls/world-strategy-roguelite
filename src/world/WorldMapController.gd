@@ -220,7 +220,7 @@ func _check_enter_poi() -> void:
     var event_id: String = GameEnums.CELL_ENUM[cell_type].event_id
     if event_id:
         _start_world_event(event_id)
-    var quest := QuestGenerator.generate_quest_for_poi(WorldState.army_grid_pos, cell_type)
+    var quest = QuestGenerator.generate_advanced_quest_for_poi(WorldState.army_grid_pos, cell_type)
 
 func _start_world_event(event_id: String) -> void:
     var evt := WorldEventFactory.get_event(event_id)

@@ -47,6 +47,7 @@ enum QuestStatus {
 # ========================================
 
 enum ObjectiveType {
+    CUSTOM,
     REACH_POI,          ## Aller à un POI spécifique
     CLEAR_COMBAT,       ## Gagner un combat
     SURVIVE_DAYS,       ## Survivre X jours
@@ -54,7 +55,15 @@ enum ObjectiveType {
     COLLECT_RESOURCE,   ## Collecter X ressources
     FACTION_RELATION,   ## Atteindre relation X avec faction
     DELIVER_ITEM,       ## Livrer un objet à un POI
-    EXPLORE_AREA        ## Explorer une zone
+    EXPLORE_AREA,       ## Explorer une zone
+    LOOT_ITEM,
+    EXPLORE_POI,
+    TALK_TO_NPC,
+    DELIVER_RESOURCES,
+    COLLECT_RESOURCES,
+    REACH_LOCATION,
+    DEFEAT_ENEMIES
+    
 }
 
 # ========================================

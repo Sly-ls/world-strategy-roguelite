@@ -305,41 +305,40 @@ func _create_dynamic_template(quest_type: String, params: Dictionary) -> QuestTe
 # ========================================
 # RÉCOMPENSES DYNAMIQUESj
 # ========================================
-
 func _add_artifact_rewards(template: QuestTemplate, params: Dictionary) -> void:
-    var faction :String = params.get("faction_interested", "humans")
-    
-    template.rewards.append(_create_reward(QuestTypes.RewardType.GOLD, 50, ""))
-    template.rewards.append(_create_reward(QuestTypes.RewardType.FACTION_REP, 15, faction))
-    template.rewards.append(_create_reward(QuestTypes.RewardType.TAG_PLAYER, 0, "artifact_hunter"))
+    var reward_gold := QuestReward.new()
+    reward_gold.type = QuestTypes.RewardType.GOLD
+    reward_gold.amount = 50
+    template.rewards.append(reward_gold)
 
 func _add_delivery_rewards(template: QuestTemplate, params: Dictionary) -> void:
-    var amount :int = params.get("resource_amount", 20)
-    var gold_reward := amount * 2
-    
-    template.rewards.append(_create_reward(QuestTypes.RewardType.GOLD, gold_reward, ""))
-    template.rewards.append(_create_reward(QuestTypes.RewardType.FACTION_REP, 10, "humans"))
+    var amount: int = params.get("resource_amount", 20)
+    var reward := QuestReward.new()
+    reward.type = QuestTypes.RewardType.GOLD
+    reward.amount = amount * 2
+    template.rewards.append(reward)
 
 func _add_combat_rewards(template: QuestTemplate, params: Dictionary) -> void:
     var tier: int = params.get("tier", 1)
-    var gold := 30 * tier
-    
-    template.rewards.append(_create_reward(QuestTypes.RewardType.GOLD, gold, ""))
-    if tier >= 2:
-        template.rewards.append(_create_reward(QuestTypes.RewardType.FACTION_REP, 5, "humans"))
+    var reward := QuestReward.new()
+    reward.type = QuestTypes.RewardType.GOLD
+    reward.amount = 30 * tier
+    template.rewards.append(reward)
 
 func _add_survival_rewards(template: QuestTemplate, params: Dictionary) -> void:
-    var days :int = params.get("days", 5)
-    var gold := days * 10
-    
-    template.rewards.append(_create_reward(QuestTypes.RewardType.GOLD, gold, ""))
-    template.rewards.append(_create_reward(QuestTypes.RewardType.TAG_PLAYER, 0, "survivor"))
+    var days: int = params.get("days", 5)
+    var reward := QuestReward.new()
+    reward.type = QuestTypes.RewardType.GOLD
+    reward.amount = days * 10
+    template.rewards.append(reward)
 
 func _add_diplomacy_rewards(template: QuestTemplate, params: Dictionary) -> void:
-    template.rewards.append(_create_reward(QuestTypes.RewardType.GOLD, 100, ""))
-    template.rewards.append(_create_reward(QuestTypes.RewardType.TAG_PLAYER, 0, "diplomat"))
-
-func _create_reward(type: QuestTypes.RewardType, amount: int, target_id: String) -> QuestReward:
+    var reward := QuestReward.new()
+    reward.type = QuestTypes.RewardType.GOLD
+    reward.amount = 100
+    template.rewards.append(reward)
+    
+func _create_reward_OLD(type: QuestTypes.RewardType, amount: int, target_id: String) -> QuestReward:
     var reward := QuestReward.new()
     reward.type = type
     reward.amount = amount
@@ -394,3 +393,565 @@ func _get_faction_name(faction_id: String) -> String:
 func _calculate_poi_seed(poi_pos: Vector2i) -> int:
     """Calcule un seed unique pour un POI basé sur sa position"""
     return world_seed + poi_pos.x * 1000 + poi_pos.y
+# EXTENSION QuestGenerator.gd - Ajouter ces fonctions
+
+# ========================================
+# GÉNÉRATION ADVANCED (PALIER 2 + 3)
+# ========================================
+
+func generate_advanced_quest_for_poi(poi_pos: Vector2i, poi_type: GameEnums.CellType) -> QuestInstanceAdvanced:
+    """Génère une quête complexe avec objectifs multiples pour un POI"""
+    
+    # Seed basé sur position
+    var poi_seed := _calculate_poi_seed(poi_pos)
+    Rng.rng.seed = poi_seed
+    
+    # Créer template advanced
+    var template := QuestTemplateAdvanced.new()
+    
+    # ID et titre
+    template.id = "adv_gen_%d" % poi_seed
+    template.title = _generate_advanced_title(poi_type, poi_seed)
+    template.description = _generate_advanced_description(poi_type)
+    
+    # Catégorie et tier
+    template.category = _get_category_for_poi(poi_type)
+    template.tier = _choose_tier_for_poi(poi_type)
+    
+    # Générer objectifs (2-3)
+    var num_objectives := Rng.rng.randi_range(2, 3)
+    template.objectives = _generate_objectives_for_poi(poi_type, num_objectives)
+    
+    # Mode de complétion
+    template.completion_mode = QuestTemplateAdvanced.CompletionMode.ALL_OBJECTIVES
+    
+    # 30% de chance d'avoir des branches
+    if Rng.rng.randf() > 0.7:
+        template.has_branches = true
+        template.branches = _generate_branches_for_poi(poi_type)
+    
+    # Récompenses
+    template.rewards = _generate_rewards_advanced(poi_type, template.tier)
+    
+    # Expiration
+    template.expires_in_days = 7
+    
+    # Créer instance
+    return QuestInstanceAdvanced.new(template, {"poi_pos": poi_pos, "seed": poi_seed})
+
+# ========================================
+# HELPERS - TITRES ET DESCRIPTIONS
+# ========================================
+
+func _generate_advanced_title(poi_type: GameEnums.CellType, seed: int) -> String:
+    """Génère un titre pour quête advanced"""
+    
+    var adjectives := ["Mystérieux", "Ancien", "Dangereux", "Oublié", "Maudit", "Sacré"]
+    var nouns := []
+    
+    match poi_type:
+        GameEnums.CellType.RUINS:
+            nouns = ["Ruines", "Temple", "Tombeau", "Donjon", "Catacombes"]
+        GameEnums.CellType.TOWN:
+            nouns = ["Ville", "Cité", "Bourg", "Village", "Hameau"]
+        GameEnums.CellType.FORTRESS:
+            nouns = ["Forteresse", "Citadelle", "Bastion", "Château", "Fort"]
+        GameEnums.CellType.DUNGEON:
+            nouns = ["Donjon", "Cachot", "Oubliettes", "Prison", "Labyrinthe"]
+        _:
+            nouns = ["Lieu", "Site", "Zone"]
+    
+    var rng_title := RandomNumberGenerator.new()
+    rng_title.seed = seed
+    
+    var adj :String = adjectives[rng_title.randi() % adjectives.size()]
+    var noun :String = nouns[rng_title.randi() % nouns.size()]
+    
+    var formats :Array[String] = [
+        "Exploration %s %s",
+        "Secrets %s %s",
+        "Mystères %s %s",
+		"Conquête %s %s"
+    ]
+    
+    var format :String = formats[rng_title.randi() % formats.size()]
+    return format % [adj, noun]
+
+func _generate_advanced_description(poi_type: GameEnums.CellType) -> String:
+    """Génère une description pour quête advanced"""
+    
+    match poi_type:
+        GameEnums.CellType.RUINS:
+            return "Des ruines anciennes renferment des secrets oubliés. Explorez-les avec précaution."
+        GameEnums.CellType.TOWN:
+            return "Les habitants ont besoin d'aide. Accomplissez leurs requêtes pour gagner leur confiance."
+        GameEnums.CellType.FORTRESS:
+            return "Une forteresse imposante se dresse devant vous. Ses murs cachent bien des mystères."
+        GameEnums.CellType.DUNGEON:
+            return "Un donjon sombre et dangereux vous attend. Survivrez-vous à ses pièges ?"
+        _:
+            return "Un lieu étrange nécessite votre attention."
+
+# ========================================
+# HELPERS - OBJECTIFS
+# ========================================
+
+func _generate_objectives_for_poi(poi_type: GameEnums.CellType, count: int) -> Array[QuestObjective]:
+    """Génère plusieurs objectifs pour un POI"""
+    
+    var objectives: Array[QuestObjective] = []
+    
+    match poi_type:
+        GameEnums.CellType.RUINS:
+            # Objectif 1 : Explorer
+            var obj1 := QuestObjective.new()
+            obj1.id = "explore"
+            obj1.title = "Explorer les ruines"
+            obj1.description = "Découvrez les secrets cachés"
+            obj1.objective_type = QuestTypes.ObjectiveType.EXPLORE_POI
+            obj1.is_optional = false
+            objectives.append(obj1)
+            
+            if count >= 2:
+                # Objectif 2 : Combat
+                var obj2 := QuestObjective.new()
+                obj2.id = "clear_enemies"
+                obj2.title = "Vaincre les gardiens"
+                obj2.description = "Éliminez les créatures qui protègent les ruines"
+                obj2.objective_type = QuestTypes.ObjectiveType.CLEAR_COMBAT
+                obj2.count = Rng.rng.randi_range(3, 7)
+                obj2.required_objectives = ["explore"]
+                objectives.append(obj2)
+            
+            if count >= 3:
+                # Objectif 3 : Loot
+                var obj3 := QuestObjective.new()
+                obj3.id = "find_artifact"
+                obj3.title = "Récupérer l'artefact"
+                obj3.description = "Trouvez et récupérez le trésor"
+                obj3.objective_type = QuestTypes.ObjectiveType.LOOT_ITEM
+                obj3.target_item = "artifact"
+                obj3.required_objectives = ["clear_enemies"]
+                objectives.append(obj3)
+        
+        GameEnums.CellType.TOWN:
+            # Objectif 1 : Parler
+            var obj1 := QuestObjective.new()
+            obj1.id = "talk_mayor"
+            obj1.title = "Parler au maire"
+            obj1.description = "Discutez avec le dirigeant de la ville"
+            obj1.objective_type = QuestTypes.ObjectiveType.TALK_TO_NPC
+            obj1.target_npc = "mayor"
+            objectives.append(obj1)
+            
+            if count >= 2:
+                # Objectif 2 : Aider
+                var obj2 := QuestObjective.new()
+                obj2.id = "help_citizens"
+                obj2.title = "Aider les habitants"
+                obj2.description = "Accomplissez une tâche pour la communauté"
+                obj2.objective_type = QuestTypes.ObjectiveType.DELIVER_RESOURCES
+                obj2.target_count = Rng.rng.randi_range(20, 50)
+                obj2.required_objectives = ["talk_mayor"]
+                objectives.append(obj2)
+            
+            if count >= 3:
+                # Objectif 3 : Récompense
+                var obj3 := QuestObjective.new()
+                obj3.id = "receive_reward"
+                obj3.title = "Recevoir la gratitude"
+                obj3.description = "Les habitants vous remercient"
+                obj3.objective_type = QuestTypes.ObjectiveType.TALK_TO_NPC
+                obj3.target_npc = "mayor"
+                obj3.required_objectives = ["help_citizens"]
+                objectives.append(obj3)
+        
+        _:
+            # POI générique
+            var obj1 := QuestObjective.new()
+            obj1.id = "generic_objective"
+            obj1.title = "Accomplir la tâche"
+            obj1.description = "Terminez l'objectif principal"
+            obj1.objective_type = QuestTypes.ObjectiveType.EXPLORE_POI
+            objectives.append(obj1)
+    
+    return objectives
+
+# ========================================
+# HELPERS - BRANCHES
+# ========================================
+
+func _generate_branches_for_poi(poi_type: GameEnums.CellType) -> Array[QuestBranch]:
+    """Génère des branches de choix pour un POI"""
+    
+    var branches: Array[QuestBranch] = []
+    
+    match poi_type:
+        GameEnums.CellType.RUINS:
+            # Choix : Garder ou Vendre l'artefact
+            var branch1 := QuestBranch.new()
+            branch1.id = "keep_artifact"
+            branch1.title = "Garder l'artefact"
+            branch1.description = "Conservez l'artefact pour votre collection"
+            branch1.rewards = [
+                _create_reward("stat_boost", {"stat": "power", "amount": 5})
+            ]
+            branches.append(branch1)
+            
+            var branch2 := QuestBranch.new()
+            branch2.id = "sell_artifact"
+            branch2.title = "Vendre l'artefact"
+            branch2.description = "Vendez l'artefact pour de l'or"
+            branch2.rewards = [
+                _create_reward("gold", {"amount": 100})
+            ]
+            branches.append(branch2)
+        
+        GameEnums.CellType.TOWN:
+            # Choix : Aider gratuitement ou demander paiement
+            var branch1 := QuestBranch.new()
+            branch1.id = "help_free"
+            branch1.title = "Aider gratuitement"
+            branch1.description = "Aidez sans demander de récompense"
+            branch1.rewards = [
+                _create_reward("reputation", {"amount": 20})
+            ]
+            branches.append(branch1)
+            
+            var branch2 := QuestBranch.new()
+            branch2.id = "ask_payment"
+            branch2.title = "Demander paiement"
+            branch2.description = "Exigez une rétribution pour vos services"
+            branch2.rewards = [
+                _create_reward("gold", {"amount": 75})
+            ]
+            branches.append(branch2)
+    
+    return branches
+
+func _create_reward(type: String, params: Dictionary) -> QuestReward:
+    """Crée une récompense"""
+    var reward := QuestReward.new()
+    
+    match type:
+        "gold":
+            reward.type = QuestTypes.RewardType.GOLD
+            reward.amount = params.get("amount", 50)
+        "stat_boost":
+            # Placeholder pour boost de stat
+            reward.type = QuestTypes.RewardType.ITEM
+            reward.target_id = params.get("stat", "power")
+            reward.amount = 1
+        "reputation":
+            reward.type = QuestTypes.RewardType.FACTION_REP
+            reward.target_id = params.get("faction_id", "")
+            reward.amount = params.get("amount", 10)
+    
+    return reward
+
+# ========================================
+# HELPERS - RÉCOMPENSES
+# ========================================
+
+func _generate_rewards_advanced(poi_type: GameEnums.CellType, tier: QuestTypes.QuestTier) -> Array[QuestReward]:
+    """Génère des récompenses pour quête advanced"""
+    
+    var rewards: Array[QuestReward] = []
+    var reward := QuestReward.new()
+    
+    # Or basé sur tier
+    var base_gold := 30
+    match tier:
+        QuestTypes.QuestTier.TIER_1: base_gold = 50
+        QuestTypes.QuestTier.TIER_2: base_gold = 100
+        QuestTypes.QuestTier.TIER_3: base_gold = 200
+        QuestTypes.QuestTier.TIER_4: base_gold = 400
+        QuestTypes.QuestTier.TIER_5: base_gold = 800
+    
+    reward.type = QuestTypes.RewardType.GOLD
+    reward.amount = base_gold
+    rewards.append(reward)
+    
+    # Items supplémentaires pour certains POI
+    match poi_type:
+        GameEnums.CellType.RUINS:
+            var item_reward := QuestReward.new()
+            item_reward.type = QuestTypes.RewardType.ITEM
+            item_reward.target_id = "artifact_fragment"
+            item_reward.amount = 1
+            rewards.append(item_reward)
+        GameEnums.CellType.DUNGEON:
+            var item_reward := QuestReward.new()
+            item_reward.type = QuestTypes.RewardType.ITEM
+            item_reward.target_id = "rare_equipment"
+            item_reward.amount = 1
+            rewards.append(item_reward)
+    
+                          
+    return rewards
+
+# ========================================
+# HELPERS - CATEGORIES ET TIERS
+# ========================================
+
+func _get_category_for_poi(poi_type: GameEnums.CellType) -> QuestTypes.QuestCategory:
+    """Retourne la catégorie selon le type de POI"""
+    match poi_type:
+        GameEnums.CellType.RUINS:
+            return QuestTypes.QuestCategory.EXPLORATION
+        GameEnums.CellType.TOWN:
+            return QuestTypes.QuestCategory.DIPLOMATIC
+        GameEnums.CellType.VILLAGE:
+            return QuestTypes.QuestCategory.LOCAL_POI
+        _:
+            return QuestTypes.QuestCategory.LOCAL_POI
+
+func _choose_tier_for_poi(poi_type: GameEnums.CellType) -> QuestTypes.QuestTier:
+    """Choisit un tier selon le POI"""
+    var tiers := [
+        QuestTypes.QuestTier.TIER_1,
+        QuestTypes.QuestTier.TIER_1,
+        QuestTypes.QuestTier.TIER_2,
+        QuestTypes.QuestTier.TIER_2,
+        QuestTypes.QuestTier.TIER_3
+    ]
+    return tiers[Rng.rng.randi() % tiers.size()]
+
+# ========================================
+# HELPERS - TITRES ET DESCRIPTIONS
+# ========================================
+
+func _generate_advanced_title_fixed(poi_type: GameEnums.CellType, seed: int) -> String:
+    """Génère un titre pour quête advanced"""
+    
+    var adjectives := ["Mystérieux", "Ancien", "Dangereux", "Oublié", "Maudit", "Sacré"]
+    var nouns := []
+    
+    match poi_type:
+        GameEnums.CellType.RUINS:
+            nouns = ["Ruines", "Temple", "Tombeau", "Sanctuaire", "Catacombes"]
+        GameEnums.CellType.TOWN:
+            nouns = ["Ville", "Cité", "Bourg", "Cité-État", "Métropole"]
+        GameEnums.CellType.VILLAGE:
+            nouns = ["Village", "Hameau", "Bourg", "Bourgade", "Communauté"]
+        _:
+            nouns = ["Lieu", "Site", "Zone", "Région", "Territoire"]
+    
+    var rng_title := RandomNumberGenerator.new()
+    rng_title.seed = seed
+    
+    var adj: String = adjectives[rng_title.randi() % adjectives.size()]
+    var noun: String = nouns[rng_title.randi() % nouns.size()]
+    
+    var formats := [
+        "Exploration %s %s",
+        "Secrets %s %s",
+        "Mystères %s %s",
+        "Conquête %s %s"
+    ]
+    
+    var format: String = formats[rng_title.randi() % formats.size()]
+    return format % [adj, noun]
+
+func _generate_advanced_description_fixed(poi_type: GameEnums.CellType) -> String:
+    """Génère une description pour quête advanced"""
+    
+    match poi_type:
+        GameEnums.CellType.RUINS:
+            return "Des ruines anciennes renferment des secrets oubliés. Explorez-les avec précaution."
+        GameEnums.CellType.TOWN:
+            return "Les habitants ont besoin d'aide. Accomplissez leurs requêtes pour gagner leur confiance."
+        GameEnums.CellType.VILLAGE:
+            return "Un village paisible vous accueille. Les habitants ont des besoins simples mais urgents."
+        _:
+            return "Un lieu étrange nécessite votre attention."
+
+# ========================================
+# HELPERS - OBJECTIFS
+# ========================================
+
+func _generate_objectives_for_poi_fixed(poi_type: GameEnums.CellType, count: int) -> Array[QuestObjective]:
+    """Génère plusieurs objectifs pour un POI"""
+    
+    var objectives: Array[QuestObjective] = []
+    
+    match poi_type:
+        GameEnums.CellType.RUINS:
+            # Objectif 1 : Explorer
+            var obj1 := QuestObjective.new()
+            obj1.id = "explore"
+            obj1.title = "Explorer les ruines"
+            obj1.description = "Découvrez les secrets cachés"
+            obj1.objective_type = QuestTypes.ObjectiveType.REACH_LOCATION
+            obj1.is_optional = false
+            objectives.append(obj1)
+            
+            if count >= 2:
+                # Objectif 2 : Combat
+                var obj2 := QuestObjective.new()
+                obj2.id = "clear_enemies"
+                obj2.title = "Vaincre les gardiens"
+                obj2.description = "Éliminez les créatures qui protègent les ruines"
+                obj2.objective_type = QuestTypes.ObjectiveType.DEFEAT_ENEMIES
+                obj2.target_count = Rng.rng.randi_range(3, 7)
+                obj2.required_objectives = ["explore"]
+                objectives.append(obj2)
+            
+            if count >= 3:
+                # Objectif 3 : Loot
+                var obj3 := QuestObjective.new()
+                obj3.id = "find_artifact"
+                obj3.title = "Récupérer l'artefact"
+                obj3.description = "Trouvez et récupérez le trésor"
+                obj3.objective_type = QuestTypes.ObjectiveType.COLLECT_RESOURCES
+                obj3.target_item = "artifact"
+                obj3.target_count = 1
+                obj3.required_objectives = ["clear_enemies"]
+                objectives.append(obj3)
+        
+        GameEnums.CellType.TOWN:
+            # Objectif 1 : Parler
+            var obj1 := QuestObjective.new()
+            obj1.id = "talk_mayor"
+            obj1.title = "Parler au maire"
+            obj1.description = "Discutez avec le dirigeant de la ville"
+            obj1.objective_type = QuestTypes.ObjectiveType.REACH_LOCATION
+            obj1.target_npc = "mayor"
+            objectives.append(obj1)
+            
+            if count >= 2:
+                # Objectif 2 : Aider
+                var obj2 := QuestObjective.new()
+                obj2.id = "help_citizens"
+                obj2.title = "Aider les habitants"
+                obj2.description = "Accomplissez une tâche pour la communauté"
+                obj2.objective_type = QuestTypes.ObjectiveType.COLLECT_RESOURCES
+                obj2.target_count = Rng.rng.randi_range(20, 50)
+                obj2.required_objectives = ["talk_mayor"]
+                objectives.append(obj2)
+            
+            if count >= 3:
+                # Objectif 3 : Récompense
+                var obj3 := QuestObjective.new()
+                obj3.id = "receive_reward"
+                obj3.title = "Recevoir la gratitude"
+                obj3.description = "Les habitants vous remercient"
+                obj3.objective_type = QuestTypes.ObjectiveType.REACH_LOCATION
+                obj3.target_npc = "mayor"
+                obj3.required_objectives = ["help_citizens"]
+                objectives.append(obj3)
+        
+        _:
+            # POI générique
+            var obj1 := QuestObjective.new()
+            obj1.id = "generic_objective"
+            obj1.title = "Accomplir la tâche"
+            obj1.description = "Terminez l'objectif principal"
+            obj1.objective_type = QuestTypes.ObjectiveType.REACH_LOCATION
+            objectives.append(obj1)
+    
+    return objectives
+
+# ========================================
+# HELPERS - BRANCHES
+# ========================================
+
+func _generate_branches_for_poi_fixed(poi_type: GameEnums.CellType) -> Array[QuestBranch]:
+    """Génère des branches de choix pour un POI"""
+    
+    var branches: Array[QuestBranch] = []
+    
+    match poi_type:
+        GameEnums.CellType.RUINS:
+            # Choix : Garder ou Vendre l'artefact
+            var branch1 := QuestBranch.new()
+            branch1.id = "keep_artifact"
+            branch1.title = "Garder l'artefact"
+            branch1.description = "Conservez l'artefact pour votre collection"
+            branch1.rewards = _create_branch_rewards("power", 5)
+            branches.append(branch1)
+            
+            var branch2 := QuestBranch.new()
+            branch2.id = "sell_artifact"
+            branch2.title = "Vendre l'artefact"
+            branch2.description = "Vendez l'artefact pour de l'or"
+            branch2.rewards = _create_branch_rewards("gold", 100)
+            branches.append(branch2)
+        
+        GameEnums.CellType.TOWN:
+            # Choix : Aider gratuitement ou demander paiement
+            var branch1 := QuestBranch.new()
+            branch1.id = "help_free"
+            branch1.title = "Aider gratuitement"
+            branch1.description = "Aidez sans demander de récompense"
+            branch1.rewards = _create_branch_rewards("reputation", 20)
+            branches.append(branch1)
+            
+            var branch2 := QuestBranch.new()
+            branch2.id = "ask_payment"
+            branch2.title = "Demander paiement"
+            branch2.description = "Exigez une rétribution pour vos services"
+            branch2.rewards = _create_branch_rewards("gold", 75)
+            branches.append(branch2)
+    
+    return branches
+
+func _create_branch_rewards(type: String, amount: int, target: String = "") -> Array[QuestReward]:
+    """Crée des récompenses pour une branche"""
+    var rewards: Array[QuestReward] = []
+    var reward := QuestReward.new()
+    
+    match type:
+        "gold":
+            reward.type = QuestTypes.RewardType.GOLD
+            reward.amount = amount
+        "power":
+            # Placeholder - à implémenter selon ton système
+            reward.type = QuestTypes.RewardType.ITEM
+            reward.target_id = "power_boost"
+            reward.amount = 1
+        "reputation":
+            # Placeholder - à implémenter selon ton système
+            reward.type = QuestTypes.RewardType.FACTION_REP
+            reward.target_id = target
+            reward.amount = 10
+    
+    rewards.append(reward)
+    return rewards
+
+# ========================================
+# HELPERS - RÉCOMPENSES
+# ========================================
+
+func _generate_rewards_advanced_fixed(poi_type: GameEnums.CellType, tier: QuestTypes.QuestTier) -> Array[QuestReward]:
+    """Génère des récompenses pour quête advanced"""
+    
+    var rewards: Array[QuestReward] = []
+    var reward := QuestReward.new()
+    
+    # Or basé sur tier
+    var base_gold := 30
+    match tier:
+        QuestTypes.QuestTier.TIER_1: base_gold = 50
+        QuestTypes.QuestTier.TIER_2: base_gold = 100
+        QuestTypes.QuestTier.TIER_3: base_gold = 200
+        QuestTypes.QuestTier.TIER_4: base_gold = 400
+        QuestTypes.QuestTier.TIER_5: base_gold = 800
+    
+    reward.type = QuestTypes.RewardType.GOLD
+    reward.amount = base_gold
+    rewards.append(reward)
+    
+    # Items supplémentaires pour certains POI
+    match poi_type:
+        GameEnums.CellType.RUINS:
+            var item_reward := QuestReward.new()
+            item_reward.type = QuestTypes.RewardType.ITEM
+            item_reward.target_id = "artifact_fragment"
+            item_reward.amount = 1
+            rewards.append(item_reward)
+        _:
+            pass
+    
+                          
+    return rewards

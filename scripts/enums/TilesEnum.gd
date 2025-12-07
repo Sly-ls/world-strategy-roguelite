@@ -8,7 +8,10 @@ enum CellType {
     RUINS,
     MARAIS,
     MONTAGNE,
-    WATER
+    WATER,
+    DUNGEON,
+    FORTRESS,
+    VILLAGE 
 }
 
 class CellInfo:
@@ -42,7 +45,10 @@ static var CELL_ENUM := {
     CellType.RUINS: CellInfo.new(CellType.RUINS, 3, "Ruines", Color(0.169, 0.17, 0.162, 1.0), 0.7, 0.5, true, "ruins_ancient", 1.0, 1.0),
     CellType.MARAIS: CellInfo.new(CellType.MARAIS, 3, "Marais", Color(0.209, 0.434, 0.218, 1.0), 0.5, 0.3, true, "", 1.0, 1.0),
     CellType.MONTAGNE: CellInfo.new(CellType.MONTAGNE, 3, "Montagne", Color(0.391, 0.227, 0.251, 1.0), 0.3, 0.5, true, "", 1.0, 1.0),
-    CellType.WATER: CellInfo.new(CellType.WATER, 3, "Water", Color(0.174, 0.37, 0.852, 1.0), 0.3, 1.0, false, "", 1.0, 1.0)
+    CellType.WATER: CellInfo.new(CellType.WATER, 3, "Water", Color(0.174, 0.37, 0.852, 1.0), 0.3, 1.0, false, "", 1.0, 1.0),
+    CellType.DUNGEON: CellInfo.new(CellType.DUNGEON, 3, "Dungeon", Color(0.0, 0.0, 0.0, 1.0), 0.8, 1.0, true, "", 1.0, 1.0),
+    CellType.FORTRESS: CellInfo.new(CellType.FORTRESS, 3, "Fortress", Color(0.439, 0.439, 0.439, 1.0), 0.8, 1.0, true, "", 1.0, 1.0),
+    CellType.VILLAGE: CellInfo.new(CellType.FORTRESS, 3, "Village", Color(0.439, 0.247, 0.439, 1.0), 0.8, 1.0, true, "", 1.0, 1.0)
 }
 
 #exemple d'utilisation
