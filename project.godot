@@ -29,6 +29,8 @@ CampaignManager="*res://src/quests/campaigns/CampaignManager.gd"
 UnitFactory="*res://scripts/UnitCatalog.gd"
 ArmyFactory="*res://scripts/ArmyCatalog.gd"
 WorldEventFactory="*res://scripts/WorldEventCatalog.gd"
+NarrativeGenerator="*res://src/world_events/NarrativeGenerator.gd"
+CrisisManager="*res://src/world_events/CrisisManager.gd"
 
 [input]
 
