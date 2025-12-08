@@ -12,34 +12,47 @@ Tous les fichiers se trouvent dans :
 **`game_design_doc/`**
 
 ### 1. Vision générale
-👉 [01_vision_generale.md](game_design_doc/01_vision_generale.md)
+👉 [01 vision generale](game_design_doc/01_vision_generale.md)
 
 ### 2. Boucle de jeu
-👉 [02_boucle_de_jeu.md](game_design_doc/02_boucle_de_jeu.md)
+👉 [02 boucle de jeu](game_design_doc/02_boucle_de_jeu.md)
 
 ### 3. Monde & biomes
-👉 [03_monde_et_biomes.md](game_design_doc/03_monde_et_biomes.md)
+👉 [03 monde et biomes](game_design_doc/03_monde_et_biomes.md)
 
 ### 4. Factions
-👉 [04_factions.md](game_design_doc/04_factions.md)
+👉 [04 factions](game_design_doc/04_factions.md)
 
 ### 5. Système de temps
-👉 [05_temps_et_cycle.md](game_design_doc/05_temps_et_cycle.md)
+👉 [05 temps et cycle](game_design_doc/05_temps_et_cycle.md)
 
 ### 6. Déplacement & world map
-👉 [06_worldmap_deplacement.md](game_design_doc/06_worldmap_deplacement.md)
+👉 [06 worldmap deplacement](game_design_doc/06_worldmap_deplacement.md)
 
 ### 7. Armée & ressources
-👉 [07_armee_et_ressources.md](game_design_doc/07_armee_et_ressources.md)
+👉 [07 armee et ressources](game_design_doc/07_armee_et_ressources.md)
 
 ### 8. Combat tactique
-👉 [08_combat_systeme.md](game_design_doc/08_combat_systeme.md)
+👉 [08 combat systeme](game_design_doc/08_combat_systeme.md)
 
 ### 9. Événements & crises
-👉 [09_evenements_crises.md](game_design_doc/09_evenements_crises.md)
+👉 [09 evenements crises](game_design_doc/09_evenements_crises.md)
 
 ### 10. Roadmap développement
-👉 [10_roadmap_dev.md](game_design_doc/10_roadmap_dev.md)
+👉 [10 roadmap dev](game_design_doc/10_roadmap_dev.md)
+
+---
+### 📁 Documentation des quetes
+
+description du système de quete implémenté (08/12/2025) :
+
+👉 **[Overview](documentation/VUE_FONCTIONNELLE_QUETES_CAMPAGNES.md)**
+
+👉 **[Details](documentation/VUE_FONCTIONNELLE_QUETES_CAMPAGNES_detailed.md)**
+
+👉 **[Guide de dev](documentation/GUIDE_DEVELOPPEMENT_QUETES.md)**
+
+👉 **[Next steps](documentation/RAF.md)**
 
 ---
 ### 📁 Documentation complémentaire (archives & exhaustives)
