@@ -178,6 +178,38 @@ func _create_fallback_army(id: String, is_player: bool) -> ArmyData:
     
     return army
 
+## ===== SPAWN DYNAMIQUE ENNEMIS =====
+func spawn_random_encounter(difficulty: int = 1) -> void:
+    """
+    Spawn une rencontre aléatoire proche du joueur
+    
+    Args:
+        difficulty: 1=facile, 2=moyen, 3=difficile, 4=boss
+    """
+    var enemy = ArmyFactory.create_random_enemy(difficulty)
+    
+    # Position aléatoire proche du joueur (rayon 3-8 cases)
+    var player_pos = WorldState.army_grid_pos
+    var distance = randi_range(3, 8)
+    var angle = randf() * TAU
+    var offset = Vector2i(
+        int(cos(angle) * distance),
+        int(sin(angle) * distance)
+    )
+    var spawn_pos = player_pos + offset
+    
+    # Clamp dans les limites de la carte
+    spawn_pos.x = clampi(spawn_pos.x, 0, WorldConstants.GRID_WIDTH - 1)
+    spawn_pos.y = clampi(spawn_pos.y, 0, WorldConstants.GRID_HEIGHT - 1)
+    
+    enemy.set_position(spawn_pos)
+    
+    var enemy_id = "encounter_%d" % randi()
+    #entity_position_service.register_entity(enemy_id, "enemy_army", enemy)
+    #WorldState.enemy_armies[enemy_id] = enemy
+    print("[WorldMap] Rencontre générée: %s à %s (difficulté %d)" % [enemy.id, spawn_pos, difficulty])
+    #return enemy_id, "enemy_army", enemy
+
 # ========================================
 # UTILITAIRES (NOUVEAUX)
 # ========================================

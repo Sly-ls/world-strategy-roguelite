@@ -1,4 +1,5 @@
 # res://src/factions/FactionManager.gd
+extends Node
 class_name FactionManagerClass 
 
 ## Gestionnaire global des factions

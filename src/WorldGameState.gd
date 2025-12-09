@@ -5,8 +5,12 @@ class_name WorldGameState
 var player_army: ArmyData = null
 var army_grid_pos: Vector2i = Vector2i(10, 6)
 
+# --- ENEMIES ---
+var enemy_armies: Dictionary = {}  # id -> ArmyData (toutes les armées ennemies sur la carte)
+var current_enemy_id: String = ""  # ID de l'ennemi en combat (pour suppression après victoire)
+
 # --- BATTLE ---
-var enemy_army: ArmyData = null
+var enemy_army: ArmyData = null  # L'ennemi actuellement en combat
 # --- battle result ---
 var last_battle_result: String = ""  # "victory", "defeat", "draw", "retreat"
 var allies_death: Array[UnitData] = []
@@ -68,4 +72,3 @@ func get_formatted_date() -> String:
     var season_name := SEASONS[current_season]
     var phase_name := DAY_PHASES[current_phase]
     return "%s %02d - %s" % [season_name, current_day, phase_name]
-    

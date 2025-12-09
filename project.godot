@@ -17,11 +17,12 @@ config/icon="res://icon.svg"
 
 [autoload]
 
+FactionManager="*res://src/factions/FactionManager.gd"
 Rng="*res://src/utils/RNG.gd"
+WorldConstants="*res://src/WorldConstants.gd"
 EventBus="*res://src/systems/EventBus.gd"
 WorldState="*res://src/WorldGameState.gd"
 ResourceManager="*res://src/factions/ResourceManager.gd"
-FactionManager="*res://src/factions/FactionManager.gd"
 QuestManager="*res://src/systems/QuestManager.gd"
 QuestGenerator="*res://src/quests/generation/QuestGenerator.gd"
 QuestPool="*res://src/quests/generation/QuestPool.gd"

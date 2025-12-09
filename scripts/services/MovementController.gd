@@ -147,14 +147,8 @@ func is_walkable(pos: Vector2i) -> bool:
         return false
     
     # Vérifie le terrain dans la grille
-    var tile_data = world_grid[pos.y][pos.x]
-    if tile_data.has("terrain_type"):
-        var terrain = tile_data["terrain_type"]
-        # Les montagnes et l'eau ne sont pas praticables
-        if terrain == GameEnums.CellType.MONTAGNE or terrain == GameEnums.CellType.WATER:
-            return false
-    
-    return true
+    var tile_type:GameEnums.CellType = world_grid[pos.y][pos.x]
+    return GameEnums.CELL_ENUM[tile_type].walkable
 
 ## Calcule la distance Manhattan entre deux positions
 func calculate_distance(from: Vector2i, to: Vector2i) -> float:

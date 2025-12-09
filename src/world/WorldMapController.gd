@@ -8,8 +8,7 @@
 extends Node2D
 
 ## ===== CONSTANTES =====
-const TILE_SIZE := 64
-const CellType = GameEnums.CellType
+var world_grid: Array = []
 
 ## ===== SERVICES =====
 var movement_controller: MovementController
@@ -25,11 +24,6 @@ var entity_position_service: EntityPositionService
 @onready var date_label: Label = $UI_Layer/DateLabel
 @onready var rest_label: Label = $UI_Layer/RestLabel
 @onready var event_panel: EventPanel = $UI_Layer/EventPanel
-
-## ===== DONNÉES DE LA CARTE =====
-var GRID_WIDTH: int
-var GRID_HEIGHT: int
-var world_grid: Array = []
 
 ## ===== ÉTAT DU MOUVEMENT =====
 var is_moving: bool = false
@@ -54,9 +48,9 @@ func _ready() -> void:
 
 func _init_grid_dimensions() -> void:
     var tex := background.texture
-    GRID_WIDTH = int(tex.get_width() / TILE_SIZE)
-    GRID_HEIGHT = int(tex.get_height() / TILE_SIZE)
-    print("[WorldMap] Dimensions: %dx%d" % [GRID_WIDTH, GRID_HEIGHT])
+    WorldConstants.GRID_WIDTH = int(tex.get_width() / WorldConstants.TILE_SIZE)
+    WorldConstants.GRID_HEIGHT = int(tex.get_height() / WorldConstants.TILE_SIZE)
+    print("[WorldMap] Dimensions: %dx%d" % [WorldConstants.GRID_WIDTH, WorldConstants.GRID_HEIGHT])
 
 func _init_services() -> void:
     # MovementController
@@ -67,7 +61,7 @@ func _init_services() -> void:
     
     # CameraController
     camera_controller = CameraController.new()
-    var world_bounds = Rect2(0, 0, GRID_WIDTH * TILE_SIZE, GRID_HEIGHT * TILE_SIZE)
+    var world_bounds = Rect2(0, 0, WorldConstants.GRID_WIDTH * WorldConstants.TILE_SIZE, WorldConstants.GRID_HEIGHT * WorldConstants.TILE_SIZE)
     camera_controller.initialize(camera, world_bounds)
     camera_controller.set_zoom_limits(0.3, 2.0)
     camera_controller.set_follow_speed(5.0)
@@ -81,24 +75,24 @@ func _init_services() -> void:
 func _init_world_grid() -> void:
     world_grid.clear()
     
-    for y in GRID_HEIGHT:
-        var row: Array[CellType] = []
-        for x in GRID_WIDTH:
-            row.append(CellType.PLAINE)
+    for y in WorldConstants.GRID_HEIGHT:
+        var row: Array[GameEnums.CellType] = []
+        for x in WorldConstants.GRID_WIDTH:
+            row.append(GameEnums.CellType.PLAINE)
         world_grid.append(row)
     
     # POIs
-    world_grid[5][5] = CellType.TOWN
-    world_grid[6][8] = CellType.RUINS
-    world_grid[4][10] = CellType.FOREST_SHRINE
-    world_grid[7][7] = CellType.WATER
-    world_grid[7][8] = CellType.WATER
-    world_grid[7][9] = CellType.WATER
-    world_grid[7][10] = CellType.WATER
+    world_grid[5][5] = GameEnums.CellType.TOWN
+    world_grid[6][8] = GameEnums.CellType.RUINS
+    world_grid[4][10] = GameEnums.CellType.FOREST_SHRINE
+    world_grid[7][7] = GameEnums.CellType.WATER
+    world_grid[7][8] = GameEnums.CellType.WATER
+    world_grid[7][9] = GameEnums.CellType.WATER
+    world_grid[7][10] = GameEnums.CellType.WATER
     
     # Passe la grille aux services
-    movement_controller.initialize(world_grid, GRID_WIDTH, GRID_HEIGHT)
-    entity_position_service.initialize(world_grid, GRID_WIDTH, GRID_HEIGHT)
+    movement_controller.initialize(world_grid, WorldConstants.GRID_WIDTH, WorldConstants.GRID_HEIGHT)
+    entity_position_service.initialize(world_grid, WorldConstants.GRID_WIDTH, WorldConstants.GRID_HEIGHT)
     
     print("[WorldMap] Grille initialisée")
 
@@ -126,24 +120,20 @@ func _init_journal() -> void:
 func _init_player_army() -> void:
     """Initialise l'armée du joueur"""
     
-    # Si WorldState.player_army n'existe pas, crée-le
+    # Si WorldState.player_army n'existe pas, crée-le avec ArmyFactory
     if not WorldState.player_army:
-        var starter_template = load("res://data/armies/starter_army.tres")
-        if starter_template:
-            WorldState.player_army = starter_template.clone_runtime(true)
-        else:
-            WorldState.player_army = ArmyData.new(true)
+        WorldState.player_army = ArmyFactory.create_player_army("starter")
     
     # Position initiale
     var start_pos = WorldState.army_grid_pos
     if start_pos == Vector2i.ZERO or start_pos == Vector2i(-1, -1):
         start_pos = Vector2i(10, 10)
     
-    # ✅ Position dans ArmyData (source unique)
+    # Position dans ArmyData
     WorldState.player_army.set_position(start_pos)
     WorldState.army_grid_pos = start_pos  # Sync
     
-    # ✅ Enregistre dans le service (pour l'index spatial)
+    # Enregistre dans le service
     entity_position_service.register_entity(
         "player",
         "player_army",
@@ -156,6 +146,7 @@ func _init_player_army() -> void:
     camera_controller.center_on(player_world_pos)
     
     print("[WorldMap] Joueur initialisé à %s" % start_pos)
+
 func _init_enemies() -> void:
     """Initialise les armées ennemies"""
     
@@ -179,8 +170,6 @@ func _init_enemies() -> void:
     entity_position_service.register_entity("undead_patrol_1", "enemy_army", undead_patrol)
     
     # Garde les références pour l'IA
-    if not WorldState.has("enemy_armies"):
-        WorldState.enemy_armies = {}
     WorldState.enemy_armies["orc_patrol_1"] = orc_army
     WorldState.enemy_armies["bandit_group_1"] = bandit_army
     WorldState.enemy_armies["random_encounter_1"] = random_enemy
@@ -191,6 +180,33 @@ func _init_enemies() -> void:
 func _init_quests() -> void:
     if QuestManager.get_active_quests().is_empty():
         _start_initial_quests()
+
+func spawn_faction_patrols(faction: String, count: int) -> void:
+    """
+    Spawn plusieurs patrouilles d'une faction
+    
+    Args:
+        faction: "orc", "bandit", "undead", "goblin"
+        count: Nombre de patrouilles
+    """
+    for i in range(count):
+        var strength = randi_range(2, 5)
+        var patrol = ArmyFactory.create_procedural_patrol(faction, strength)
+        
+        # Position aléatoire sur la carte
+        var pos = Vector2i(
+            randi_range(0, WorldConstants.GRID_WIDTH - 1),
+            randi_range(0, WorldConstants.GRID_HEIGHT - 1)
+        )
+        
+        patrol.set_position(pos)
+        
+        var patrol_id = "%s_patrol_%d" % [faction, i]
+        entity_position_service.register_entity(patrol_id, "enemy_army", patrol)
+        
+        WorldState.enemy_armies[patrol_id] = patrol
+    
+    print("[WorldMap] %d patrouilles %s générées" % [count, faction])
 
 ## ===== PROCESS =====
 
@@ -342,7 +358,7 @@ func _update_enemy_patrol(enemy_id: String, player_pos: Vector2i) -> void:
 
 func _is_valid_move(pos: Vector2i) -> bool:
     """Vérifie si une position est valide pour mouvement"""
-    if pos.x < 0 or pos.x >= GRID_WIDTH or pos.y < 0 or pos.y >= GRID_HEIGHT:
+    if pos.x < 0 or pos.x >= WorldConstants.GRID_WIDTH or pos.y < 0 or pos.y >= WorldConstants.GRID_HEIGHT:
         return false
     
     var cell_type = world_grid[pos.y][pos.x]
@@ -377,12 +393,11 @@ func _trigger_combat_with_entity(entity_id: String) -> void:
 func _on_combat_return() -> void:
     """Appelé au retour du combat"""
     if WorldState.last_battle_result == "victory":
-        if WorldState.has("current_enemy_id"):
+        if WorldState.current_enemy_id != "":
             var enemy_id = WorldState.current_enemy_id
             entity_position_service.unregister_entity(enemy_id)
-            
-            if WorldState.has("enemy_armies"):
-                WorldState.enemy_armies.erase(enemy_id)
+            WorldState.enemy_armies.erase(enemy_id)
+            WorldState.current_enemy_id = ""  # Reset
             
             print("[WorldMap] Ennemi %s vaincu et supprimé" % enemy_id)
     
@@ -409,16 +424,23 @@ func _start_world_event(event_id: String) -> void:
     
     # Instancier le handler si présent (RefCounted, PAS Node)
     current_event_handler = null
-    if evt.has("logic_script") and evt.logic_script != null:
+    if evt.logic_script != null:
         var obj: Variant = evt.logic_script.new()
         if obj is WorldEventHandler:
             current_event_handler = obj
         else:
             push_warning("World event %s: logic_script doesn't extend WorldEventHandler" % evt.id)
     
-    if event_panel:
-        event_panel.setup_event(evt)
-        event_panel.show()
+        var ui_choices: Array[Dictionary] = []
+        for c in evt.choices:
+            if c == null:
+                continue
+            ui_choices.append({
+            "text": c.text,
+            "choice_id": c.choice_id
+            })
+
+        event_panel.show_event(evt.title, evt.body, ui_choices)
 
 func _on_event_choice_made(choice_idx: int) -> void:
     if current_event == null:
@@ -469,11 +491,11 @@ func _start_initial_quests() -> void:
 
 func _check_reach_poi_quests(cell_type: int) -> void:
     match cell_type:
-        CellType.RUINS:
+        GameEnums.CellType.RUINS:
             QuestManager.update_quest_progress("ruins_artifact_1", 1)
-        CellType.TOWN:
+        GameEnums.CellType.TOWN:
             QuestManager.update_quest_progress("reach_town", 1)
-        CellType.FOREST_SHRINE:
+        GameEnums.CellType.FOREST_SHRINE:
             QuestManager.update_quest_progress("find_shrine", 1)
 
 func _check_battle_result() -> void:
@@ -550,13 +572,13 @@ func _on_world_click(screen_pos: Vector2) -> void:
     var world_pos: Vector2 = get_global_mouse_position()
     
     var target_grid := Vector2i(
-        int(floor(world_pos.x / TILE_SIZE)),
-        int(floor(world_pos.y / TILE_SIZE))
+        int(floor(world_pos.x / WorldConstants.TILE_SIZE)),
+        int(floor(world_pos.y / WorldConstants.TILE_SIZE))
     )
     
-    if target_grid.x < 0 or target_grid.x >= GRID_WIDTH:
+    if target_grid.x < 0 or target_grid.x >= WorldConstants.GRID_WIDTH:
         return
-    if target_grid.y < 0 or target_grid.y >= GRID_HEIGHT:
+    if target_grid.y < 0 or target_grid.y >= WorldConstants.GRID_HEIGHT:
         return
     
     var target_cell_type = world_grid[target_grid.y][target_grid.x]
@@ -576,9 +598,9 @@ func _try_move_army(delta_grid: Vector2i) -> void:
     var current_pos = WorldState.player_army.get_position()
     var new_pos = current_pos + delta_grid
     
-    if new_pos.x < 0 or new_pos.x >= GRID_WIDTH:
+    if new_pos.x < 0 or new_pos.x >= WorldConstants.GRID_WIDTH:
         return
-    if new_pos.y < 0 or new_pos.y >= GRID_HEIGHT:
+    if new_pos.y < 0 or new_pos.y >= WorldConstants.GRID_HEIGHT:
         return
     
     var cell_type = world_grid[new_pos.y][new_pos.x]
@@ -618,9 +640,9 @@ func _draw() -> void:
     draw_circle(pos, 8.0, Color(1, 0, 0))
     
     # POIs
-    for y in GRID_HEIGHT:
-        for x in GRID_WIDTH:
-            var cell: CellType = world_grid[y][x]
+    for y in WorldConstants.GRID_HEIGHT:
+        for x in WorldConstants.GRID_WIDTH:
+            var cell: GameEnums.CellType = world_grid[y][x]
             var cell_pos = _grid_to_world(Vector2i(x, y))
             draw_circle(cell_pos, 10.0, GameEnums.CELL_ENUM[cell].color)
     
@@ -636,8 +658,8 @@ func _draw() -> void:
 
 func _grid_to_world(grid_pos: Vector2i) -> Vector2:
     return Vector2(
-        float(grid_pos.x) * TILE_SIZE + TILE_SIZE * 0.5,
-        float(grid_pos.y) * TILE_SIZE + TILE_SIZE * 0.5
+        float(grid_pos.x) * WorldConstants.TILE_SIZE + WorldConstants.TILE_SIZE * 0.5,
+        float(grid_pos.y) * WorldConstants.TILE_SIZE + WorldConstants.TILE_SIZE * 0.5
     )
 
 func _calculate_distance(from: Vector2i, to: Vector2i) -> float:
@@ -648,8 +670,8 @@ func _find_nearby_poi(poi_type: GameEnums.CellType, max_distance: int) -> Vector
     var closest_poi := Vector2i(-1, -1)
     var min_distance := 999999.0
     
-    for y in range(max(0, player_pos.y - max_distance), min(GRID_HEIGHT, player_pos.y + max_distance + 1)):
-        for x in range(max(0, player_pos.x - max_distance), min(GRID_WIDTH, player_pos.x + max_distance + 1)):
+    for y in range(max(0, player_pos.y - max_distance), min(WorldConstants.GRID_HEIGHT, player_pos.y + max_distance + 1)):
+        for x in range(max(0, player_pos.x - max_distance), min(WorldConstants.GRID_WIDTH, player_pos.x + max_distance + 1)):
             if world_grid[y][x] == poi_type:
                 var poi_pos := Vector2i(x, y)
                 var distance := _calculate_distance(player_pos, poi_pos)
@@ -661,8 +683,8 @@ func _find_nearby_poi(poi_type: GameEnums.CellType, max_distance: int) -> Vector
     return closest_poi
 
 func _get_cell_type(pos: Vector2i) -> int:
-    if pos.x < 0 or pos.x >= GRID_WIDTH or pos.y < 0 or pos.y >= GRID_HEIGHT:
-        return CellType.PLAINE
+    if pos.x < 0 or pos.x >= WorldConstants.GRID_WIDTH or pos.y < 0 or pos.y >= WorldConstants.GRID_HEIGHT:
+        return GameEnums.CellType.PLAINE
     return world_grid[pos.y][pos.x]
 
 func change_scene(path: String) -> void:
