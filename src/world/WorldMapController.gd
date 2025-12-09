@@ -156,43 +156,37 @@ func _init_player_army() -> void:
     camera_controller.center_on(player_world_pos)
     
     print("[WorldMap] Joueur initialisé à %s" % start_pos)
-
 func _init_enemies() -> void:
     """Initialise les armées ennemies"""
     
-    # Patrouille orque
-    var orc_army = _create_enemy_army("Orc Patrol", 3)
-    orc_army.set_position(Vector2i(15, 12))  # ✅ Position dans ArmyData
+    # Exemple 1 : Ennemis fixes (comme avant)
+    var orc_army = ArmyFactory.create_enemy_army("orc_patrol")
+    orc_army.set_position(Vector2i(15, 12))
     entity_position_service.register_entity("orc_patrol_1", "enemy_army", orc_army)
     
-    # Bandits
-    var bandit_army = _create_enemy_army("Bandits", 2)
-    bandit_army.set_position(Vector2i(8, 20))  # ✅ Position dans ArmyData
+    var bandit_army = ArmyFactory.create_enemy_army("bandit_group")
+    bandit_army.set_position(Vector2i(8, 20))
     entity_position_service.register_entity("bandit_group_1", "enemy_army", bandit_army)
+    
+    # ⭐ Exemple 2 : Génération aléatoire par difficulté
+    var random_enemy = ArmyFactory.create_random_enemy(2)  # Difficulté moyenne
+    random_enemy.set_position(Vector2i(20, 15))
+    entity_position_service.register_entity("random_encounter_1", "enemy_army", random_enemy)
+    
+    # ⭐ Exemple 3 : Patrouilles procédurales par faction
+    var undead_patrol = ArmyFactory.create_procedural_patrol("undead", 3)
+    undead_patrol.set_position(Vector2i(12, 25))
+    entity_position_service.register_entity("undead_patrol_1", "enemy_army", undead_patrol)
     
     # Garde les références pour l'IA
     if not WorldState.has("enemy_armies"):
         WorldState.enemy_armies = {}
     WorldState.enemy_armies["orc_patrol_1"] = orc_army
     WorldState.enemy_armies["bandit_group_1"] = bandit_army
+    WorldState.enemy_armies["random_encounter_1"] = random_enemy
+    WorldState.enemy_armies["undead_patrol_1"] = undead_patrol
     
     print("[WorldMap] %d ennemis initialisés" % entity_position_service.get_entity_count_by_type("enemy_army"))
-
-func _create_enemy_army(name: String, unit_count: int) -> ArmyData:
-    """Crée une armée ennemie simple"""
-    var army = ArmyData.new(false)
-    army.id = name.to_lower().replace(" ", "_")
-    
-    for i in range(unit_count):
-        var unit = UnitData.new()
-        unit.unit_name = "%s %d" % [name, i + 1]
-        unit.max_hp = 50
-        unit.current_hp = 50
-        unit.attack = 5
-        unit.defense = 3
-        army.units[i] = unit
-    
-    return army
 
 func _init_quests() -> void:
     if QuestManager.get_active_quests().is_empty():
@@ -413,12 +407,14 @@ func _start_world_event(event_id: String) -> void:
     is_moving = false
     current_event = evt
     
-    if evt.handler_scene_path != "":
-        var handler_scene = load(evt.handler_scene_path)
-        if handler_scene:
-            current_event_handler = handler_scene.instantiate()
-            current_event_handler.initialize(evt)
-            add_child(current_event_handler)
+    # Instancier le handler si présent (RefCounted, PAS Node)
+    current_event_handler = null
+    if evt.has("logic_script") and evt.logic_script != null:
+        var obj: Variant = evt.logic_script.new()
+        if obj is WorldEventHandler:
+            current_event_handler = obj
+        else:
+            push_warning("World event %s: logic_script doesn't extend WorldEventHandler" % evt.id)
     
     if event_panel:
         event_panel.setup_event(evt)
@@ -428,20 +424,35 @@ func _on_event_choice_made(choice_idx: int) -> void:
     if current_event == null:
         return
     
-    print("[WorldMap] Choix %d sélectionné" % choice_idx)
+    event_open = false
+    
+    # Récupérer le choice_id depuis l'événement
+    var choice_id: String = ""
+    if current_event.has("choices") and choice_idx < current_event.choices.size():
+        var choice = current_event.choices[choice_idx]
+        if choice.has("choice_id"):
+            choice_id = choice.choice_id
+        elif choice.has("id"):
+            choice_id = choice.id
+        else:
+            choice_id = str(choice_idx)
+    
+    print("[WorldMap] Choix %d (%s) sélectionné" % [choice_idx, choice_id])
     
     if current_event_handler:
-        current_event_handler.handle_choice(choice_idx)
+        current_event_handler.execute_choice(choice_id, self)
     
-    _close_event()
+    # Nettoyer
+    current_event = null
+    current_event_handler = null
+    
+    if event_panel:
+        event_panel.hide()
 
 func _close_event() -> void:
     event_open = false
     current_event = null
-    
-    if current_event_handler:
-        current_event_handler.queue_free()
-        current_event_handler = null
+    current_event_handler = null  # RefCounted auto-libéré
     
     if event_panel:
         event_panel.hide()
