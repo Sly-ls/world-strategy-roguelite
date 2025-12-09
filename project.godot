@@ -31,6 +31,7 @@ ArmyFactory="*res://scripts/ArmyCatalog.gd"
 WorldEventFactory="*res://scripts/WorldEventCatalog.gd"
 NarrativeGenerator="*res://src/world_events/NarrativeGenerator.gd"
 CrisisManager="*res://src/world_events/CrisisManager.gd"
+TilesEnum="*res://scripts/enums/TilesEnum.gd"
 
 [input]
 

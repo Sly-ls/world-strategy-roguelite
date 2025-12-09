@@ -382,7 +382,7 @@ func _pick_random_location() -> String:
     return locations[variation_rng.randi_range(0, locations.size() - 1)]
 
 func _get_faction_name(faction_id: String) -> String:
-    if FactionManager.has_faction(faction_id):
+    if FactionManager && FactionManager.has_faction(faction_id):
         return FactionManager.get_faction(faction_id).name
     return faction_id.capitalize()
 
@@ -530,7 +530,7 @@ func _generate_objectives_for_poi(poi_type: GameEnums.CellType, count: int) -> A
                 obj3.title = "Récupérer l'artefact"
                 obj3.description = "Trouvez et récupérez le trésor"
                 obj3.objective_type = QuestTypes.ObjectiveType.LOOT_ITEM
-                obj3.target_item = "artifact"
+                obj3.target = "artifact"
                 obj3.required_objectives = ["clear_enemies"]
                 objectives.append(obj3)
         
@@ -541,7 +541,7 @@ func _generate_objectives_for_poi(poi_type: GameEnums.CellType, count: int) -> A
             obj1.title = "Parler au maire"
             obj1.description = "Discutez avec le dirigeant de la ville"
             obj1.objective_type = QuestTypes.ObjectiveType.TALK_TO_NPC
-            obj1.target_npc = "mayor"
+            obj1.target = "mayor"
             objectives.append(obj1)
             
             if count >= 2:
@@ -562,7 +562,7 @@ func _generate_objectives_for_poi(poi_type: GameEnums.CellType, count: int) -> A
                 obj3.title = "Recevoir la gratitude"
                 obj3.description = "Les habitants vous remercient"
                 obj3.objective_type = QuestTypes.ObjectiveType.TALK_TO_NPC
-                obj3.target_npc = "mayor"
+                obj3.target = "mayor"
                 obj3.required_objectives = ["help_citizens"]
                 objectives.append(obj3)
         
@@ -804,7 +804,7 @@ func _generate_objectives_for_poi_fixed(poi_type: GameEnums.CellType, count: int
                 obj3.title = "Récupérer l'artefact"
                 obj3.description = "Trouvez et récupérez le trésor"
                 obj3.objective_type = QuestTypes.ObjectiveType.COLLECT_RESOURCES
-                obj3.target_item = "artifact"
+                obj3.target = "artifact"
                 obj3.target_count = 1
                 obj3.required_objectives = ["clear_enemies"]
                 objectives.append(obj3)
@@ -816,7 +816,7 @@ func _generate_objectives_for_poi_fixed(poi_type: GameEnums.CellType, count: int
             obj1.title = "Parler au maire"
             obj1.description = "Discutez avec le dirigeant de la ville"
             obj1.objective_type = QuestTypes.ObjectiveType.REACH_LOCATION
-            obj1.target_npc = "mayor"
+            obj1.target = "mayor"
             objectives.append(obj1)
             
             if count >= 2:
@@ -837,7 +837,7 @@ func _generate_objectives_for_poi_fixed(poi_type: GameEnums.CellType, count: int
                 obj3.title = "Recevoir la gratitude"
                 obj3.description = "Les habitants vous remercient"
                 obj3.objective_type = QuestTypes.ObjectiveType.REACH_LOCATION
-                obj3.target_npc = "mayor"
+                obj3.target = "mayor"
                 obj3.required_objectives = ["help_citizens"]
                 objectives.append(obj3)
         

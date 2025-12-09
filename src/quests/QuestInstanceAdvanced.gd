@@ -63,18 +63,35 @@ func _duplicate_objective(obj: QuestObjective) -> QuestObjective:
     copy.fail_on_day = obj.fail_on_day
     copy.fail_conditions = obj.fail_conditions.duplicate()
     return copy
-
 func _duplicate_branch(branch: QuestBranch) -> QuestBranch:
-    """Crée une copie runtime d'une branche"""
+    """Crée une copie runtime d'une branche - ADAPTÉ AU VRAI QuestBranch"""
     var copy := QuestBranch.new()
+    
+    # Propriétés de base
     copy.id = branch.id
     copy.title = branch.title
     copy.description = branch.description
-    copy.branch_type = branch.branch_type
-    copy.choices = branch.choices.duplicate()
-    copy.trigger_conditions = branch.trigger_conditions.duplicate()
-    copy.trigger_on_objective = branch.trigger_on_objective
-    copy.trigger_on_day = branch.trigger_on_day
+    copy.icon = branch.icon
+    
+    # Effets
+    copy.rewards = branch.rewards.duplicate()
+    copy.adds_tags = branch.adds_tags.duplicate()
+    copy.removes_tags = branch.removes_tags.duplicate()
+    
+    # Quêtes suivantes
+    copy.leads_to_quest = branch.leads_to_quest
+    copy.blocks_quests = branch.blocks_quests.duplicate()
+    
+    # Conditions
+    copy.required_tags = branch.required_tags.duplicate()
+    copy.required_gold = branch.required_gold
+    copy.required_items = branch.required_items.duplicate()
+    
+    # État runtime (réinitialisé)
+    copy.is_triggered = false
+    copy.chosen_option = -1
+    copy.triggered_on_day = -1
+    
     return copy
 
 # ========================================
