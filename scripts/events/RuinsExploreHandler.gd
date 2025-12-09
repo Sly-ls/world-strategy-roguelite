@@ -2,6 +2,7 @@
 extends WorldEventHandler
 
 func execute_choice(choice_id: String, world_controller: Node) -> void:
+    print("✓ TEEEEEEEEEEEEST")
     match choice_id:
         "ruins_explore":
             if not QuestManager.has_active_quest("ruins_artifact_1"):

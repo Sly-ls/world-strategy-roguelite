@@ -442,27 +442,19 @@ func _start_world_event(event_id: String) -> void:
 
         event_panel.show_event(evt.title, evt.body, ui_choices)
 
-func _on_event_choice_made(choice_idx: int) -> void:
+func _on_event_choice_made(choice: String) -> void:
     if current_event == null:
         return
     
     event_open = false
     
     # Récupérer le choice_id depuis l'événement
-    var choice_id: String = ""
-    if current_event.has("choices") and choice_idx < current_event.choices.size():
-        var choice = current_event.choices[choice_idx]
-        if choice.has("choice_id"):
-            choice_id = choice.choice_id
-        elif choice.has("id"):
-            choice_id = choice.id
-        else:
-            choice_id = str(choice_idx)
     
-    print("[WorldMap] Choix %d (%s) sélectionné" % [choice_idx, choice_id])
+    
+    print("[WorldMap] Choix %d (%s) sélectionné" % [choice])
     
     if current_event_handler:
-        current_event_handler.execute_choice(choice_id, self)
+        current_event_handler.execute_choice(choice, self)
     
     # Nettoyer
     current_event = null
