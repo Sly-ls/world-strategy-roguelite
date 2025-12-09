@@ -1,19 +1,18 @@
 [gd_resource type="Resource" script_class="UnitData" load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://src/army/UnitData.gd" id="1"]
-[ext_resource type="Texture2D" path="res://assets/units/HalflingAssassin.png" id="2"]
+[ext_resource type="Texture2D" path="res://assets/units/OrcShaman.png" id="2"]
 
 [resource]
 script = ExtResource("1")
-id = "knight"
-name = "Chevaliers"
-max_hp = 600
-max_morale = 100
-count = 6
-attack_interval = 1.0
-tags = Array[String](["frontline", "armored"])
+id = "orc_shaman"
+name = "Orc Shaman"
+max_hp = 300
+max_morale = 70
+count = 8
+attack_interval = 2.0
+tags = Array[String](["orc", "magic", "support"])
 powers = Dictionary[int, int]({
-0: 40,
-8: 5
+2: 40
 })
 icon = ExtResource("2")

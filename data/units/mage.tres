@@ -1,20 +1,18 @@
-[gd_resource type="Resource" script_class="UnitData" load_steps=3 format=3 uid="uid://hicf0gjryav8"]
+[gd_resource type="Resource" script_class="UnitData" load_steps=3 format=3]
 
-[ext_resource type="Script" uid="uid://c736tby0g6cjp" path="res://src/army/UnitData.gd" id="1_85r4g"]
-[ext_resource type="Texture2D" uid="uid://e1mf6580l6v" path="res://assets/units/lady_mage_DOWN_0.png" id="1_yviga"]
+[ext_resource type="Script" path="res://src/army/UnitData.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/units/HumanMage.png" id="2"]
 
 [resource]
-script = ExtResource("1_85r4g")
+script = ExtResource("1")
 id = "mage"
-name = "Mage"
-max_hp = 300
-max_morale = 90
-count = 4
+name = "Mages"
+max_hp = 250
+max_morale = 70
+count = 5
 attack_interval = 2.0
-tags = Array[String](["magic", "glass_cannon"])
+tags = Array[String](["magic", "support"])
 powers = Dictionary[int, int]({
-2: 75,
-4: 1
+2: 50
 })
-icon = ExtResource("1_yviga")
-metadata/_custom_type_script = "uid://c736tby0g6cjp"
+icon = ExtResource("2")

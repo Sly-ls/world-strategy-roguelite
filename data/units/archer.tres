@@ -1,19 +1,18 @@
-[gd_resource type="Resource" script_class="UnitData" load_steps=3 format=3 uid="uid://vr45rqmyje13"]
+[gd_resource type="Resource" script_class="UnitData" load_steps=3 format=3 uid="uid://c754scki48afk"]
 
-[ext_resource type="Script" uid="uid://c736tby0g6cjp" path="res://src/army/UnitData.gd" id="1_2754n"]
-[ext_resource type="Texture2D" uid="uid://1hl78my2cdwm" path="res://assets/units/HalflingRanger.png" id="1_xswrj"]
+[ext_resource type="Script" uid="uid://c736tby0g6cjp" path="res://src/army/UnitData.gd" id="1"]
+[ext_resource type="Texture2D" uid="uid://1hl78my2cdwm" path="res://assets/units/HalflingRanger.png" id="2"]
 
 [resource]
-script = ExtResource("1_2754n")
+script = ExtResource("1")
 id = "archer"
 name = "Archers"
 max_hp = 300
-max_morale = 80
 count = 10
 attack_interval = 1.2
 tags = Array[String](["ranged"])
 powers = Dictionary[int, int]({
 1: 40
 })
-icon = ExtResource("1_xswrj")
+icon = ExtResource("2")
 metadata/_custom_type_script = "uid://c736tby0g6cjp"

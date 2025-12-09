@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="ArmyData" load_steps=5 format=3 uid="uid://idai1qf1uecq"]
+
+[ext_resource type="Script" uid="uid://bu8vnu82flrua" path="res://src/army/ArmyData.gd" id="1"]
+[ext_resource type="Script" uid="uid://c736tby0g6cjp" path="res://src/army/UnitData.gd" id="2"]
+[ext_resource type="Resource" path="res://data/units/bandit_thug.tres" id="4"]
+[ext_resource type="Resource" uid="uid://vbr7c1w7x1jd" path="res://data/units/bandit_assassin.tres" id="5"]
+
+[resource]
+script = ExtResource("1")
+id = "bandit_gang"
+units = Array[ExtResource("2")]([ExtResource("4"), ExtResource("4"), ExtResource("5")])

@@ -85,10 +85,10 @@ func create_random_enemy(difficulty: int = 1) -> ArmyData:
     Crée un ennemi aléatoire selon la difficulté
 
     Args:
-        difficulty: 1=facile, 2=moyen, 3=difficile, 4=boss
+    difficulty: 1=facile, 2=moyen, 3=difficile, 4=boss
 
     Returns:
-        ArmyData ennemie aléatoire
+    ArmyData ennemie aléatoire
     """
     var candidates: Array[String] = []
     
@@ -126,7 +126,7 @@ func create_procedural_patrol(faction: String, strength: int = 3) -> ArmyData:
     strength: Niveau de force (détermine quel template utiliser)
 
     Returns:
-   	ArmyData de patrouille
+    ArmyData de patrouille
     """
     var template_id: String
     
@@ -170,11 +170,10 @@ func _create_fallback_army(id: String, is_player: bool) -> ArmyData:
     # Crée 3 unités basiques
     for i in range(3):
         var unit = UnitData.new()
-        unit.unit_name = "%s %d" % [id.capitalize().replace("_", " "), i + 1]
+        unit.name = "%s %d" % [id.capitalize().replace("_", " "), i + 1]
         unit.max_hp = 50
-        unit.current_hp = 50
-        unit.attack = 5
-        unit.defense = 3
+        unit.hp = 50
+        unit.powers[PowerEnums.PowerType.MELEE] = 5
         army.units[i] = unit
     
     return army

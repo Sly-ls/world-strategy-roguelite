@@ -1,19 +1,19 @@
 [gd_resource type="Resource" script_class="UnitData" load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://src/army/UnitData.gd" id="1"]
-[ext_resource type="Texture2D" path="res://assets/units/HalflingAssassin.png" id="2"]
+[ext_resource type="Texture2D" path="res://assets/units/Zombie.png" id="2"]
 
 [resource]
 script = ExtResource("1")
-id = "knight"
-name = "Chevaliers"
-max_hp = 600
-max_morale = 100
-count = 6
-attack_interval = 1.0
-tags = Array[String](["frontline", "armored"])
+id = "zombie"
+name = "Zombie"
+max_hp = 400
+max_morale = 30
+count = 15
+attack_interval = 2.0
+tags = Array[String](["undead", "melee", "slow"])
 powers = Dictionary[int, int]({
-0: 40,
-8: 5
+0: 20,
+8: 3
 })
 icon = ExtResource("2")

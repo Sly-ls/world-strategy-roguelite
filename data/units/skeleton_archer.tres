@@ -1,19 +1,18 @@
 [gd_resource type="Resource" script_class="UnitData" load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://src/army/UnitData.gd" id="1"]
-[ext_resource type="Texture2D" path="res://assets/units/HalflingAssassin.png" id="2"]
+[ext_resource type="Texture2D" path="res://assets/units/SkeletonArcher.png" id="2"]
 
 [resource]
 script = ExtResource("1")
-id = "knight"
-name = "Chevaliers"
-max_hp = 600
-max_morale = 100
-count = 6
-attack_interval = 1.0
-tags = Array[String](["frontline", "armored"])
+id = "skeleton_archer"
+name = "Skeleton Archer"
+max_hp = 200
+max_morale = 50
+count = 12
+attack_interval = 1.2
+tags = Array[String](["undead", "ranged"])
 powers = Dictionary[int, int]({
-0: 40,
-8: 5
+1: 20
 })
 icon = ExtResource("2")
