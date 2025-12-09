@@ -50,6 +50,8 @@ description du système de quete implémenté (08/12/2025) :
 
 👉 **[Details](documentation/VUE_FONCTIONNELLE_QUETES_CAMPAGNES_detailed.md)**
 
+👉 **[Quest System](documentation/QuestSystem.md)**
+
 👉 **[Guide de dev](documentation/GUIDE_DEVELOPPEMENT_QUETES.md)**
 
 👉 **[Next steps](documentation/RAF.md)**
