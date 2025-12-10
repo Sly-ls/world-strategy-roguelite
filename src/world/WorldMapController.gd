@@ -24,6 +24,7 @@ var entity_position_service: EntityPositionService
 @onready var date_label: Label = $UI_Layer/DateLabel
 @onready var rest_label: Label = $UI_Layer/RestLabel
 @onready var event_panel: EventPanel = $UI_Layer/EventPanel
+@onready var path_visualizer: PathVisualizer = $PathVisualizer
 
 ## ===== ÉTAT DU MOUVEMENT =====
 var is_moving: bool = false
@@ -55,10 +56,11 @@ func _init_grid_dimensions() -> void:
 func _init_services() -> void:
     # MovementController
     movement_controller = MovementController.new()
+    movement_controller.movement_started.connect(_on_movement_started)
     movement_controller.movement_completed.connect(_on_movement_completed)
     movement_controller.movement_blocked.connect(_on_movement_blocked)
     movement_controller.movement_step.connect(_on_movement_step)
-    
+    #path_visualizer
     # CameraController
     camera_controller = CameraController.new()
     var world_bounds = Rect2(0, 0, WorldConstants.GRID_WIDTH * WorldConstants.TILE_SIZE, WorldConstants.GRID_HEIGHT * WorldConstants.TILE_SIZE)
@@ -242,7 +244,7 @@ func _update_army_movement(delta: float) -> void:
 
 func _on_movement_completed(final_grid_pos: Vector2i) -> void:
     print("[WorldMap] Mouvement terminé à %s" % final_grid_pos)
-    
+    path_visualizer.hide_path()
     is_moving = false
     
     # ✅ Met à jour position dans ArmyData
@@ -262,6 +264,8 @@ func _on_movement_blocked(pos: Vector2i, reason: String) -> void:
 func _on_movement_step(current_world_pos: Vector2) -> void:
     var grid_pos = movement_controller.world_to_grid(current_world_pos)
     WorldState.army_grid_pos = grid_pos
+    var remaining = movement_controller.get_remaining_path()
+    path_visualizer.update_path(remaining)
 
 ## ===== COLLISION / RENCONTRE =====
 
@@ -544,7 +548,7 @@ func _unhandled_input(event: InputEvent) -> void:
     if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
         _on_world_click(event.position)
         return
-    
+        
     if event.is_action_pressed("move_up"):
         _try_move_army(Vector2i(0, -1))
     elif event.is_action_pressed("move_down"):
@@ -559,6 +563,11 @@ func _unhandled_input(event: InputEvent) -> void:
             camera_controller.adjust_zoom(0.1)
         elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
             camera_controller.adjust_zoom(-0.1)
+            
+func _on_movement_started(from: Vector2i, to: Vector2i) -> void:
+    var full_path = movement_controller.get_remaining_path()
+    full_path.push_front(from)
+    path_visualizer.show_path(full_path)
 
 func _on_world_click(screen_pos: Vector2) -> void:
     var world_pos: Vector2 = get_global_mouse_position()
@@ -581,10 +590,16 @@ func _on_world_click(screen_pos: Vector2) -> void:
     var current_pos = WorldState.player_army.get_position()
     var speed = WorldState.player_army.BASE_SPEED_PX
     
-    if movement_controller.start_movement(current_pos, target_grid, speed):
+    # Si déjà en mouvement → recalcule
+    if movement_controller.get_is_moving():
+        movement_controller.recalculate_path(target_grid)
+    else:
+        # Sinon → démarre nouveau mouvement
+        movement_controller.start_movement(current_pos, target_grid, speed)
         is_moving = true
         move_target = world_pos
         print("[WorldMap] Mouvement vers %s" % target_grid)
+        
 
 func _try_move_army(delta_grid: Vector2i) -> void:
     var current_pos = WorldState.player_army.get_position()

@@ -1,12 +1,10 @@
-[gd_scene load_steps=8 format=3 uid="uid://rsluj5frvxd7"]
+[gd_scene load_steps=6 format=3 uid="uid://rsluj5frvxd7"]
 
 [ext_resource type="Script" uid="uid://dxhv1iqun7khd" path="res://src/world/WorldMapController.gd" id="1_ej7nn"]
 [ext_resource type="Texture2D" uid="uid://chae0j1m6ist4" path="res://icon.svg" id="2_fgl0d"]
 [ext_resource type="Script" uid="uid://b2d7ptwgkqxle" path="res://src/army/ArmyUIController.gd" id="2_pj4xh"]
 [ext_resource type="Texture2D" uid="uid://btw082oe5852g" path="res://assets/maps/worldmap_1.png" id="3_8rtnk"]
 [ext_resource type="PackedScene" uid="uid://dkr8plpd6ejj4" path="res://scenes/EventPanel.tscn" id="5_05f3n"]
-[ext_resource type="Texture2D" uid="uid://b6tkvdtf028r" path="res://assets/units/cthulluh_DOWN_0.png" id="5_jsexe"]
-[ext_resource type="Script" uid="uid://3t7ht5r4rybx" path="res://scripts/services/PathVisualizer.gd" id="7_05f3n"]
 
 [node name="WorldMap" type="Node2D"]
 script = ExtResource("1_ej7nn")
@@ -229,22 +227,12 @@ expand_mode = 2
 [node name="ArmyMarker" type="Node2D" parent="."]
 top_level = true
 
-[node name="Control" type="Control" parent="ArmyMarker"]
-layout_mode = 3
-anchors_preset = 0
-offset_right = 40.0
-offset_bottom = 40.0
-
-[node name="Sprite2D" type="Sprite2D" parent="ArmyMarker/Control"]
-texture = ExtResource("5_jsexe")
+[node name="Sprite2D" type="Sprite2D" parent="ArmyMarker"]
+texture = ExtResource("2_fgl0d")
 
 [node name="Background" type="Sprite2D" parent="."]
 z_index = -1
 texture = ExtResource("3_8rtnk")
 centered = false
-
-[node name="PathVisualizer" type="Node2D" parent="."]
-unique_name_in_owner = true
-script = ExtResource("7_05f3n")
 
 [connection signal="pressed" from="UI_Layer/ArmyPanel/VBoxContainer/VBoxContainer_Actions/RestButton" to="." method="_on_rest_button_pressed"]
