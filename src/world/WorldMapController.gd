@@ -242,17 +242,18 @@ func _update_army_movement(delta: float) -> void:
     if army_marker:
         army_marker.position = new_world_pos
 
-func _on_movement_completed(final_grid_pos: Vector2i) -> void:
-    print("[WorldMap] Mouvement terminé à %s" % final_grid_pos)
+func _on_movement_completed(final_pixel_pos: Vector2) -> void:
+    print("[WorldMap] Mouvement terminé à %s" % final_pixel_pos)
     path_visualizer.hide_path()
     is_moving = false
     
-    # ✅ Met à jour position dans ArmyData
+    # ⭐ Convertit position pixel en grille pour gameplay
+    var final_grid_pos = movement_controller.world_to_grid(final_pixel_pos)
+    
     var old_pos = WorldState.player_army.get_position()
     WorldState.player_army.set_position(final_grid_pos)
     WorldState.army_grid_pos = final_grid_pos
     
-    # ✅ Synchronise l'index spatial
     entity_position_service.update_entity_position("player", old_pos)
     
     _check_enter_poi(final_grid_pos)
@@ -261,11 +262,14 @@ func _on_movement_blocked(pos: Vector2i, reason: String) -> void:
     print("[WorldMap] Mouvement bloqué à %s: %s" % [pos, reason])
     is_moving = false
 
-func _on_movement_step(current_world_pos: Vector2) -> void:
-    var grid_pos = movement_controller.world_to_grid(current_world_pos)
+func _on_movement_step(current_pixel_pos: Vector2) -> void:
+    # ⭐ Met à jour position grille pour gameplay
+    var grid_pos = movement_controller.world_to_grid(current_pixel_pos)
     WorldState.army_grid_pos = grid_pos
+    # ⭐ Met à jour chemin pixel
     var remaining = movement_controller.get_remaining_path()
-    path_visualizer.update_path(remaining)
+    remaining.push_front(army_marker.position)
+    path_visualizer.show_pixel_path(remaining)
 
 ## ===== COLLISION / RENCONTRE =====
 
@@ -564,17 +568,21 @@ func _unhandled_input(event: InputEvent) -> void:
         elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
             camera_controller.adjust_zoom(-0.1)
             
-func _on_movement_started(from: Vector2i, to: Vector2i) -> void:
+func _on_movement_started(from_pixel: Vector2, to_pixel: Vector2) -> void:
+    # ⭐ Récupère chemin pixel complet
     var full_path = movement_controller.get_remaining_path()
-    full_path.push_front(from)
-    path_visualizer.show_path(full_path)
+    # ⭐ Ajoute position actuelle au début
+    full_path.push_front(army_marker.position)
+    # ⭐ Affiche chemin pixel
+    path_visualizer.show_pixel_path(full_path)
 
 func _on_world_click(screen_pos: Vector2) -> void:
-    var world_pos: Vector2 = get_global_mouse_position()
+    var target_pixel: Vector2 = get_global_mouse_position()
     
-    var target_grid := Vector2i(
-        int(floor(world_pos.x / WorldConstants.TILE_SIZE)),
-        int(floor(world_pos.y / WorldConstants.TILE_SIZE))
+    # ⭐ Vérifie que destination est dans la carte
+    var target_grid = Vector2i(
+        int(floor(target_pixel.x / WorldConstants.TILE_SIZE)),
+        int(floor(target_pixel.y / WorldConstants.TILE_SIZE))
     )
     
     if target_grid.x < 0 or target_grid.x >= WorldConstants.GRID_WIDTH:
@@ -582,23 +590,25 @@ func _on_world_click(screen_pos: Vector2) -> void:
     if target_grid.y < 0 or target_grid.y >= WorldConstants.GRID_HEIGHT:
         return
     
+    # ⭐ Vérifie que la CASE de destination est walkable
     var target_cell_type = world_grid[target_grid.y][target_grid.x]
     if not GameEnums.CELL_ENUM[target_cell_type].walkable:
         print("[WorldMap] Cible non praticable")
         return
     
-    var current_pos = WorldState.player_army.get_position()
-    var speed = WorldState.player_army.BASE_SPEED_PX
-    
-    # Si déjà en mouvement → recalcule
+    # ⭐ Si déjà en mouvement → recalcule
     if movement_controller.get_is_moving():
-        movement_controller.recalculate_path(target_grid)
+        if movement_controller.recalculate_path_to_pixel(target_pixel):
+            print("[WorldMap] Chemin recalculé vers %s" % target_pixel)
     else:
-        # Sinon → démarre nouveau mouvement
-        movement_controller.start_movement(current_pos, target_grid, speed)
-        is_moving = true
-        move_target = world_pos
-        print("[WorldMap] Mouvement vers %s" % target_grid)
+        # ⭐ Démarre mouvement vers PIXEL exact
+        var current_pixel = army_marker.position
+        var speed = WorldState.player_army.BASE_SPEED_PX
+        
+        if movement_controller.start_movement_to_pixel(current_pixel, target_pixel, speed):
+            is_moving = true
+            move_target = target_pixel
+            print("[WorldMap] Mouvement vers pixel %s" % target_pixel)
         
 
 func _try_move_army(delta_grid: Vector2i) -> void:
