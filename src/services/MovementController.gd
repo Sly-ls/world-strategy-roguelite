@@ -100,16 +100,83 @@ func calculate_pixel_path(from_pixel: Vector2, to_pixel: Vector2) -> Array[Vecto
     # ⭐ Dernier point = destination EXACTE
     pixel_path.append(to_pixel)
     
-    # 4. ⭐ Simplifie ENCORE en pixel (line-of-sight pixel)
-    pixel_path = simplify_pixel_path(pixel_path)
+    print("   📍 Before pixel simplify: %d waypoints" % pixel_path.size())
+    
+    # 4. ⭐ Vérifie CHAQUE segment du chemin
+    # Si un segment traverse obstacle, le subdivise
+    pixel_path = validate_and_fix_pixel_path(pixel_path, grid_path)
+    
+    print("   📍 Final pixel path: %d waypoints (from grid: %d)" % [pixel_path.size(), simplified_grid.size()])
     
     return pixel_path
+
+## ⭐ NOUVEAU: Valide et corrige chemin pixel
+func validate_and_fix_pixel_path(pixel_path: Array[Vector2], grid_path: Array[Vector2i]) -> Array[Vector2]:
+    """
+    Vérifie chaque segment du chemin pixel.
+    Si un segment traverse un obstacle, le remplace par chemin grille.
+    """
+    if pixel_path.size() < 2:
+        return pixel_path
+    
+    var fixed_path: Array[Vector2] = []
+    fixed_path.append(pixel_path[0])
+    
+    for i in range(1, pixel_path.size()):
+        var from = pixel_path[i - 1]
+        var to = pixel_path[i]
+        
+        # Vérifie segment
+        if has_pixel_line_of_sight(from, to):
+            # Segment OK, garde-le
+            fixed_path.append(to)
+        else:
+            # ❌ Segment traverse obstacle !
+            print("   ⚠️ Segment %d→%d blocked, inserting grid waypoints" % [i-1, i])
+            
+            # Trouve cases grille entre from et to
+            var from_grid = world_to_grid(from)
+            var to_grid = world_to_grid(to)
+            
+            # Insère tous les waypoints grille entre les deux
+            for grid_pos in grid_path:
+                var grid_pixel = grid_to_world_center(grid_pos)
+                
+                # Si waypoint entre from et to, l'ajouter
+                if is_between(from_grid, grid_pos, to_grid):
+                    fixed_path.append(grid_pixel)
+            
+            fixed_path.append(to)
+    
+    print("   📍 After validation: %d waypoints (was %d)" % [fixed_path.size(), pixel_path.size()])
+    return fixed_path
+
+## Vérifie si point B est entre A et C
+func is_between(a: Vector2i, b: Vector2i, c: Vector2i) -> bool:
+    # Distance Manhattan approximative
+    var dist_ab = abs(b.x - a.x) + abs(b.y - a.y)
+    var dist_bc = abs(c.x - b.x) + abs(c.y - b.y)
+    var dist_ac = abs(c.x - a.x) + abs(c.y - a.y)
+    
+    # B est entre A et C si dist_ab + dist_bc ≈ dist_ac
+    return dist_ab + dist_bc <= dist_ac + 2  # +2 pour tolérance diagonales
 
 ## ⭐ NOUVEAU: Simplifie chemin pixel avec line-of-sight pixel
 func simplify_pixel_path(path: Array[Vector2]) -> Array[Vector2]:
     """Simplifie chemin pixel en vérifiant ligne de vue pixel par pixel"""
-    if path.size() <= 2:
+    if path.size() <= 1:
         return path
+    
+    # ⭐ Même avec 2 points, vérifie ligne droite !
+    # Si bloquée, garde chemin original
+    if path.size() == 2:
+        if has_pixel_line_of_sight(path[0], path[1]):
+            return path  # OK, ligne droite valide
+        else:
+            # Ligne droite traverse obstacle !
+            # Garde chemin original (déjà optimal via A*)
+            print("   ⚠️ Cannot simplify: direct line blocked")
+            return path
     
     var simplified: Array[Vector2] = []
     simplified.append(path[0])
@@ -130,26 +197,66 @@ func simplify_pixel_path(path: Array[Vector2]) -> Array[Vector2]:
     
     return simplified
 
-## ⭐ NOUVEAU: Vérifie ligne de vue entre 2 pixels
+## ⭐ NOUVEAU: Vérifie ligne de vue entre 2 pixels avec Bresenham
 func has_pixel_line_of_sight(from_pixel: Vector2, to_pixel: Vector2) -> bool:
     """
-    Trace ligne droite entre 2 positions pixel,
-    vérifie que toutes les cases traversées sont walkable.
+    Trace ligne droite entre 2 positions pixel avec algorithme Bresenham.
+    Vérifie TOUTES les cases traversées (garantit aucun obstacle manqué).
     """
-    var distance = from_pixel.distance_to(to_pixel)
-    var steps = int(distance / (WorldConstants.TILE_SIZE / 4.0))  # Échantillonnage fin
+    var from_grid = world_to_grid(from_pixel)
+    var to_grid = world_to_grid(to_pixel)
     
-    if steps < 2:
-        steps = 2
+    print("🔍 LOS: %s → %s" % [from_grid, to_grid])
     
-    for i in range(steps + 1):
-        var t = float(i) / float(steps)
-        var sample_pixel = from_pixel.lerp(to_pixel, t)
-        var sample_grid = world_to_grid(sample_pixel)
+    # Bresenham sur les cases
+    var dx = abs(to_grid.x - from_grid.x)
+    var dy = abs(to_grid.y - from_grid.y)
+    var sx = 1 if to_grid.x > from_grid.x else -1
+    var sy = 1 if to_grid.y > from_grid.y else -1
+    var err = dx - dy
+    
+    var current = from_grid
+    var cells_checked = 0
+    var first_cell = true  # ⭐ Flag pour ignorer case de départ
+    
+    print("   ⭐ START Bresenham (dx=%d, dy=%d)" % [dx, dy])
+    
+    while true:
+        cells_checked += 1
         
-        if not is_valid_grid_position(sample_grid) or not is_walkable(sample_grid):
-            return false
+        # ⭐ Ignore la case de départ (on y est déjà)
+        if not first_cell:
+            # Vérifie case actuelle
+            var cell_walkable = is_walkable(current)
+            var cell_type = world_grid[current.y][current.x] if is_valid_grid_position(current) else -1
+            
+            print("   [%d] Case %s: type=%s, walkable=%s" % [cells_checked, current, cell_type, cell_walkable])
+            
+            if not is_valid_grid_position(current) or not cell_walkable:
+                print("   ❌ BLOCKED at case %d!" % cells_checked)
+                return false
+        else:
+            print("   [%d] Case %s: SKIPPED (start position)" % [cells_checked, current])
+            first_cell = false
+        
+        # Arrivé à destination
+        if current == to_grid:
+            print("   ✅ REACHED destination after %d cells" % cells_checked)
+            break
+        
+        var e2 = 2 * err
+        
+        # Déplacement horizontal
+        if e2 > -dy:
+            err -= dy
+            current.x += sx
+        
+        # Déplacement vertical
+        if e2 < dx:
+            err += dx
+            current.y += sy
     
+    print("   ✅ CLEAR (total: %d cells checked)" % cells_checked)
     return true
 
 ## Met à jour le mouvement
@@ -344,6 +451,8 @@ func simplify_path(path: Array[Vector2i]) -> Array[Vector2i]:
     return simplified
 
 func has_line_of_sight(from: Vector2i, to: Vector2i) -> bool:
+    print("   🔍 Grid LOS: %s → %s" % [from, to])
+    
     var dx = abs(to.x - from.x)
     var dy = abs(to.y - from.y)
     var sx = 1 if to.x > from.x else -1
@@ -351,10 +460,24 @@ func has_line_of_sight(from: Vector2i, to: Vector2i) -> bool:
     var err = dx - dy
     
     var current = from
+    var first_cell = true  # ⭐ Skip case de départ
+    var cells_checked = 0
     
     while current != to:
-        if not is_walkable(current):
-            return false
+        cells_checked += 1
+        
+        # ⭐ Ignore case de départ
+        if not first_cell:
+            var walkable = is_walkable(current)
+            var cell_type = world_grid[current.y][current.x]
+            print("      [%d] %s: type=%s, walkable=%s" % [cells_checked, current, cell_type, walkable])
+            
+            if not walkable:
+                print("      ❌ Grid LOS BLOCKED at %s" % current)
+                return false
+        else:
+            print("      [%d] %s: SKIPPED (start)" % [cells_checked, current])
+            first_cell = false
         
         var e2 = 2 * err
         
@@ -366,7 +489,15 @@ func has_line_of_sight(from: Vector2i, to: Vector2i) -> bool:
             err += dx
             current.y += sy
     
-    return is_walkable(to)
+    var final_walkable = is_walkable(to)
+    print("      Final %s: walkable=%s" % [to, final_walkable])
+    
+    if final_walkable:
+        print("      ✅ Grid LOS CLEAR")
+    else:
+        print("      ❌ Grid LOS BLOCKED at destination")
+    
+    return final_walkable
 
 ## ===== UTILITAIRES =====
 
