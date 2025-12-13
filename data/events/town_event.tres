@@ -1,8 +1,8 @@
 [gd_resource type="Resource" script_class="WorldEvent" load_steps=6 format=3 uid="uid://dtf5w13r112of"]
 
-[ext_resource type="Script" uid="uid://c3o04p771bixj" path="res://scripts/events/WorldEventChoice.gd" id="1_g2jg3"]
-[ext_resource type="Script" uid="uid://ea33dc1iovsq" path="res://scripts/events/TownArrivalHandler.gd" id="2_3xtcx"]
-[ext_resource type="Script" uid="uid://cx4twfeq5xy57" path="res://scripts/events/WorldEvent.gd" id="2_iilas"]
+[ext_resource type="Script" uid="uid://c3o04p771bixj" path="res://src/events/WorldEventChoice.gd" id="1_g2jg3"]
+[ext_resource type="Script" uid="uid://ea33dc1iovsq" path="res://src/events/TownArrivalHandler.gd" id="2_3xtcx"]
+[ext_resource type="Script" uid="uid://cx4twfeq5xy57" path="res://src/events/WorldEvent.gd" id="2_iilas"]
 
 [sub_resource type="Resource" id="Resource_iilas"]
 script = ExtResource("1_g2jg3")

@@ -1,8 +1,8 @@
 [gd_resource type="Resource" script_class="WorldEvent" load_steps=7 format=3 uid="uid://dc4ykf3vdunt5"]
 
-[ext_resource type="Script" uid="uid://c3o04p771bixj" path="res://scripts/events/WorldEventChoice.gd" id="1_p44ey"]
-[ext_resource type="Script" uid="uid://cvwywbr4ihv8h" path="res://scripts/events/ForestShrineHandler.gd" id="2_8axmx"]
-[ext_resource type="Script" uid="uid://cx4twfeq5xy57" path="res://scripts/events/WorldEvent.gd" id="2_fyjjw"]
+[ext_resource type="Script" uid="uid://c3o04p771bixj" path="res://src/events/WorldEventChoice.gd" id="1_p44ey"]
+[ext_resource type="Script" uid="uid://cvwywbr4ihv8h" path="res://src/events/ForestShrineHandler.gd" id="2_8axmx"]
+[ext_resource type="Script" uid="uid://cx4twfeq5xy57" path="res://src/events/WorldEvent.gd" id="2_fyjjw"]
 
 [sub_resource type="Resource" id="Resource_fyjjw"]
 script = ExtResource("1_p44ey")

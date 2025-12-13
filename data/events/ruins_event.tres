@@ -1,8 +1,8 @@
 [gd_resource type="Resource" script_class="WorldEvent" load_steps=7 format=3 uid="uid://c6bmgqoix1xkv"]
 
-[ext_resource type="Script" uid="uid://c3o04p771bixj" path="res://scripts/events/WorldEventChoice.gd" id="1_82jm6"]
-[ext_resource type="Script" uid="uid://cx4twfeq5xy57" path="res://scripts/events/WorldEvent.gd" id="2_3wndp"]
-[ext_resource type="Script" uid="uid://ct2pqpn42pj6u" path="res://scripts/events/RuinsExploreHandler.gd" id="2_b75y5"]
+[ext_resource type="Script" uid="uid://c3o04p771bixj" path="res://src/events/WorldEventChoice.gd" id="1_82jm6"]
+[ext_resource type="Script" uid="uid://cx4twfeq5xy57" path="res://src/events/WorldEvent.gd" id="2_3wndp"]
+[ext_resource type="Script" uid="uid://ct2pqpn42pj6u" path="res://src/events/RuinsExploreHandler.gd" id="2_b75y5"]
 
 [sub_resource type="Resource" id="Resource_3wndp"]
 script = ExtResource("1_82jm6")

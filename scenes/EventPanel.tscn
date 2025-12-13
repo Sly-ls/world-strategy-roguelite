@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://dkr8plpd6ejj4"]
 
-[ext_resource type="Script" uid="uid://8sgdbmlnjt30" path="res://scripts/events/event_panel.gd" id="1_gjetj"]
+[ext_resource type="Script" uid="uid://8sgdbmlnjt30" path="res://src/events/event_panel.gd" id="1_gjetj"]
 
 [node name="EventPanel" type="Control"]
 visible = false
