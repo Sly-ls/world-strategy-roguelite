@@ -35,6 +35,11 @@ CrisisManager="*res://src/world_events/CrisisManager.gd"
 TilesEnum="*res://src/enums/TilesEnums.gd"
 ResolutionFactory="*res://src/quests/resolution/ResolutionCatalog.gd"
 ResolutionRuleFactory="*res://src/quests/resolution/ResolutionRuleCatalog.gd"
+WorldSimRunner="*res://src/sim/WorldSim.gd"
+FactionSimRunner="*res://src/sim/FactionSim.gd"
+QuestOfferSimRunner="*res://src/sim/QuestOfferSim.gd"
+FactionActionFactoryRunner="*res://src/sim/actions/FactionActionFactory.gd"
+FactionActionResolverRunner="*res://src/sim/actions/FactionActionResolver.gd"
 
 [input]
 

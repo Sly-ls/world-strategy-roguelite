@@ -55,6 +55,16 @@ func _ready() -> void:
     print("\n--- TEST 6: FULL PALIER 2 PIPELINE ---")
     _test_full_resolution_pipeline(gen)
     
+    print("\n--- TEST 7: WORLD SIM 10 DAYS ---")
+    WorldSimRunner.simulate_days(10)
+    FactionManager.print_all_factions()
+    print("World tags:", QuestManager.world_tags)
+    print("Offers:", QuestOfferSimRunner.offers.size())
+    FactionManager.print_relations_between()
+
+
+
+    print("==============================\n")
     print("\n✅ TEST HARNESS FINISHED (regarde les warnings/erreurs ci-dessus).")
     print("==============================\n")
 

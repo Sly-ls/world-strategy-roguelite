@@ -230,7 +230,12 @@ func load_state(data: Dictionary) -> void:
 # ========================================
 # DEBUG
 # ========================================
-
+func print_relations_between() -> void:
+    print("\n=== RELATIONS INTER-FACTIONS ===")
+    for k in relations_between.keys():
+        print("- %s : %d" % [k, relations_between[k]])
+    print("===============================\n")
+    
 func print_all_factions() -> void:
     """Affiche toutes les factions (debug)"""
     print("\n=== FACTIONS ===")
