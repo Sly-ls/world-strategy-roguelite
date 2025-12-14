@@ -9,12 +9,14 @@ const WORLD_STATE_SINGLETON := "/root/WorldState"
 const QUEST_MANAGER_SINGLETON := "/root/QuestManager"
 const FACTION_MANAGER_SINGLETON := "/root/FactionManager"
 const RNG_SINGLETON := "/root/Rng"
+const TILES_ENUMS_SCRIPT := "res://src/enums/TilesEnums.gd"
 
 func _ready() -> void:
     print("\n==============================")
     print("=== QUEST SYSTEM TEST HARNESS ===")
     print("==============================\n")
 
+    _force_load_tiles_enums()
     _ensure_world_day(0)
 
     var gen = _create_generator()
@@ -43,6 +45,18 @@ func _ready() -> void:
 
     print("\n✅ TEST HARNESS FINISHED (regarde les warnings/erreurs ci-dessus).")
     print("==============================\n")
+
+func _force_load_tiles_enums() -> void:
+    if ClassDB.class_exists("TilesEnums"):
+        return
+    if ResourceLoader.exists(TILES_ENUMS_SCRIPT):
+        var s = load(TILES_ENUMS_SCRIPT)
+        if s == null:
+            _warn("Impossible de load TilesEnum.gd (%s)" % TILES_ENUMS_SCRIPT)
+        else:
+            print("✓ TilesEnums chargé via %s" % TILES_ENUMS_SCRIPT)
+    else:
+        _warn("TilesEnum.gd introuvable (%s). Vérifie le chemin." % TILES_ENUMS_SCRIPT)
 
 
 # ------------------------------------------------------------
@@ -74,13 +88,13 @@ func _safe_generate_random_tier1(gen: Node):
 
 
 func _safe_generate_poi_ruins(gen: Node):
-    # On a besoin de GameEnums.CellType.RUINS (on ne peut pas le hardcoder sans ton enum),
+    # On a besoin de TilesEnums.CellType.RUINS (on ne peut pas le hardcoder sans ton enum),
     # donc on teste plusieurs options:
     var ruins_type = _guess_ruins_celltype()
     var poi_pos := Vector2i(10, 10)
 
     if ruins_type == null:
-        _warn("Impossible de déterminer GameEnums.CellType.RUINS. TEST 2 ignoré.")
+        _warn("Impossible de déterminer TilesEnums.CellType.RUINS. TEST 2 ignoré.")
         return null
 
     if gen.has_method("generate_quest_for_poi"):
@@ -111,7 +125,6 @@ func _try_quest_manager_flow(quest_instance) -> void:
     if quest_instance == null:
         _warn("Quest instance null → QuestManager flow ignoré.")
         return
-
     var qm = get_node_or_null(QUEST_MANAGER_SINGLETON)
     if qm == null:
         _warn("QuestManager singleton introuvable (%s). OK si pas encore autoload." % QUEST_MANAGER_SINGLETON)
@@ -122,48 +135,52 @@ func _try_quest_manager_flow(quest_instance) -> void:
         _warn("quest_instance.template introuvable → QuestManager flow ignoré.")
         return
 
-    # Essai: start_quest(template.id, context/params)
-    var template_id = _safe_get(template, "id", "")
-    var context = _safe_get(quest_instance, "context", null)
-    if context == null:
-        # fallback si ton QuestInstance stocke params plutôt que context
-        context = _safe_get(quest_instance, "params", {})
-
-    print("QuestManager detected. template.id=", template_id)
-
-    if qm.has_method("start_quest"):
-        print("→ Calling QuestManager.start_quest(...)")
-        # on essaye différents formats sans casser
-        var started = false
-        # start_quest(id, context)
-        if _call_safe(qm, "start_quest", [template_id, context]):
-            started = true
-        # start_quest(template_id) fallback
-        elif _call_safe(qm, "start_quest", [template_id]):
-            started = true
-
-        if not started:
-            _warn("start_quest() existe mais la signature ne matche pas (ou a échoué).")
+    if qm.has_method("start_runtime_quest"):
+        qm.start_runtime_quest(quest_instance)
     else:
-        _warn("QuestManager n'a pas start_quest().")
+        _warn("QuestManager n'a pas start_runtime_quest()")
+        return
 
-    # Essai: resolve_quest / complete_quest si présent
-    var choice := "NEUTRAL"
+    var rid = _safe_get(quest_instance, "runtime_id", "")
+    if rid == "":
+        _warn("Impossible de lire runtime_id")
+        return
+   
+    # Snapshot avant
+    var gold_before := _safe_get_gold()
+    var player_tags_before: Array = qm.get_player_tags() if qm.has_method("get_player_tags") else []
+    var world_tags_before: Array = qm.get_world_tags() if qm.has_method("get_world_tags") else []
+
+    # 1) Compléter l'objectif (ne doit PAS donner de récompense dans le modèle final)
+    if qm.has_method("complete_quest"):
+        qm.complete_quest(rid)
+
+    var gold_after_complete := _safe_get_gold()
+
+    print("Gold before: ", gold_before, " | after complete: ", gold_after_complete)
+    print("Player tags before: ", player_tags_before)
+    print("World tags before: ", world_tags_before)
+
+    # 2) Résoudre
     if qm.has_method("resolve_quest"):
-        print("→ Calling QuestManager.resolve_quest(..., %s)" % choice)
-        _call_safe(qm, "resolve_quest", [quest_instance, choice])
-    elif qm.has_method("complete_quest"):
-        print("→ Calling QuestManager.complete_quest(...)")
-        _call_safe(qm, "complete_quest", [quest_instance])
+        qm.resolve_quest(rid, "LOYAL")
     else:
-        _warn("QuestManager n'a ni resolve_quest() ni complete_quest(). (Normal si pas encore implémenté)")
+        _warn("QuestManager n'a pas resolve_quest()")
+        return
 
-    # Dump tags si méthodes dispo
-    if qm.has_method("has_player_tag") or qm.has_method("get_player_tags"):
-        print("Player tags snapshot: ", _dump_player_tags(qm))
-    if qm.has_method("has_world_tag") or qm.has_method("get_world_tags"):
-        print("World tags snapshot: ", _dump_world_tags(qm))
+    var gold_after_resolve := _safe_get_gold()
+    var player_tags_after: Array = qm.get_player_tags() if qm.has_method("get_player_tags") else []
+    var world_tags_after: Array = qm.get_world_tags() if qm.has_method("get_world_tags") else []
 
+    print("Gold after resolve: ", gold_after_resolve)
+    print("Player tags after: ", player_tags_after)
+    print("World tags after: ", world_tags_after)
+    
+func _safe_get_gold() -> int:
+    var rm = get_node_or_null("/root/ResourceManager")
+    if rm != null and rm.has_method("get_resource"):
+        return int(rm.get_resource("gold"))
+    return -1
 
 # ------------------------------------------------------------
 #  Dump / printing
@@ -232,25 +249,24 @@ func _get_tier1_value():
     _warn("QuestTypes non accessible (class_name manquant ?). Fallback tier=1.")
     return 1
 
-
-
 func _guess_ruins_celltype():
-    # On essaye GameEnums.CellType.RUINS via la classe globale.
-    # Si GameEnums n'est pas accessible ici, on ne peut pas deviner proprement.
-    if not Engine.has_singleton("GameEnums"):
-        # pas un vrai singleton dans Godot, donc on tente via ClassDB:
-        pass
+    # 1) Utiliser l'autoload (le plus fiable)
+    var tile_enum = get_node_or_null("/root/TilesEnum")
+    if tile_enum != null:
+        # L'enum CellType est un constant du script → accessible via l'instance
+        return tile_enum.CellType.RUINS
 
-    # Tentative: accéder à la classe GameEnums (si class_name GameEnums)
-    if ClassDB.class_exists("GameEnums"):
-        var ge = GameEnums
-        if ge and ge.has("CellType"):
-            # accès enum direct (si possible)
-            return GameEnums.CellType.RUINS
+    # 2) Fallback : essayer de charger le script (au cas où l'autoload n'est pas actif)
+    _force_load_tiles_enums()
+    var tile_enum2 = get_node_or_null("/root/TilesEnum")
+    if tile_enum2 != null:
+        return tile_enum2.CellType.RUINS
 
-    # Dernier recours: certains projets ont CellType en global
-    _warn("GameEnums.CellType.RUINS non accessible depuis le test (class_name GameEnums manquant ?).")
+    _warn("Autoload /root/TileEnum introuvable → impossible de récupérer CellType.RUINS.")
     return null
+
+
+
 
 
 # ------------------------------------------------------------

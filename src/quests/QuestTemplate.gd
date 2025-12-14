@@ -26,7 +26,7 @@ class_name QuestTemplate
 
 @export_group("Conditions")
 @export var required_day: int = 0                      ## Jour minimum
-@export var required_poi_type: GameEnums.CellType = GameEnums.CellType.PLAINE
+@export var required_poi_type: TilesEnums.CellType = TilesEnums.CellType.PLAINE
 @export var required_player_tags: Array[String] = []   ## Tags joueur requis (de ChatGPT)
 @export var required_world_tags: Array[String] = []    ## Tags monde requis (de ChatGPT)
 @export var forbidden_player_tags: Array[String] = []  ## Tags joueur interdits

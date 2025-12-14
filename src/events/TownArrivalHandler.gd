@@ -14,7 +14,7 @@ func execute_choice(choice_id: String, world_controller: Node) -> void:
     
 func _do_town_rest(world_controller: Node) -> void:
     print("Repos spécial en ville")
-    world_controller._apply_rest_to_army(GameEnums.CellType.TOWN)
+    world_controller._apply_rest_to_army(TilesEnums.CellType.TOWN)
 
 func execute_choice_new(choice_id: String, world_controller: Node) -> void:
     """Gère les choix de l'événement d'arrivée en ville"""
@@ -38,7 +38,7 @@ func execute_choice_new(choice_id: String, world_controller: Node) -> void:
             # Le joueur campe à l'extérieur
             var player_army = WorldState.player_army
             if player_army:
-                player_army.rest(GameEnums.CellType.PLAINE)
+                player_army.rest(TilesEnums.CellType.PLAINE)
                 print("  → Repos à l'extérieur")
         
         "trade":

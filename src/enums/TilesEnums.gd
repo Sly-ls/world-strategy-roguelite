@@ -1,5 +1,5 @@
-extends Resource
-class_name GameEnums
+extends Node
+class_name TilesEnums
 
 enum CellType {
     PLAINE,

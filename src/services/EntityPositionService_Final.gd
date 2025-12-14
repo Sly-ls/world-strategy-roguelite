@@ -330,11 +330,11 @@ func _is_walkable(pos: Vector2i) -> bool:
         return false
     
     var cell_type = world_grid[pos.y][pos.x]
-    return GameEnums.CELL_ENUM[cell_type].walkable
+    return TilesEnums.CELL_ENUM[cell_type].walkable
 
 func _get_cell_type(pos: Vector2i) -> int:
     if not _is_valid_position(pos):
-        return GameEnums.CellType.PLAINE
+        return TilesEnums.CellType.PLAINE
     return world_grid[pos.y][pos.x]
 
 ## ===== UTILITAIRES =====

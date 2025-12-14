@@ -20,6 +20,11 @@ var expires_on_day: int = -1                          ## Jour d'expiration (-1 =
 
 var context: Dictionary = {}                          ## Données contextuelles
 
+var needs_resolution: bool = false
+var resolution_choice: String = "" # "LOYAL" | "NEUTRAL" | "TRAITOR"
+
+var giver_faction_id: String = ""
+var antagonist_faction_id: String = ""
 # ========================================
 # CONSTRUCTEUR
 # ========================================
@@ -30,7 +35,8 @@ func _init(_template: QuestTemplate, _context: Dictionary = {}) -> void:
     template_id = _template.id
     context = _context
     started_on_day = WorldState.current_day
-    
+    giver_faction_id = str(context.get("giver_faction_id", ""))
+    antagonist_faction_id = str(context.get("antagonist_faction_id", ""))
     # Calculer l'expiration
     if template.expires_in_days > 0:
         expires_on_day = started_on_day + template.expires_in_days
@@ -50,7 +56,8 @@ func start() -> void:
 func complete() -> void:
     """Termine la quête avec succès"""
     status = QuestTypes.QuestStatus.COMPLETED
-    print("✓ Quête terminée : %s" % template.title)
+    needs_resolution = true
+    print("✓ Objectif atteint : %s (résolution requise)" % template.title)
 
 func fail() -> void:
     """Échoue la quête"""

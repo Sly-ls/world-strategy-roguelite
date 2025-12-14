@@ -58,41 +58,41 @@ var started_at_day: int = 0
 # ========================================
 
 func get_total_quests() -> int:
-	"""Nombre total de quêtes dans la campagne"""
-	return quest_generation_rules.size()
+    """Nombre total de quêtes dans la campagne"""
+    return quest_generation_rules.size()
 
 func get_current_quest_rule() -> Dictionary:
-	"""Règle de génération de la quête actuelle"""
-	if current_quest_index >= quest_generation_rules.size():
-		return {}
-	return quest_generation_rules[current_quest_index]
+    """Règle de génération de la quête actuelle"""
+    if current_quest_index >= quest_generation_rules.size():
+        return {}
+    return quest_generation_rules[current_quest_index]
 
 func advance_to_next_quest(completed_quest_id: String) -> void:
-	"""Passe à la quête suivante"""
-	completed_quest_ids.append(completed_quest_id)
-	current_quest_index += 1
-	print("📖 Campagne '%s': %d/%d quêtes complétées" % [title, current_quest_index, quest_generation_rules.size()])
+    """Passe à la quête suivante"""
+    completed_quest_ids.append(completed_quest_id)
+    current_quest_index += 1
+    print("📖 Campagne '%s': %d/%d quêtes complétées" % [title, current_quest_index, quest_generation_rules.size()])
 
 func is_complete() -> bool:
-	"""La campagne est-elle terminée ?"""
-	return current_quest_index >= quest_generation_rules.size()
+    """La campagne est-elle terminée ?"""
+    return current_quest_index >= quest_generation_rules.size()
 
 func get_progress() -> float:
-	"""Progression en % (0.0 à 1.0)"""
-	if quest_generation_rules.size() == 0:
-		return 1.0
-	return float(current_quest_index) / float(quest_generation_rules.size())
+    """Progression en % (0.0 à 1.0)"""
+    if quest_generation_rules.size() == 0:
+        return 1.0
+    return float(current_quest_index) / float(quest_generation_rules.size())
 
 func can_start() -> bool:
-	"""Peut-on démarrer cette campagne ?"""
-	# Vérifier les tags requis
-	for tag in required_player_tags:
-		if not tag in QuestManager.player_tags:
-			return false
-	return true
+    """Peut-on démarrer cette campagne ?"""
+    # Vérifier les tags requis
+    for tag in required_player_tags:
+        if not tag in QuestManager.player_tags:
+            return false
+    return true
 
 func reset() -> void:
-	"""Réinitialise la campagne"""
-	current_quest_index = 0
-	completed_quest_ids.clear()
-	started_at_day = 0
+    """Réinitialise la campagne"""
+    current_quest_index = 0
+    completed_quest_ids.clear()
+    started_at_day = 0

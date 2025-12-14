@@ -166,9 +166,9 @@ func swap_units(from_col: int, from_row: int, to_col: int, to_row: int) -> void:
 
 ## ===== WORLD METHODS (repos, soins) =====
 
-func rest(cell_type: GameEnums.CellType) -> void:
+func rest(cell_type: TilesEnums.CellType) -> void:
     """Applique les soins de repos selon le type de terrain"""
-    var cellInfo: GameEnums.CellInfo = GameEnums.CELL_ENUM[cell_type]
+    var cellInfo: TilesEnums.CellInfo = TilesEnums.CELL_ENUM[cell_type]
     var heal_ratio_hp = cellInfo.rest_hp_ratio
     var heal_ratio_morale = cellInfo.rest_morale_ratio
     

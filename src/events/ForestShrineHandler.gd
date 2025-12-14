@@ -16,7 +16,7 @@ func execute_choice(choice_id: String, world_controller: Node) -> void:
 
 func _do_shrine_rest( world_controller: Node) -> void:
     print("Repos spécial au sanctuaire")
-    world_controller._apply_rest_to_army(GameEnums.CellType.FOREST_SHRINE)
+    world_controller._apply_rest_to_army(TilesEnums.CellType.FOREST_SHRINE)
 
 
 

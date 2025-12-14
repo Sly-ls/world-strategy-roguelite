@@ -78,19 +78,19 @@ func _init_world_grid() -> void:
     world_grid.clear()
     
     for y in WorldConstants.GRID_HEIGHT:
-        var row: Array[GameEnums.CellType] = []
+        var row: Array[TilesEnums.CellType] = []
         for x in WorldConstants.GRID_WIDTH:
-            row.append(GameEnums.CellType.PLAINE)
+            row.append(TilesEnums.CellType.PLAINE)
         world_grid.append(row)
     
     # POIs
-    world_grid[5][5] = GameEnums.CellType.TOWN
-    world_grid[6][8] = GameEnums.CellType.RUINS
-    world_grid[4][10] = GameEnums.CellType.FOREST_SHRINE
-    world_grid[7][7] = GameEnums.CellType.WATER
-    world_grid[7][8] = GameEnums.CellType.WATER
-    world_grid[7][9] = GameEnums.CellType.WATER
-    world_grid[7][10] = GameEnums.CellType.WATER
+    world_grid[5][5] = TilesEnums.CellType.TOWN
+    world_grid[6][8] = TilesEnums.CellType.RUINS
+    world_grid[4][10] = TilesEnums.CellType.FOREST_SHRINE
+    world_grid[7][7] = TilesEnums.CellType.WATER
+    world_grid[7][8] = TilesEnums.CellType.WATER
+    world_grid[7][9] = TilesEnums.CellType.WATER
+    world_grid[7][10] = TilesEnums.CellType.WATER
     
     # Passe la grille aux services
     movement_controller.initialize(world_grid, WorldConstants.GRID_WIDTH, WorldConstants.GRID_HEIGHT)
@@ -308,7 +308,7 @@ func _check_enter_poi(cell_pos: Vector2i) -> void:
     
     _check_reach_poi_quests(cell_type)
     
-    var event_id: String = GameEnums.CELL_ENUM[cell_type].event_id
+    var event_id: String = TilesEnums.CELL_ENUM[cell_type].event_id
     if event_id:
         _start_world_event(event_id)
     
@@ -370,7 +370,7 @@ func _is_valid_move(pos: Vector2i) -> bool:
         return false
     
     var cell_type = world_grid[pos.y][pos.x]
-    return GameEnums.CELL_ENUM[cell_type].walkable
+    return TilesEnums.CELL_ENUM[cell_type].walkable
 
 func _get_direction_towards(from: Vector2i, to: Vector2i) -> Vector2i:
     """Direction unitaire vers la cible"""
@@ -485,24 +485,24 @@ func _start_initial_quests() -> void:
     QuestManager.start_quest("survival_5days")
     
     var player_pos = WorldState.player_army.get_position()
-    var nearby_ruins = _find_nearby_poi(GameEnums.CellType.RUINS, 10)
+    var nearby_ruins = _find_nearby_poi(TilesEnums.CellType.RUINS, 10)
     if nearby_ruins != Vector2i(-1, -1):
         QuestManager.start_quest("ruins_artifact_1", {"poi_pos": nearby_ruins})
 
 func _check_reach_poi_quests(cell_type: int) -> void:
     match cell_type:
-        GameEnums.CellType.RUINS:
+        TilesEnums.CellType.RUINS:
             QuestManager.update_quest_progress("ruins_artifact_1", 1)
-        GameEnums.CellType.TOWN:
+        TilesEnums.CellType.TOWN:
             QuestManager.update_quest_progress("reach_town", 1)
-        GameEnums.CellType.FOREST_SHRINE:
+        TilesEnums.CellType.FOREST_SHRINE:
             QuestManager.update_quest_progress("find_shrine", 1)
 
 func _check_battle_result() -> void:
     if WorldState.last_battle_result == "victory":
         var cell_type = _get_cell_type(WorldState.player_army.get_position())
         
-        if cell_type == GameEnums.CellType.RUINS:
+        if cell_type == TilesEnums.CellType.RUINS:
             QuestManager.update_quest_progress("ruins_artifact_1", 1)
 
 ## ===== REPOS =====
@@ -592,7 +592,7 @@ func _on_world_click(screen_pos: Vector2) -> void:
     
     # ⭐ Vérifie que la CASE de destination est walkable
     var target_cell_type = world_grid[target_grid.y][target_grid.x]
-    if not GameEnums.CELL_ENUM[target_cell_type].walkable:
+    if not TilesEnums.CELL_ENUM[target_cell_type].walkable:
         print("[WorldMap] Cible non praticable")
         return
     
@@ -621,10 +621,10 @@ func _try_move_army(delta_grid: Vector2i) -> void:
         return
     
     var cell_type = world_grid[new_pos.y][new_pos.x]
-    if not GameEnums.CELL_ENUM[cell_type].walkable:
+    if not TilesEnums.CELL_ENUM[cell_type].walkable:
         return
     
-    var move_cost = GameEnums.CELL_ENUM[cell_type].move_cost
+    var move_cost = TilesEnums.CELL_ENUM[cell_type].move_cost
     WorldState.advance_time(move_cost)
     
     # ✅ Met à jour position dans ArmyData
@@ -659,9 +659,9 @@ func _draw() -> void:
     # POIs
     for y in WorldConstants.GRID_HEIGHT:
         for x in WorldConstants.GRID_WIDTH:
-            var cell: GameEnums.CellType = world_grid[y][x]
+            var cell: TilesEnums.CellType = world_grid[y][x]
             var cell_pos = _grid_to_world(Vector2i(x, y))
-            draw_circle(cell_pos, 10.0, GameEnums.CELL_ENUM[cell].color)
+            draw_circle(cell_pos, 10.0, TilesEnums.CELL_ENUM[cell].color)
     
     # Ennemis (orange)
     var enemies = entity_position_service.get_entities_by_type("enemy_army")
@@ -682,7 +682,7 @@ func _grid_to_world(grid_pos: Vector2i) -> Vector2:
 func _calculate_distance(from: Vector2i, to: Vector2i) -> float:
     return abs(to.x - from.x) + abs(to.y - from.y)
 
-func _find_nearby_poi(poi_type: GameEnums.CellType, max_distance: int) -> Vector2i:
+func _find_nearby_poi(poi_type: TilesEnums.CellType, max_distance: int) -> Vector2i:
     var player_pos = WorldState.player_army.get_position()
     var closest_poi := Vector2i(-1, -1)
     var min_distance := 999999.0
@@ -701,7 +701,7 @@ func _find_nearby_poi(poi_type: GameEnums.CellType, max_distance: int) -> Vector
 
 func _get_cell_type(pos: Vector2i) -> int:
     if pos.x < 0 or pos.x >= WorldConstants.GRID_WIDTH or pos.y < 0 or pos.y >= WorldConstants.GRID_HEIGHT:
-        return GameEnums.CellType.PLAINE
+        return TilesEnums.CellType.PLAINE
     return world_grid[pos.y][pos.x]
 
 func change_scene(path: String) -> void:

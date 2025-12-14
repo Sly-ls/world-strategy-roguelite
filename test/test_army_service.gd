@@ -21,7 +21,7 @@ func test_army_service():
     for i in range(3):
         var unit = UnitData.new()
         unit.unit_name = "Test Unit %d" % (i + 1)
-        unit.unit_type = GameEnums.UnitType.INFANTRY
+        unit.unit_type = TilesEnums.UnitType.INFANTRY
         unit.max_hp = 100
         unit.current_hp = 100
         unit.attack = 10

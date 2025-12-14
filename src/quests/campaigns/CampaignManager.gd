@@ -326,7 +326,7 @@ func _create_quest_from_rule(rule: Dictionary, context: Dictionary) -> QuestInst
             return template.instantiate(context)
         
         "generated":
-            var poi_type: int = rule.get("poi_type", GameEnums.CellType.RUINS)
+            var poi_type: int = rule.get("poi_type", TilesEnums.CellType.RUINS)
             var complexity: String = rule.get("complexity", "simple")
             var poi_pos: Vector2i = context.get("poi_pos", Vector2i.ZERO)
             

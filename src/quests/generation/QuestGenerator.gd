@@ -34,7 +34,7 @@ func _ready() -> void:
 # GÉNÉRATION PRINCIPALE
 # ========================================
 
-func generate_quest_for_poi(poi_pos: Vector2i, poi_type: GameEnums.CellType) -> QuestInstance:
+func generate_quest_for_poi(poi_pos: Vector2i, poi_type: TilesEnums.CellType) -> QuestInstance:
     """Génère une quête pour un POI spécifique"""
     
     # Structure fixe basée sur seed + position
@@ -43,7 +43,7 @@ func generate_quest_for_poi(poi_pos: Vector2i, poi_type: GameEnums.CellType) -> 
     
     # Choisir le type de quête (fixe pour ce POI)
     var quest_type := _choose_quest_type_for_poi(poi_type)
-    if quest_type == null:
+    if quest_type == "":
         return null
     
     # Générer les paramètres (variables)
@@ -119,19 +119,19 @@ func _refresh_world_quests() -> void:
 # CHOIX DU TYPE DE QUÊTE
 # ========================================
 
-func _choose_quest_type_for_poi(poi_type: GameEnums.CellType) -> String:
+func _choose_quest_type_for_poi(poi_type: TilesEnums.CellType) -> String:
     """Choisit le type de quête selon le POI (déterministe)"""
     
     match poi_type:
-        GameEnums.CellType.RUINS:
+        TilesEnums.CellType.RUINS:
             var types := ["ruins_clear", "ruins_artifact", "ruins_treasure"]
             return types[Rng.rng.randi() % types.size()]
         
-        GameEnums.CellType.TOWN:
+        TilesEnums.CellType.TOWN:
             var types := ["town_delivery", "town_defense", "town_trade"]
             return types[Rng.rng.randi() % types.size()]
         
-        GameEnums.CellType.FOREST_SHRINE:
+        TilesEnums.CellType.FOREST_SHRINE:
             var types := ["shrine_offering", "shrine_quest", "shrine_trial"]
             return types[Rng.rng.randi() % types.size()]
         
@@ -152,7 +152,7 @@ func _get_available_quest_types() -> Array[String]:
 # GÉNÉRATION DE PARAMÈTRES
 # ========================================
 
-func _generate_quest_parameters(quest_type: String, poi_type: GameEnums.CellType, poi_pos: Vector2i) -> Dictionary:
+func _generate_quest_parameters(quest_type: String, poi_type: TilesEnums.CellType, poi_pos: Vector2i) -> Dictionary:
     """Génère les paramètres variables d'une quête"""
     
     var params := {
@@ -299,7 +299,36 @@ func _create_dynamic_template(quest_type: String, params: Dictionary) -> QuestTe
             template.objective_count = target
             template.expires_in_days = 15
             _add_diplomacy_rewards(template, params)
-    
+        "generic_exploration":
+            template.title = "Explorer une zone"
+            template.description = "Explorez la zone et repérez des points d'intérêt."
+            template.category = QuestTypes.QuestCategory.EXPLORATION
+            template.tier = params.get("tier", QuestTypes.QuestTier.TIER_1)
+            template.objective_type = QuestTypes.ObjectiveType.REACH_POI
+            template.objective_target = params.get("location_type", "zone")
+            template.objective_count = 1
+            template.expires_in_days = -1
+
+        "ruins_clear":
+            template.title = "Nettoyer les ruines"
+            template.description = "Des ruines sont infestées. Éliminez la menace."
+            template.category = QuestTypes.QuestCategory.LOCAL_POI
+            template.tier = QuestTypes.QuestTier.TIER_1
+            template.objective_type = QuestTypes.ObjectiveType.CLEAR_COMBAT
+            template.objective_target = "ruins"
+            template.objective_count = 1
+            template.expires_in_days = 7
+            _add_combat_rewards(template, params)
+        _:
+            template.title = "Quête inconnue (%s)" % quest_type
+            template.description = "Type non géré par _create_dynamic_template()."
+            template.category = QuestTypes.QuestCategory.LOCAL_POI
+            template.tier = params.get("tier", QuestTypes.QuestTier.TIER_1)
+            template.objective_type = QuestTypes.ObjectiveType.MAKE_CHOICE
+            template.objective_target = ""
+            template.objective_count = 1
+            template.expires_in_days = 3
+            push_warning("QuestGenerator: quest_type non géré: %s" % quest_type)
     return template
 
 # ========================================
@@ -399,7 +428,7 @@ func _calculate_poi_seed(poi_pos: Vector2i) -> int:
 # GÉNÉRATION ADVANCED (PALIER 2 + 3)
 # ========================================
 
-func generate_advanced_quest_for_poi(poi_pos: Vector2i, poi_type: GameEnums.CellType) -> QuestInstanceAdvanced:
+func generate_advanced_quest_for_poi(poi_pos: Vector2i, poi_type: TilesEnums.CellType) -> QuestInstanceAdvanced:
     """Génère une quête complexe avec objectifs multiples pour un POI"""
     
     # Seed basé sur position
@@ -443,20 +472,20 @@ func generate_advanced_quest_for_poi(poi_pos: Vector2i, poi_type: GameEnums.Cell
 # HELPERS - TITRES ET DESCRIPTIONS
 # ========================================
 
-func _generate_advanced_title(poi_type: GameEnums.CellType, seed: int) -> String:
+func _generate_advanced_title(poi_type: TilesEnums.CellType, seed: int) -> String:
     """Génère un titre pour quête advanced"""
     
     var adjectives := ["Mystérieux", "Ancien", "Dangereux", "Oublié", "Maudit", "Sacré"]
     var nouns := []
     
     match poi_type:
-        GameEnums.CellType.RUINS:
+        TilesEnums.CellType.RUINS:
             nouns = ["Ruines", "Temple", "Tombeau", "Donjon", "Catacombes"]
-        GameEnums.CellType.TOWN:
+        TilesEnums.CellType.TOWN:
             nouns = ["Ville", "Cité", "Bourg", "Village", "Hameau"]
-        GameEnums.CellType.FORTRESS:
+        TilesEnums.CellType.FORTRESS:
             nouns = ["Forteresse", "Citadelle", "Bastion", "Château", "Fort"]
-        GameEnums.CellType.DUNGEON:
+        TilesEnums.CellType.DUNGEON:
             nouns = ["Donjon", "Cachot", "Oubliettes", "Prison", "Labyrinthe"]
         _:
             nouns = ["Lieu", "Site", "Zone"]
@@ -477,17 +506,17 @@ func _generate_advanced_title(poi_type: GameEnums.CellType, seed: int) -> String
     var format :String = formats[rng_title.randi() % formats.size()]
     return format % [adj, noun]
 
-func _generate_advanced_description(poi_type: GameEnums.CellType) -> String:
+func _generate_advanced_description(poi_type: TilesEnums.CellType) -> String:
     """Génère une description pour quête advanced"""
     
     match poi_type:
-        GameEnums.CellType.RUINS:
+        TilesEnums.CellType.RUINS:
             return "Des ruines anciennes renferment des secrets oubliés. Explorez-les avec précaution."
-        GameEnums.CellType.TOWN:
+        TilesEnums.CellType.TOWN:
             return "Les habitants ont besoin d'aide. Accomplissez leurs requêtes pour gagner leur confiance."
-        GameEnums.CellType.FORTRESS:
+        TilesEnums.CellType.FORTRESS:
             return "Une forteresse imposante se dresse devant vous. Ses murs cachent bien des mystères."
-        GameEnums.CellType.DUNGEON:
+        TilesEnums.CellType.DUNGEON:
             return "Un donjon sombre et dangereux vous attend. Survivrez-vous à ses pièges ?"
         _:
             return "Un lieu étrange nécessite votre attention."
@@ -496,13 +525,13 @@ func _generate_advanced_description(poi_type: GameEnums.CellType) -> String:
 # HELPERS - OBJECTIFS
 # ========================================
 
-func _generate_objectives_for_poi(poi_type: GameEnums.CellType, count: int) -> Array[QuestObjective]:
+func _generate_objectives_for_poi(poi_type: TilesEnums.CellType, count: int) -> Array[QuestObjective]:
     """Génère plusieurs objectifs pour un POI"""
     
     var objectives: Array[QuestObjective] = []
     
     match poi_type:
-        GameEnums.CellType.RUINS:
+        TilesEnums.CellType.RUINS:
             # Objectif 1 : Explorer
             var obj1 := QuestObjective.new()
             obj1.id = "explore"
@@ -534,7 +563,7 @@ func _generate_objectives_for_poi(poi_type: GameEnums.CellType, count: int) -> A
                 obj3.required_objectives = ["clear_enemies"]
                 objectives.append(obj3)
         
-        GameEnums.CellType.TOWN:
+        TilesEnums.CellType.TOWN:
             # Objectif 1 : Parler
             var obj1 := QuestObjective.new()
             obj1.id = "talk_mayor"
@@ -581,13 +610,13 @@ func _generate_objectives_for_poi(poi_type: GameEnums.CellType, count: int) -> A
 # HELPERS - BRANCHES
 # ========================================
 
-func _generate_branches_for_poi(poi_type: GameEnums.CellType) -> Array[QuestBranch]:
+func _generate_branches_for_poi(poi_type: TilesEnums.CellType) -> Array[QuestBranch]:
     """Génère des branches de choix pour un POI"""
     
     var branches: Array[QuestBranch] = []
     
     match poi_type:
-        GameEnums.CellType.RUINS:
+        TilesEnums.CellType.RUINS:
             # Choix : Garder ou Vendre l'artefact
             var branch1 := QuestBranch.new()
             branch1.id = "keep_artifact"
@@ -607,7 +636,7 @@ func _generate_branches_for_poi(poi_type: GameEnums.CellType) -> Array[QuestBran
             ]
             branches.append(branch2)
         
-        GameEnums.CellType.TOWN:
+        TilesEnums.CellType.TOWN:
             # Choix : Aider gratuitement ou demander paiement
             var branch1 := QuestBranch.new()
             branch1.id = "help_free"
@@ -653,7 +682,7 @@ func _create_reward(type: String, params: Dictionary) -> QuestReward:
 # HELPERS - RÉCOMPENSES
 # ========================================
 
-func _generate_rewards_advanced(poi_type: GameEnums.CellType, tier: QuestTypes.QuestTier) -> Array[QuestReward]:
+func _generate_rewards_advanced(poi_type: TilesEnums.CellType, tier: QuestTypes.QuestTier) -> Array[QuestReward]:
     """Génère des récompenses pour quête advanced"""
     
     var rewards: Array[QuestReward] = []
@@ -674,13 +703,13 @@ func _generate_rewards_advanced(poi_type: GameEnums.CellType, tier: QuestTypes.Q
     
     # Items supplémentaires pour certains POI
     match poi_type:
-        GameEnums.CellType.RUINS:
+        TilesEnums.CellType.RUINS:
             var item_reward := QuestReward.new()
             item_reward.type = QuestTypes.RewardType.ITEM
             item_reward.target_id = "artifact_fragment"
             item_reward.amount = 1
             rewards.append(item_reward)
-        GameEnums.CellType.DUNGEON:
+        TilesEnums.CellType.DUNGEON:
             var item_reward := QuestReward.new()
             item_reward.type = QuestTypes.RewardType.ITEM
             item_reward.target_id = "rare_equipment"
@@ -694,19 +723,19 @@ func _generate_rewards_advanced(poi_type: GameEnums.CellType, tier: QuestTypes.Q
 # HELPERS - CATEGORIES ET TIERS
 # ========================================
 
-func _get_category_for_poi(poi_type: GameEnums.CellType) -> QuestTypes.QuestCategory:
+func _get_category_for_poi(poi_type: TilesEnums.CellType) -> QuestTypes.QuestCategory:
     """Retourne la catégorie selon le type de POI"""
     match poi_type:
-        GameEnums.CellType.RUINS:
+        TilesEnums.CellType.RUINS:
             return QuestTypes.QuestCategory.EXPLORATION
-        GameEnums.CellType.TOWN:
+        TilesEnums.CellType.TOWN:
             return QuestTypes.QuestCategory.DIPLOMATIC
-        GameEnums.CellType.VILLAGE:
+        TilesEnums.CellType.VILLAGE:
             return QuestTypes.QuestCategory.LOCAL_POI
         _:
             return QuestTypes.QuestCategory.LOCAL_POI
 
-func _choose_tier_for_poi(poi_type: GameEnums.CellType) -> QuestTypes.QuestTier:
+func _choose_tier_for_poi(poi_type: TilesEnums.CellType) -> QuestTypes.QuestTier:
     """Choisit un tier selon le POI"""
     var tiers := [
         QuestTypes.QuestTier.TIER_1,
@@ -721,18 +750,18 @@ func _choose_tier_for_poi(poi_type: GameEnums.CellType) -> QuestTypes.QuestTier:
 # HELPERS - TITRES ET DESCRIPTIONS
 # ========================================
 
-func _generate_advanced_title_fixed(poi_type: GameEnums.CellType, seed: int) -> String:
+func _generate_advanced_title_fixed(poi_type: TilesEnums.CellType, seed: int) -> String:
     """Génère un titre pour quête advanced"""
     
     var adjectives := ["Mystérieux", "Ancien", "Dangereux", "Oublié", "Maudit", "Sacré"]
     var nouns := []
     
     match poi_type:
-        GameEnums.CellType.RUINS:
+        TilesEnums.CellType.RUINS:
             nouns = ["Ruines", "Temple", "Tombeau", "Sanctuaire", "Catacombes"]
-        GameEnums.CellType.TOWN:
+        TilesEnums.CellType.TOWN:
             nouns = ["Ville", "Cité", "Bourg", "Cité-État", "Métropole"]
-        GameEnums.CellType.VILLAGE:
+        TilesEnums.CellType.VILLAGE:
             nouns = ["Village", "Hameau", "Bourg", "Bourgade", "Communauté"]
         _:
             nouns = ["Lieu", "Site", "Zone", "Région", "Territoire"]
@@ -753,15 +782,15 @@ func _generate_advanced_title_fixed(poi_type: GameEnums.CellType, seed: int) -> 
     var format: String = formats[rng_title.randi() % formats.size()]
     return format % [adj, noun]
 
-func _generate_advanced_description_fixed(poi_type: GameEnums.CellType) -> String:
+func _generate_advanced_description_fixed(poi_type: TilesEnums.CellType) -> String:
     """Génère une description pour quête advanced"""
     
     match poi_type:
-        GameEnums.CellType.RUINS:
+        TilesEnums.CellType.RUINS:
             return "Des ruines anciennes renferment des secrets oubliés. Explorez-les avec précaution."
-        GameEnums.CellType.TOWN:
+        TilesEnums.CellType.TOWN:
             return "Les habitants ont besoin d'aide. Accomplissez leurs requêtes pour gagner leur confiance."
-        GameEnums.CellType.VILLAGE:
+        TilesEnums.CellType.VILLAGE:
             return "Un village paisible vous accueille. Les habitants ont des besoins simples mais urgents."
         _:
             return "Un lieu étrange nécessite votre attention."
@@ -770,13 +799,13 @@ func _generate_advanced_description_fixed(poi_type: GameEnums.CellType) -> Strin
 # HELPERS - OBJECTIFS
 # ========================================
 
-func _generate_objectives_for_poi_fixed(poi_type: GameEnums.CellType, count: int) -> Array[QuestObjective]:
+func _generate_objectives_for_poi_fixed(poi_type: TilesEnums.CellType, count: int) -> Array[QuestObjective]:
     """Génère plusieurs objectifs pour un POI"""
     
     var objectives: Array[QuestObjective] = []
     
     match poi_type:
-        GameEnums.CellType.RUINS:
+        TilesEnums.CellType.RUINS:
             # Objectif 1 : Explorer
             var obj1 := QuestObjective.new()
             obj1.id = "explore"
@@ -809,7 +838,7 @@ func _generate_objectives_for_poi_fixed(poi_type: GameEnums.CellType, count: int
                 obj3.required_objectives = ["clear_enemies"]
                 objectives.append(obj3)
         
-        GameEnums.CellType.TOWN:
+        TilesEnums.CellType.TOWN:
             # Objectif 1 : Parler
             var obj1 := QuestObjective.new()
             obj1.id = "talk_mayor"
@@ -856,13 +885,13 @@ func _generate_objectives_for_poi_fixed(poi_type: GameEnums.CellType, count: int
 # HELPERS - BRANCHES
 # ========================================
 
-func _generate_branches_for_poi_fixed(poi_type: GameEnums.CellType) -> Array[QuestBranch]:
+func _generate_branches_for_poi_fixed(poi_type: TilesEnums.CellType) -> Array[QuestBranch]:
     """Génère des branches de choix pour un POI"""
     
     var branches: Array[QuestBranch] = []
     
     match poi_type:
-        GameEnums.CellType.RUINS:
+        TilesEnums.CellType.RUINS:
             # Choix : Garder ou Vendre l'artefact
             var branch1 := QuestBranch.new()
             branch1.id = "keep_artifact"
@@ -878,7 +907,7 @@ func _generate_branches_for_poi_fixed(poi_type: GameEnums.CellType) -> Array[Que
             branch2.rewards = _create_branch_rewards("gold", 100)
             branches.append(branch2)
         
-        GameEnums.CellType.TOWN:
+        TilesEnums.CellType.TOWN:
             # Choix : Aider gratuitement ou demander paiement
             var branch1 := QuestBranch.new()
             branch1.id = "help_free"
@@ -923,7 +952,7 @@ func _create_branch_rewards(type: String, amount: int, target: String = "") -> A
 # HELPERS - RÉCOMPENSES
 # ========================================
 
-func _generate_rewards_advanced_fixed(poi_type: GameEnums.CellType, tier: QuestTypes.QuestTier) -> Array[QuestReward]:
+func _generate_rewards_advanced_fixed(poi_type: TilesEnums.CellType, tier: QuestTypes.QuestTier) -> Array[QuestReward]:
     """Génère des récompenses pour quête advanced"""
     
     var rewards: Array[QuestReward] = []
@@ -944,7 +973,7 @@ func _generate_rewards_advanced_fixed(poi_type: GameEnums.CellType, tier: QuestT
     
     # Items supplémentaires pour certains POI
     match poi_type:
-        GameEnums.CellType.RUINS:
+        TilesEnums.CellType.RUINS:
             var item_reward := QuestReward.new()
             item_reward.type = QuestTypes.RewardType.ITEM
             item_reward.target_id = "artifact_fragment"

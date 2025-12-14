@@ -32,7 +32,7 @@ ArmyFactory="*res://data/ArmyCatalog.gd"
 WorldEventFactory="*res://data/WorldEventCatalog.gd"
 NarrativeGenerator="*res://src/world_events/NarrativeGenerator.gd"
 CrisisManager="*res://src/world_events/CrisisManager.gd"
-TilesEnum="*res://src/enums/TilesEnum.gd"
+TilesEnum="*res://src/enums/TilesEnums.gd"
 
 [input]
 

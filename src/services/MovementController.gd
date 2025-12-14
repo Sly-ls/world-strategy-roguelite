@@ -501,8 +501,8 @@ func is_valid_grid_position(pos: Vector2i) -> bool:
 func is_walkable(pos: Vector2i) -> bool:
     if not is_valid_grid_position(pos):
         return false
-    var tile_type: GameEnums.CellType = world_grid[pos.y][pos.x]
-    return GameEnums.CELL_ENUM[tile_type].walkable
+    var tile_type: TilesEnums.CellType = world_grid[pos.y][pos.x]
+    return TilesEnums.CELL_ENUM[tile_type].walkable
 
 func world_to_grid(world_pos: Vector2) -> Vector2i:
     return Vector2i(

@@ -109,7 +109,7 @@ func _test_movement_controller():
         var row = []
         for x in range(10):
             row.append({
-                "terrain_type": GameEnums.CellType.PLAINE,
+                "terrain_type": TilesEnums.CellType.PLAINE,
                 "poi_type": null
             })
         test_grid.append(row)
@@ -157,10 +157,10 @@ func test_movement_with_obstacle():
     for y in range(10):
         var row = []
         for x in range(10):
-            var terrain = GameEnums.CellType.PLAINE
+            var terrain = TilesEnums.CellType.PLAINE
             # Place une montagne au milieu
             if x == 5 and y == 5:
-                terrain = GameEnums.CellType.WATER
+                terrain = TilesEnums.CellType.WATER
             row.append({
                 "terrain_type": terrain,
                 "poi_type": null

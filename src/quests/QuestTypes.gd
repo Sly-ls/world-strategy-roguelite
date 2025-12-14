@@ -1,4 +1,5 @@
 # res://src/quests/QuestTypes.gd
+extends Resource
 class_name QuestTypes
 
 ## Enums centralisés pour le système de quêtes

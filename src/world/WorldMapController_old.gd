@@ -4,7 +4,7 @@ extends Node2D
 const TILE_SIZE := 64
 var GRID_WIDTH: int
 var GRID_HEIGHT: int
-const CellType = GameEnums.CellType
+const CellType = TilesEnums.CellType
 var world_grid: Array = []
 var zoom_level: float = 1.0
 @onready var background: Sprite2D = $Background
@@ -65,7 +65,7 @@ func _check_battle_result() -> void:
         # Mise à jour des quêtes de type CLEAR_COMBAT
         var poi_type := _get_current_poi_type()
         
-        if poi_type == GameEnums.CellType.RUINS:
+        if poi_type == TilesEnums.CellType.RUINS:
             QuestManager.update_quest_progress("ruins_artifact_1", 1)
         
         # Autres types de POI à gérer ici
@@ -76,7 +76,7 @@ func _start_initial_quests() -> void:
     QuestManager.start_quest("survival_5days")
     
     # Quête de ruines si proche d'une ruine
-    var nearby_ruins := _find_nearby_poi(GameEnums.CellType.RUINS, 10)
+    var nearby_ruins := _find_nearby_poi(TilesEnums.CellType.RUINS, 10)
     if nearby_ruins != Vector2i(-1, -1):
         QuestManager.start_quest("ruins_artifact_1", {"poi_pos": nearby_ruins})
     # Calcule la taille de la grille à partir de l'image
@@ -88,7 +88,7 @@ func _start_initial_quests() -> void:
     _update_army_world_position()
     _update_camera()
   
-func _find_nearby_poi(poi_type: GameEnums.CellType, max_distance: int) -> Vector2i:
+func _find_nearby_poi(poi_type: TilesEnums.CellType, max_distance: int) -> Vector2i:
     var army_pos := WorldState.army_grid_pos
     var closest_poi := Vector2i(-1, -1)
     var min_distance := 999999.0
@@ -166,7 +166,7 @@ func _update_army_movement(delta: float) -> void:
 
     # Biome actuel = cell logique actuelle
     var cell_type_current := _get_current_cell_type()
-    var speed_mul :float = GameEnums.CELL_ENUM[cell_type_current].move_cost
+    var speed_mul :float = TilesEnums.CELL_ENUM[cell_type_current].move_cost
     var effective_speed := WorldState.player_army.BASE_SPEED_PX * speed_mul
 
     var step := effective_speed * delta
@@ -188,7 +188,7 @@ func _update_army_movement(delta: float) -> void:
         return
 
     var next_cell_type :CellType = world_grid[gy][gx]
-    if not GameEnums.CELL_ENUM[next_cell_type].walkable:
+    if not TilesEnums.CELL_ENUM[next_cell_type].walkable:
         # On ne franchit pas la case non walkable → on s'arrête au bord
         print("Obstacle infranchissable détecté, arrêt du mouvement.")
         is_moving = false
@@ -223,7 +223,7 @@ func _check_enter_poi() -> void:
     var cell_type := _get_current_cell_type()
 
     _check_reach_poi_quests(cell_type)
-    var event_id: String = GameEnums.CELL_ENUM[cell_type].event_id
+    var event_id: String = TilesEnums.CELL_ENUM[cell_type].event_id
     if event_id:
         _start_world_event(event_id)
     var quest = QuestGenerator.generate_advanced_quest_for_poi(WorldState.army_grid_pos, cell_type)
@@ -258,7 +258,7 @@ func _start_world_event(event_id: String) -> void:
 
     event_panel.show_event(evt.title, evt.body, ui_choices)
 
-func _check_reach_poi_quests(poi_type: GameEnums.CellType) -> void:
+func _check_reach_poi_quests(poi_type: TilesEnums.CellType) -> void:
     """Vérifie si on a atteint un POI requis par une quête"""
     var active_quests := QuestManager.get_active_quests()
     
@@ -280,11 +280,11 @@ func _check_reach_poi_quests(poi_type: GameEnums.CellType) -> void:
             if can_complete:
                 QuestManager.update_quest_progress_by_id(quest.runtime_id, 1)
 
-func _get_current_poi_type() -> GameEnums.CellType:
+func _get_current_poi_type() -> TilesEnums.CellType:
     var pos := WorldState.army_grid_pos
     if pos.x >= 0 and pos.x < GRID_WIDTH and pos.y >= 0 and pos.y < GRID_HEIGHT:
         return world_grid[pos.y][pos.x]
-    return GameEnums.CellType.PLAINE    
+    return TilesEnums.CellType.PLAINE    
 func _on_event_choice_made(choice_id: String) -> void:
        event_open = false
 
@@ -387,7 +387,7 @@ func _draw() -> void:
   for x in GRID_WIDTH:
    var cell: CellType = world_grid[y][x]
    var cell_pos = grid_to_world(Vector2i(x, y))
-   draw_circle(cell_pos, 10.0, GameEnums.CELL_ENUM[cell].color)
+   draw_circle(cell_pos, 10.0, TilesEnums.CELL_ENUM[cell].color)
 
 func grid_to_world(grid_pos: Vector2i) -> Vector2:
  return Vector2(
@@ -482,7 +482,7 @@ func _on_world_click(screen_pos: Vector2) -> void:
         return
 
     var target_cell_type :CellType = world_grid[target_grid.y][target_grid.x]
-    if not GameEnums.CELL_ENUM[target_cell_type].walkable:
+    if not TilesEnums.CELL_ENUM[target_cell_type].walkable:
         print("Cible sur une case non franchissable, on refuse le déplacement.")
         return
 
@@ -503,8 +503,8 @@ func _try_move_army(delta_grid: Vector2i) -> void:
         return
 
     # 2) récupérer le biome de la case d'arrivée
-    var cell_type :GameEnums.CellType = world_grid[new_pos.y][new_pos.x]
-    var move_cost : float = GameEnums.CELL_ENUM[cell_type].move_cost
+    var cell_type :TilesEnums.CellType = world_grid[new_pos.y][new_pos.x]
+    var move_cost : float = TilesEnums.CELL_ENUM[cell_type].move_cost
 
     if WorldState.MOVE_COST.has(cell_type):
         move_cost = WorldState.MOVE_COST[cell_type]

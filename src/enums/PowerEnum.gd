@@ -55,7 +55,7 @@ static var POWER_ENUM := {
 
 
 #exemple d'utilisation
-#var info := GameEnums.CELL_ENUM[GameEnums.CellType.TOWN]
+#var info := TilesEnums.CELL_ENUM[TilesEnums.CellType.TOWN]
 #print(info.name)        # "Ville"
 #print(info.move_cost)   # 2.0
 #print(info.id)          # 1
