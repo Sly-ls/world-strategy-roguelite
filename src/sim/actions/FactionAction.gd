@@ -12,3 +12,4 @@ enum ActionType { BUILD_DOMAIN, RAID, DIPLOMACY, EXPLORE, CORRUPT, DEFEND }
 @export var intensity: int = 1
 @export var tags_to_add_world: Array[String] = []
 @export var relation_delta_actor_target: int = 0
+@export var debug_label: String = ""

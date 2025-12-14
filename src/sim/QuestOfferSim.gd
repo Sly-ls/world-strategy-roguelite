@@ -48,3 +48,91 @@ func tick_day() -> void:
     while offers.size() > max_offers:
         var removed :QuestInstance = offers.pop_front()
         offer_created_day.erase(removed.runtime_id)
+
+func generate_goal_offer(actor_id: String, target_id: String, domain: String, step_id: String, tier: QuestTypes.QuestTier = QuestTypes.QuestTier.TIER_1) -> void:
+    if QuestGenerator == null:
+        return
+
+    # 1) choisir quest_type selon step
+    var quest_type := _pick_quest_type_for_step(step_id)
+
+    # 2) construire contexte résolution + tags custom
+    var category := _guess_category_for_step(step_id)
+    var ctx := ContextTagResolver.build_context(category, tier, actor_id, target_id)
+    
+    #verification de l'antagonist
+    var antagonist := target_id
+    if antagonist == "" or antagonist == actor_id:
+        antagonist = QuestGenerator._pick_hostile_faction() # si accessible
+        if antagonist == actor_id:
+            antagonist = "bandits"
+            
+    # tags supplémentaires (facultatif mais très utile)
+    ctx.tags.append("GOAL_STEP_%s" % step_id.to_upper())
+    if domain != "":
+        ctx.tags.append("DOMAIN_%s" % domain.to_upper())
+    if target_id != "":
+        ctx.tags.append("TARGET_%s" % target_id.to_upper())
+
+    # 3) choisir profil
+    var profile_id := ResolutionRuleFactory.pick_profile(ctx)
+
+    # 4) overrides runtime (giver/antagonist/profile + metadata)
+    var overrides := {
+        "tier": tier,
+        "giver_faction_id": actor_id,
+        "antagonist_faction_id": antagonist,
+        "resolution_profile_id": profile_id,
+        "goal_step_id": step_id,
+        "goal_domain": domain,
+        "goal_target_faction_id": target_id,
+        "is_goal_offer": true
+    }
+
+    var q: QuestInstance = QuestGenerator.generate_quest_of_type(quest_type, tier, overrides)
+    if q == null:
+        return
+        
+    print("📜 Offer(goal) -> %s | step=%s | giver=%s | ant=%s | profile=%s" % [
+        quest_type,
+        step_id,
+        actor_id,
+        antagonist,
+        profile_id
+    ])
+
+    var sig := "%s|%s|%s|%s|%d" % [actor_id, target_id, quest_type, step_id, WorldState.current_day]
+    for existing in offers:
+        var c := existing.context
+        if c.get("offer_sig","") == sig:
+            return
+    q.context["offer_sig"] = sig
+    offers.append(q)
+    offer_created_day[q.runtime_id] = WorldState.current_day
+
+func _pick_quest_type_for_step(step_id: String) -> String:
+    match step_id:
+        "gather":
+            return "generic_collection"
+        "scout":
+            return "generic_exploration"
+        "raids", "declare":
+            return "generic_combat"
+        "send_envoys", "treaty":
+            return "faction_diplomacy"
+        "help":
+            # aide peut être collection/exploration/diplomacy, simple pour l’instant
+            return "generic_collection"
+        _:
+            return "generic_exploration"
+
+func _guess_category_for_step(step_id: String) -> QuestTypes.QuestCategory:
+    match step_id:
+        "raids", "declare":
+            return QuestTypes.QuestCategory.COMBAT
+        "send_envoys", "treaty":
+            return QuestTypes.QuestCategory.DIPLOMATIC
+        "gather":
+            return QuestTypes.QuestCategory.DELIVERY
+        _:
+            return QuestTypes.QuestCategory.EXPLORATION

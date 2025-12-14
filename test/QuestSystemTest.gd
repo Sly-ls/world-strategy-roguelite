@@ -56,13 +56,10 @@ func _ready() -> void:
     _test_full_resolution_pipeline(gen)
     
     print("\n--- TEST 7: WORLD SIM 10 DAYS ---")
-    WorldSimRunner.simulate_days(10)
-    FactionManager.print_all_factions()
-    print("World tags:", QuestManager.world_tags)
-    print("Offers:", QuestOfferSimRunner.offers.size())
-    FactionManager.print_relations_between()
+    _test_7()
 
-
+    print("\n--- TEST 8: GOAL OFFER DOMAIN ---")
+    _test_8()
 
     print("==============================\n")
     print("\n✅ TEST HARNESS FINISHED (regarde les warnings/erreurs ci-dessus).")
@@ -84,6 +81,68 @@ func _force_load_tiles_enums() -> void:
 # ------------------------------------------------------------
 #  Utilities: Creation / safety
 # ------------------------------------------------------------
+func _test_7() -> void:
+    WorldSimRunner.simulate_days(10)
+    FactionManager.print_all_factions()
+    print("World tags:", QuestManager.world_tags)
+    print("Offers:", QuestOfferSimRunner.offers.size())
+    FactionManager.print_relations_between()
+    _print_sample_offers()
+    
+func _test_8() -> void:
+    QuestOfferSimRunner.offers.clear()
+    QuestOfferSimRunner.offer_created_day.clear()
+
+    var g := FactionGoalFactory.create_build_domain_goal("orcs", "corruption")
+    FactionGoalManagerRunner.active_goals["orcs"] = FactionGoalState.new(g)
+
+    # Simule un step gather pour déclencher l’offre
+    QuestOfferSimRunner.generate_goal_offer("orcs", "", "corruption", "gather")
+
+    print("\n=== OFFERS SAMPLE (goal only) ===")
+    var quest_instance_1 :QuestInstance = QuestOfferSimRunner.offers.back()
+    var ctx_1 :Dictionary = quest_instance_1.context
+
+    print("- %s | giver=%s | ant=%s | step=%s | domain=%s | profile=%s" % [
+        quest_instance_1.template.title,
+        str(ctx_1.get("giver_faction_id","")),
+        str(ctx_1.get("antagonist_faction_id","")),
+        str(ctx_1.get("goal_step_id","")),
+        str(ctx_1.get("goal_domain","")),
+        str(ctx_1.get("resolution_profile_id",""))
+])
+    var found := false
+    for q in QuestOfferSimRunner.offers:
+        var ctx := q.context
+        if not ctx.get("is_goal_offer", false):
+            continue
+        if ctx.get("goal_step_id","") != "gather":
+            continue
+        if ctx.get("goal_domain","") != "corruption":
+            continue
+
+        print("✅ FOUND:", q.template.title, "giver=", ctx.get("giver_faction_id"), "ant=", ctx.get("antagonist_faction_id"))
+        found = true
+        break
+
+    if not found:
+        push_error("TEST 8 failed: no gather/corruption goal offer found")
+        
+func _print_sample_offers() -> void:
+    print("\n=== OFFERS SAMPLE ===")
+    for i in range(min(QuestOfferSimRunner.offers.size(), 5)):
+        var q: QuestInstance = QuestOfferSimRunner.offers[i]
+        var ctx := q.context
+        if not ctx.get("is_goal_offer", false):
+            continue
+        print("- %s | giver=%s | ant=%s | step=%s | domain=%s | profile=%s" % [
+            q.template.title,
+            str(ctx.get("giver_faction_id","")),
+            str(ctx.get("antagonist_faction_id","")),
+            str(ctx.get("goal_step_id","")),
+            str(ctx.get("goal_domain","")),
+            str(ctx.get("resolution_profile_id",""))
+        ])
 
 func _create_generator() -> Node:
     if not ResourceLoader.exists(QUEST_GENERATOR_SCRIPT):

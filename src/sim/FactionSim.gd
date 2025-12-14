@@ -9,8 +9,14 @@ func run_day(actions_per_day: int) -> void:
 
     for i in range(actions_per_day):
         var f = factions.pick_random()
-        _execute_action_for_faction(f.id)
 
+        var st := FactionGoalManagerRunner.ensure_goal(f.id)
+        var action := FactionGoalPlanner.plan_action(st.goal)
+        if action == null:
+            continue
+
+        FactionActionResolverRunner.apply(action)
+        
 func _execute_action_for_faction(faction_id: String) -> void:
     var action := FactionActionFactoryRunner.pick_action(faction_id)
     if action == null:

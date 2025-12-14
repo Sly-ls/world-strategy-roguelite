@@ -33,6 +33,15 @@ func _ready() -> void:
 # ========================================
 # GÉNÉRATION PRINCIPALE
 # ========================================
+func generate_quest_of_type(quest_type: String, tier: QuestTypes.QuestTier, overrides: Dictionary = {}) -> QuestInstance:
+    variation_rng.randomize()
+
+    var params := _generate_random_parameters(quest_type, tier)
+    # overrides gagnent sur les valeurs générées
+    for k in overrides.keys():
+        params[k] = overrides[k]
+
+    return _create_quest_instance(quest_type, params, Vector2i(-1, -1))
 
 func generate_quest_for_poi(poi_pos: Vector2i, poi_type: TilesEnums.CellType) -> QuestInstance:
     """Génère une quête pour un POI spécifique"""
@@ -581,7 +590,7 @@ func _generate_advanced_title(poi_type: TilesEnums.CellType, seed: int) -> Strin
         "Exploration %s %s",
         "Secrets %s %s",
         "Mystères %s %s",
-		"Conquête %s %s"
+        "Conquête %s %s"
     ]
     
     var format :String = formats[rng_title.randi() % formats.size()]
