@@ -12,11 +12,10 @@ func generate_offers(n: int) -> void:
 
     for i in range(n):
         var q: QuestInstance = QuestGenerator.generate_random_quest(QuestTypes.QuestTier.TIER_1)
-        if q == null:
+        if q == null ||  offer_created_day.has(q.runtime_id):
             continue
         offers.append(q)
 
-    print("Offers disponibles:", offers.size())
 
 func take_offer(index: int) -> QuestInstance:
     if index < 0 or index >= offers.size():
