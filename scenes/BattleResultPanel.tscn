@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://dbrk8f1wf3w8j"]
 
-[ext_resource type="Script" uid="uid://gg7tu2sekrml" path="res://scripts/ui/BattleResultPanel.gd" id="1_sj2yn"]
+[ext_resource type="Script" uid="uid://gg7tu2sekrml" path="res://src/combat/BattleResultPanel.gd" id="1_sj2yn"]
 
 [node name="BattleResultPanel" type="Control"]
 layout_mode = 3
