@@ -17,6 +17,21 @@ signal faction_status_changed(faction_id: String, old_status: String, new_status
 # ========================================
 
 var factions: Dictionary = {}  ## id -> Faction
+# Relations entre factions (symétrique)
+var relations_between: Dictionary = {} # key "a|b" -> int
+
+func _pair_key(a: String, b: String) -> String:
+    if a < b:
+        return "%s|%s" % [a, b]
+    return "%s|%s" % [b, a]
+
+func set_relation_between(a: String, b: String, value: int) -> void:
+    relations_between[_pair_key(a, b)] = value
+
+func get_relation_between(a: String, b: String) -> int:
+    if a == "" or b == "" or a == b:
+        return 0
+    return int(relations_between.get(_pair_key(a, b), 0))
 
 # ========================================
 # LIFECYCLE
@@ -24,6 +39,11 @@ var factions: Dictionary = {}  ## id -> Faction
 
 func _ready() -> void:
     _init_default_factions()
+    set_relation_between("humans", "orcs", -80)
+    set_relation_between("humans", "bandits", -60)
+    set_relation_between("elves", "orcs", -40)
+    set_relation_between("elves", "bandits", -30)
+    set_relation_between("humans", "elves", 10)
     print("✓ FactionManager initialisé avec %d factions" % factions.size())
 
 # ========================================

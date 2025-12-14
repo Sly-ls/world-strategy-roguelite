@@ -203,87 +203,43 @@ func _trigger_completion_event(inst: QuestInstance) -> void:
     """Déclenche un event à la complétion (de ChatGPT)"""
     # TODO: Intégration avec WorldMapController pour lancer l'event
     print("→ Event de complétion : %s (à implémenter)" % inst.template.completion_event_id)
-    
+func _apply_effect(inst: QuestInstance, effect: QuestEffect) -> void:
+    match effect.type:
+        QuestEffect.EffectType.GOLD:
+            ResourceManager.add_resource("gold", effect.amount)
+
+        QuestEffect.EffectType.PLAYER_TAG:
+            add_player_tag(effect.tag)
+
+        QuestEffect.EffectType.WORLD_TAG:
+            add_world_tag(effect.tag)
+
+        QuestEffect.EffectType.FACTION_RELATION:
+            var faction_id := ""
+            match effect.faction_role:
+                "giver":
+                    faction_id = inst.giver_faction_id
+                "antagonist":
+                    faction_id = inst.antagonist_faction_id
+
+            if faction_id != "":
+                FactionManager.adjust_relation(faction_id, effect.amount)
+                
 func resolve_quest(runtime_id: String, choice: String) -> void:
-    """
-    Applique la résolution LOYAL/NEUTRAL/TRAITOR.
-    choice ∈ {"LOYAL","NEUTRAL","TRAITOR"}
-    """
-    var inst: QuestInstance = active_quests.get(runtime_id, null)
+    var inst: QuestInstance = active_quests.get(runtime_id)
     if inst == null:
-        push_warning("resolve_quest: runtime_id introuvable: %s" % runtime_id)
         return
 
-    if not inst.needs_resolution:
-        push_warning("resolve_quest: quête ne nécessite pas de résolution: %s" % runtime_id)
+    var profile := ResolutionFactory.get_profile(inst.resolution_profile_id)
+    if profile == null:
+        push_warning("Profil de résolution manquant: " + inst.resolution_profile_id)
         return
 
-    choice = choice.to_upper()
-    if choice != "LOYAL" and choice != "NEUTRAL" and choice != "TRAITOR":
-        push_warning("resolve_quest: choix invalide: %s" % choice)
-        return
+    for effect in profile.get_effects(choice):
+        _apply_effect(inst, effect)
 
-    inst.needs_resolution = false
-    inst.resolution_choice = choice
-
-    _apply_resolution_effects(inst, choice)
-
-    # Déplacer vers historique + retirer des actives
-    completed_quests.append(inst)
     active_quests.erase(runtime_id)
-
-    # Chaînage
-    if inst.template.next_quest_id != "":
-        start_quest(inst.template.next_quest_id, inst.context)
-
-func _apply_resolution_effects(inst: QuestInstance, choice: String) -> void:
-    # 1) Base rewards (communes) : optionnel
-    # Pour l’instant : on garde le système actuel "template.rewards" comme récompense LOYAL par défaut
-    # (tu ajusteras ensuite via profiles).
-    match choice:
-        "LOYAL":
-            _apply_rewards(inst)
-            for tag in inst.template.adds_player_tags:
-                add_player_tag(tag)
-            for tag in inst.template.adds_world_tags:
-                add_world_tag(tag)
-
-            # relations (si tu as ajouté giver_faction_id)
-            if inst.giver_faction_id != "":
-                FactionManager.adjust_relation(inst.giver_faction_id, +10)
-
-        "NEUTRAL":
-            # Gain perso : petit reward + tag "INDEPENDENT"
-            var reward := QuestReward.new()
-            reward.type = QuestTypes.RewardType.GOLD
-            reward.amount = 25
-            _apply_single_reward(reward, inst)
-
-            add_player_tag("INDEPENDENT")
-
-            # donneur - relation
-            var giver :String = inst.giver_faction_id
-            if giver != "":
-                FactionManager.adjust_relation(giver, -10)
-
-            # antagoniste devient ennemi (relation très négative)
-            var ant :String = inst.antagonist_faction_id
-            if ant != "":
-                FactionManager.adjust_relation(ant, -25)
-
-        "TRAITOR":
-            add_player_tag("TRAITOR")
-
-            var giver :String = inst.giver_faction_id
-            if giver != "":
-                FactionManager.adjust_relation(giver, -25)
-
-            var ant :String = inst.antagonist_faction_id
-            if ant != "":
-                FactionManager.adjust_relation(ant, +15)
-
-            # Exemple de tag monde (à ajuster plus tard)
-            add_world_tag("WORLD_UNSTABLE")
+    quest_completed.emit(inst)
 
 # ========================================
 # PROGRESSION

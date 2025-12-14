@@ -42,7 +42,19 @@ func _ready() -> void:
     # --- Test 4 : tentative d’intégration QuestManager (si dispo)
     print("\n--- TEST 4: QuestManager integration (if available) ---")
     _try_quest_manager_flow(quest1)
-
+    
+    print("\n--- TEST 5: LOYAL / NEUTRAL / TRAITOR ---")
+    var qm = get_node_or_null(QUEST_MANAGER_SINGLETON)
+    if qm != null and gen != null and qm.has_method("start_runtime_quest") and qm.has_method("resolve_quest"):
+        _run_resolution_case(qm, gen, "LOYAL")
+        _run_resolution_case(qm, gen, "NEUTRAL")
+        _run_resolution_case(qm, gen, "TRAITOR")
+    else:
+        _warn("TEST 5 ignoré: QuestManager ou méthodes manquantes.")
+        
+    print("\n--- TEST 6: FULL PALIER 2 PIPELINE ---")
+    _test_full_resolution_pipeline(gen)
+    
     print("\n✅ TEST HARNESS FINISHED (regarde les warnings/erreurs ci-dessus).")
     print("==============================\n")
 
@@ -182,6 +194,109 @@ func _safe_get_gold() -> int:
         return int(rm.get_resource("gold"))
     return -1
 
+func _run_resolution_case(qm: Node, gen: Node, choice: String) -> void:
+    var q = gen.generate_random_quest(1) # tier 1 fallback
+    if q == null:
+        _warn("Impossible de générer une quête pour %s" % choice)
+        return
+
+    # injecter factions pour le test si absentes
+    if q.context == null:
+        q.context = {}
+    if not q.context.has("giver_faction_id"):
+        q.context["giver_faction_id"] = "humans"
+    if not q.context.has("antagonist_faction_id"):
+        q.context["antagonist_faction_id"] = "orcs"
+
+    qm.start_runtime_quest(q)
+    var rid: String = q.runtime_id
+
+    var gold_before := _safe_get_gold()
+    var tags_p_before: Array = qm.get_player_tags() if qm.has_method("get_player_tags") else []
+    var tags_w_before: Array = qm.get_world_tags() if qm.has_method("get_world_tags") else []
+
+    qm.complete_quest(rid)
+    qm.resolve_quest(rid, choice)
+
+    var gold_after := _safe_get_gold()
+    var tags_p_after: Array = qm.get_player_tags() if qm.has_method("get_player_tags") else []
+    var tags_w_after: Array = qm.get_world_tags() if qm.has_method("get_world_tags") else []
+
+    print("\n--- RESOLUTION %s ---" % choice)
+    print("Gold: ", gold_before, " -> ", gold_after)
+    print("Player tags: ", tags_p_before, " -> ", tags_p_after)
+    print("World tags: ", tags_w_before, " -> ", tags_w_after)
+    
+func _test_full_resolution_pipeline(gen: Node) -> void:
+    # 1️⃣ Snapshot initial
+    var gold_before := ResourceManager.get_resource("gold")
+    var player_tags_before := QuestManager.player_tags.duplicate()
+    var world_tags_before := QuestManager.world_tags.duplicate()
+
+    print("Initial gold:", gold_before)
+    print("Initial player tags:", player_tags_before)
+    print("Initial world tags:", world_tags_before)
+
+    # 2️⃣ Générer une quête procédurale
+    var quest :QuestInstance = gen.generate_random_quest(QuestTypes.QuestTier.TIER_1)
+    if quest == null:
+        _fail("Impossible de générer une quête")
+        return
+
+    print("\nGenerated quest:", quest.template.title)
+
+    # 3️⃣ Vérifier contexte runtime
+    print("Giver faction:", quest.giver_faction_id)
+    print("Antagonist faction:", quest.antagonist_faction_id)
+    print("Resolution profile:", quest.resolution_profile_id)
+
+    # 4️⃣ Reconstruire le context pour debug
+    var ctx := ContextTagResolver.build_context(
+        quest.template.category,
+        quest.template.tier,
+        quest.giver_faction_id,
+        quest.antagonist_faction_id
+    )
+
+    print("Context tags:", ctx.tags)
+
+    # 5️⃣ Résolution LOYAL
+    print("\n--- RESOLUTION LOYAL ---")
+    QuestManager.start_runtime_quest(quest)
+    QuestManager.resolve_quest(quest.runtime_id, "LOYAL")
+
+    print("Gold:", gold_before, "→", ResourceManager.get_resource("gold"))
+    print("Player tags:", QuestManager.player_tags)
+    print("World tags:", QuestManager.world_tags)
+
+    # 6️⃣ Reset partiel (pour test)
+    _reset_test_state(gold_before, player_tags_before, world_tags_before)
+
+    # 7️⃣ Résolution NEUTRAL
+    print("\n--- RESOLUTION NEUTRAL ---")
+    var quest_n :QuestInstance = gen.generate_random_quest(QuestTypes.QuestTier.TIER_1)
+    QuestManager.start_runtime_quest(quest_n)
+    QuestManager.resolve_quest(quest_n.runtime_id, "NEUTRAL")
+
+    print("Gold:", ResourceManager.get_resource("gold"))
+    print("Player tags:", QuestManager.player_tags)
+    print("World tags:", QuestManager.world_tags)
+
+    # 8️⃣ Reset partiel
+    _reset_test_state(gold_before, player_tags_before, world_tags_before)
+
+    # 9️⃣ Résolution TRAITOR
+    print("\n--- RESOLUTION TRAITOR ---")
+    var quest_t :QuestInstance = gen.generate_random_quest(QuestTypes.QuestTier.TIER_1)
+    QuestManager.start_runtime_quest(quest_t)
+    QuestManager.resolve_quest(quest_t.runtime_id, "TRAITOR")
+
+    print("Gold:", ResourceManager.get_resource("gold"))
+    print("Player tags:", QuestManager.player_tags)
+    print("World tags:", QuestManager.world_tags)
+
+    print("\n✅ TEST 6 PASSED — Palier 2 pipeline OK")
+
 # ------------------------------------------------------------
 #  Dump / printing
 # ------------------------------------------------------------
@@ -218,6 +333,10 @@ func _print_quest_instance(q) -> void:
 # ------------------------------------------------------------
 #  Environment helpers
 # ------------------------------------------------------------
+func _reset_test_state(gold: int, player_tags: Array, world_tags: Array) -> void:
+    ResourceManager.set_resource("gold", gold)
+    QuestManager.player_tags = player_tags.duplicate()
+    QuestManager.world_tags = world_tags.duplicate()
 
 func _ensure_world_day(day: int) -> void:
     var ws = get_node_or_null(WORLD_STATE_SINGLETON)

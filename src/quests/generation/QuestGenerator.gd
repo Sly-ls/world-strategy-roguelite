@@ -151,70 +151,146 @@ func _get_available_quest_types() -> Array[String]:
 # ========================================
 # GÉNÉRATION DE PARAMÈTRES
 # ========================================
+func _generate_quest_parameters(
+    quest_type: String,
+    poi_type: TilesEnums.CellType,
+    poi_pos: Vector2i
+) -> Dictionary:
+    """Génère les paramètres variables d'une quête liée à un POI"""
 
-func _generate_quest_parameters(quest_type: String, poi_type: TilesEnums.CellType, poi_pos: Vector2i) -> Dictionary:
-    """Génère les paramètres variables d'une quête"""
+    # 1️⃣ Runtime factions
+    var giver_faction_id: String = _pick_random_faction()
+    var antagonist_faction_id: String = _pick_hostile_faction()
+
+    # 2️⃣ Catégorie depuis le POI
+    var category: QuestTypes.QuestCategory = _guess_category_from_poi(poi_type)
+
+    # 3️⃣ Contexte de résolution
+    var resolution_context := ContextTagResolver.build_context(
+       category,
+       QuestTypes.QuestTier.TIER_1,
+       giver_faction_id,
+       antagonist_faction_id
+    )
     
+    # 4️⃣ Choix du profil
+    var profile_id: String = ResolutionRuleFactory.pick_profile(resolution_context)
+
+    # 5️⃣ Params de base
     var params := {
         "poi_pos": poi_pos,
         "poi_type": poi_type,
-        "poi_id": "poi_%d_%d" % [poi_pos.x, poi_pos.y]
+        "poi_id": "poi_%d_%d" % [poi_pos.x, poi_pos.y],
+
+        "giver_faction_id": giver_faction_id,
+        "antagonist_faction_id": antagonist_faction_id,
+        "resolution_profile_id": profile_id
     }
-    
+    # 6️⃣ Spécifique au type de quête
     match quest_type:
         "ruins_artifact":
             params["artifact_name"] = _generate_artifact_name()
             params["faction_interested"] = _pick_random_faction()
             params["danger_level"] = variation_rng.randi_range(1, 3)
-        
+
         "town_delivery":
             params["resource_type"] = _pick_random_resource()
             params["resource_amount"] = variation_rng.randi_range(10, 50)
             params["urgency"] = variation_rng.randi_range(1, 3)
-        
+
         "town_defense":
             params["enemy_faction"] = _pick_hostile_faction()
             params["enemy_strength"] = variation_rng.randi_range(1, 5)
             params["reward_multiplier"] = variation_rng.randf_range(1.0, 2.0)
-        
+
         "shrine_offering":
             params["offering_type"] = _pick_random_resource()
             params["offering_amount"] = variation_rng.randi_range(5, 20)
             params["blessing_type"] = _pick_random_blessing()
-    
-    return params
 
-func _generate_random_parameters(quest_type: String, tier: QuestTypes.QuestTier) -> Dictionary:
+    return params
+func _guess_category_from_poi(poi_type: TilesEnums.CellType) -> QuestTypes.QuestCategory:
+    match poi_type:
+        TilesEnums.CellType.RUINS:
+            return QuestTypes.QuestCategory.EXPLORATION
+        TilesEnums.CellType.TOWN, TilesEnums.CellType.VILLAGE:
+            return QuestTypes.QuestCategory.DIPLOMATIC
+        TilesEnums.CellType.FORTRESS:
+            return QuestTypes.QuestCategory.COMBAT
+        TilesEnums.CellType.DUNGEON:
+            return QuestTypes.QuestCategory.EXPLORATION
+        _:
+            return QuestTypes.QuestCategory.LOCAL_POI
+
+func _generate_random_parameters(
+    quest_type: String,
+    tier: QuestTypes.QuestTier
+) -> Dictionary:
     """Génère des paramètres pour une quête générique"""
-    
+
+    # 1️⃣ Runtime factions (procédural)
+    var giver_faction_id: String = _pick_random_faction()
+    var antagonist_faction_id: String = _pick_hostile_faction()
+
+    # 2️⃣ Contexte de résolution
+    var resolution_context := ContextTagResolver.build_context(
+       _guess_category_from_quest_type(quest_type),
+       tier,
+       giver_faction_id,
+       antagonist_faction_id
+    )
+
+    # 3️⃣ Choix du profil
+    var profile_id: String = ResolutionRuleFactory.pick_profile(resolution_context)
+
+    # 4️⃣ Params de base
     var params := {
         "tier": tier,
-        "generated": true
+        "generated": true,
+        "giver_faction_id": giver_faction_id,
+        "antagonist_faction_id": antagonist_faction_id,
+        "resolution_profile_id": profile_id
     }
-    
+
+    # 5️⃣ Spécifique au type
     match quest_type:
         "generic_combat":
             params["enemy_type"] = _pick_random_enemy()
             params["enemy_count"] = variation_rng.randi_range(1, 5)
             params["location_type"] = _pick_random_location()
-        
+
         "generic_exploration":
             params["area_size"] = variation_rng.randi_range(5, 15)
             params["poi_count"] = variation_rng.randi_range(1, 3)
-        
+
         "generic_survival":
             params["days"] = variation_rng.randi_range(3, 10)
             params["threat_level"] = variation_rng.randi_range(1, tier)
-        
+
         "generic_collection":
             params["resource_type"] = _pick_random_resource()
             params["amount"] = variation_rng.randi_range(20, 100)
-        
+
         "faction_diplomacy":
             params["target_faction"] = _pick_random_faction()
             params["relation_target"] = variation_rng.randi_range(25, 75)
-    
+
     return params
+
+func _guess_category_from_quest_type(quest_type: String) -> QuestTypes.QuestCategory:
+    match quest_type:
+        "generic_combat":
+            return QuestTypes.QuestCategory.COMBAT
+        "generic_exploration":
+            return QuestTypes.QuestCategory.EXPLORATION
+        "generic_survival":
+            return QuestTypes.QuestCategory.SURVIVAL
+        "generic_collection":
+            return QuestTypes.QuestCategory.DELIVERY
+        "faction_diplomacy":
+            return QuestTypes.QuestCategory.DIPLOMATIC
+        _:
+            return QuestTypes.QuestCategory.LOCAL_POI
 
 # ========================================
 # CRÉATION D'INSTANCE
@@ -228,6 +304,10 @@ func _create_quest_instance(quest_type: String, params: Dictionary, poi_pos: Vec
     
     # Créer l'instance
     var instance := QuestInstance.new(template, params)
+    
+    instance.giver_faction_id = params["giver_faction_id"]
+    instance.antagonist_faction_id = params["antagonist_faction_id"]
+    instance.resolution_profile_id = params["resolution_profile_id"]
     
     return instance
 
@@ -329,6 +409,7 @@ func _create_dynamic_template(quest_type: String, params: Dictionary) -> QuestTe
             template.objective_count = 1
             template.expires_in_days = 3
             push_warning("QuestGenerator: quest_type non géré: %s" % quest_type)
+            
     return template
 
 # ========================================

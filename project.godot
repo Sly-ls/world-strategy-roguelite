@@ -33,6 +33,8 @@ WorldEventFactory="*res://data/WorldEventCatalog.gd"
 NarrativeGenerator="*res://src/world_events/NarrativeGenerator.gd"
 CrisisManager="*res://src/world_events/CrisisManager.gd"
 TilesEnum="*res://src/enums/TilesEnums.gd"
+ResolutionFactory="*res://src/quests/resolution/ResolutionCatalog.gd"
+ResolutionRuleFactory="*res://src/quests/resolution/ResolutionRuleCatalog.gd"
 
 [input]
 
