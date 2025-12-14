@@ -123,43 +123,37 @@ func validate_and_fix_pixel_path(pixel_path: Array[Vector2], grid_path: Array[Ve
     fixed_path.append(pixel_path[0])
     
     for i in range(1, pixel_path.size()):
-        var from = pixel_path[i - 1]
-        var to = pixel_path[i]
+        var from_pixel = pixel_path[i - 1]
+        var to_pixel = pixel_path[i]
         
         # Vérifie segment
-        if has_pixel_line_of_sight(from, to):
+        if has_pixel_line_of_sight(from_pixel, to_pixel):
             # Segment OK, garde-le
-            fixed_path.append(to)
+            fixed_path.append(to_pixel)
         else:
             # ❌ Segment traverse obstacle !
-            print("   ⚠️ Segment %d→%d blocked, inserting grid waypoints" % [i-1, i])
+            print("   ⚠️ Segment %d→%d blocked, subdividing" % [i-1, i])
             
-            # Trouve cases grille entre from et to
-            var from_grid = world_to_grid(from)
-            var to_grid = world_to_grid(to)
+            # Trouve cases grille du segment bloqué
+            var from_grid = world_to_grid(from_pixel)
+            var to_grid = world_to_grid(to_pixel)
             
-            # Insère tous les waypoints grille entre les deux
-            for grid_pos in grid_path:
-                var grid_pixel = grid_to_world_center(grid_pos)
-                
-                # Si waypoint entre from et to, l'ajouter
-                if is_between(from_grid, grid_pos, to_grid):
-                    fixed_path.append(grid_pixel)
+            # Calcule sous-chemin A* entre from_grid et to_grid
+            var sub_path = calculate_path_astar(from_grid, to_grid)
             
-            fixed_path.append(to)
+            if sub_path.is_empty():
+                # Pas de chemin trouvé, garde segment direct (fallback)
+                print("      ⚠️ No A* path found, keeping segment")
+                fixed_path.append(to_pixel)
+            else:
+                # Insère waypoints du sous-chemin
+                print("      ✅ Inserting %d grid waypoints" % sub_path.size())
+                for grid_pos in sub_path:
+                    fixed_path.append(grid_to_world_center(grid_pos))
+                fixed_path.append(to_pixel)
     
     print("   📍 After validation: %d waypoints (was %d)" % [fixed_path.size(), pixel_path.size()])
     return fixed_path
-
-## Vérifie si point B est entre A et C
-func is_between(a: Vector2i, b: Vector2i, c: Vector2i) -> bool:
-    # Distance Manhattan approximative
-    var dist_ab = abs(b.x - a.x) + abs(b.y - a.y)
-    var dist_bc = abs(c.x - b.x) + abs(c.y - b.y)
-    var dist_ac = abs(c.x - a.x) + abs(c.y - a.y)
-    
-    # B est entre A et C si dist_ab + dist_bc ≈ dist_ac
-    return dist_ab + dist_bc <= dist_ac + 2  # +2 pour tolérance diagonales
 
 ## ⭐ NOUVEAU: Simplifie chemin pixel avec line-of-sight pixel
 func simplify_pixel_path(path: Array[Vector2]) -> Array[Vector2]:
