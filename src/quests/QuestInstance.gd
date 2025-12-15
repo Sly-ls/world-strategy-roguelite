@@ -39,18 +39,19 @@ func _init(_template: QuestTemplate, _context: Dictionary = {}) -> void:
     giver_faction_id = str(context.get("giver_faction_id", ""))
     antagonist_faction_id = str(context.get("antagonist_faction_id", ""))
     # Calculer l'expiration
-    if template.expires_in_days > 0:
-        expires_on_day = started_on_day + template.expires_in_days
-
+    started_on_day = -1
+    expires_on_day = -1
+        
 func _generate_uuid() -> String:
     return "quest_%d_%d" % [Time.get_ticks_msec(), randi()]
 
 # ========================================
 # GESTION DU STATUT
 # ========================================
-
 func start() -> void:
     """Démarre la quête"""
+    if template.expires_in_days > 0:
+        expires_on_day = started_on_day + template.expires_in_days
     status = QuestTypes.QuestStatus.ACTIVE
     print("✓ Quête démarrée : %s (%s)" % [template.title, QuestTypes.get_tier_name(template.tier)])
 

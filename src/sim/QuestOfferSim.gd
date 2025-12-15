@@ -17,6 +17,8 @@ func generate_offers(n: int) -> void:
             continue
         offers.append(q)
 
+func is_consumed(runtime_id: String) -> bool:
+    return consumed_offers.has(runtime_id)
 
 func take_offer(index: int) -> QuestInstance:
     if index < 0 or index >= offers.size():

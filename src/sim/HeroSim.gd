@@ -20,6 +20,8 @@ func tick_day() -> void:
     available.shuffle()
 
     for offer in available:
+        if QuestOfferSimRunner.is_consumed(offer.runtime_id):
+            continue
         if taken >= max_offers_taken_per_day:
             break
         if randf() > take_chance:
