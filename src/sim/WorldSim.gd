@@ -18,6 +18,8 @@ func advance_day() -> void:
         QuestManager.check_expirations()
     # 2) Actions factions (monde)
     FactionSimRunner.run_day(actions_per_day)
+    HeroSimRunner.tick_day()
+
 
     # 3) Générer des offres de quêtes “disponibles”
     QuestOfferSimRunner.generate_offers(quest_offers_per_day)

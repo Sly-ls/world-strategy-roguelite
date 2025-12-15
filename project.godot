@@ -41,6 +41,7 @@ QuestOfferSimRunner="*res://src/sim/QuestOfferSim.gd"
 FactionActionFactoryRunner="*res://src/sim/actions/FactionActionFactory.gd"
 FactionActionResolverRunner="*res://src/sim/actions/FactionActionResolver.gd"
 FactionGoalManagerRunner="*res://src/sim/goals/FactionGoalManager.gd"
+HeroSimRunner="*res://src/sim/HeroSim.gd"
 
 [input]
 

@@ -3,6 +3,7 @@ extends Node
 class_name QuestOfferSim
 
 var offers: Array[QuestInstance] = []
+var consumed_offers: Dictionary = {} # runtime_id -> {"by": hero_id, "day": int}
 @export var max_offers: int = 10
 var offer_created_day: Dictionary = {} # runtime_id -> day
 
@@ -109,6 +110,26 @@ func generate_goal_offer(actor_id: String, target_id: String, domain: String, st
     q.context["offer_sig"] = sig
     offers.append(q)
     offer_created_day[q.runtime_id] = WorldState.current_day
+
+func get_available_offers() -> Array[QuestInstance]:
+    var out: Array[QuestInstance] = []
+    for q in offers:
+        if q == null:
+            continue
+        if consumed_offers.has(q.runtime_id):
+            continue
+        out.append(q)
+    return out
+
+func consume_offer(runtime_id: String, by_id: String) -> void:
+    consumed_offers[runtime_id] = {"by": by_id, "day": WorldState.current_day}
+    # option A: on laisse dans offers mais marqué consommé (pratique pour debug)
+    # option B: on retire de offers (plus clean pour gameplay)
+    # Ici: option B
+    for i in range(offers.size()):
+        if offers[i] and offers[i].runtime_id == runtime_id:
+            offers.remove_at(i)
+            break
 
 func _pick_quest_type_for_step(step_id: String) -> String:
     match step_id:

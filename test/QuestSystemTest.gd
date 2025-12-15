@@ -61,6 +61,9 @@ func _ready() -> void:
     print("\n--- TEST 8: GOAL OFFER DOMAIN ---")
     _test_8()
 
+    print("\n--- TEST 9: HERO COMPETITION 30 DAYS ---")
+    _test_hero_competition_30_days()
+    
     print("==============================\n")
     print("\n✅ TEST HARNESS FINISHED (regarde les warnings/erreurs ci-dessus).")
     print("==============================\n")
@@ -81,6 +84,40 @@ func _force_load_tiles_enums() -> void:
 # ------------------------------------------------------------
 #  Utilities: Creation / safety
 # ------------------------------------------------------------
+func _test_hero_competition_30_days() -> void:
+    # Setup heroes
+    var h1 := HeroAgent.new()
+    h1.id = "h1"; h1.name = "Sir Aldren"; h1.faction_id = "humans"
+    h1.loyalty = 0.8; h1.greed = 0.2; h1.aggressiveness = 0.3; h1.competence = 0.8
+
+    var h2 := HeroAgent.new()
+    h2.id = "h2"; h2.name = "Krag le Rouge"; h2.faction_id = "orcs"
+    h2.loyalty = 0.2; h2.greed = 0.4; h2.aggressiveness = 0.8; h2.competence = 0.7
+
+    var h3 := HeroAgent.new()
+    h3.id = "h3"; h3.name = "L'Errante"; h3.faction_id = "independent"
+    h3.loyalty = 0.3; h3.greed = 0.8; h3.aggressiveness = 0.4; h3.competence = 0.6
+
+    HeroSimRunner.heroes = [h1, h2, h3]
+    HeroSimRunner.max_offers_taken_per_day = 2
+    HeroSimRunner.take_chance = 0.45
+
+    for day in range(30):
+        WorldState.current_day += 1
+        print("\n=== DAY %d ===" % WorldState.current_day)
+
+        # 1) factions agissent et créent des offers
+        FactionSimRunner.run_day(3)
+
+        # 2) heroes prennent des offers
+        HeroSimRunner.tick_day()
+
+        # 3) expirations
+        QuestManager.check_expirations()
+
+    print("\n=== END TEST 9 ===")
+    print("World tags:", QuestManager.world_tags)
+
 func _test_7() -> void:
     WorldSimRunner.simulate_days(10)
     FactionManager.print_all_factions()
