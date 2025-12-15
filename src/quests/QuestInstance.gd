@@ -26,6 +26,10 @@ var resolution_choice: String = "" # "LOYAL" | "NEUTRAL" | "TRAITOR"
 var giver_faction_id: String = ""
 var antagonist_faction_id: String = ""
 var resolution_profile_id: String = ""
+
+var owner_type: String = "PLAYER"  # "PLAYER" | "HERO" | "ARMY"
+var owner_id: String = ""          # id hero/army si besoin
+
 # ========================================
 # CONSTRUCTEUR
 # ========================================

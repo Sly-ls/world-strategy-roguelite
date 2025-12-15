@@ -24,6 +24,7 @@ func advance_day() -> void:
     # 3) Générer des offres de quêtes “disponibles”
     QuestOfferSimRunner.generate_offers(quest_offers_per_day)
     QuestOfferSimRunner.tick_day()
+    QuestGenerator.tick_artifact_recovery_offers()
     print("Offers disponibles:%d" % QuestOfferSimRunner.offers.size())
     
     # 4) Crises / événements globaux
@@ -34,6 +35,7 @@ func advance_day() -> void:
             CrisisManager.update_crisis()
 
     day_advanced.emit(day)
+    
 
 func simulate_days(n: int) -> void:
     for i in range(n):

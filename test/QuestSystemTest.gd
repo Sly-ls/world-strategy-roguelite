@@ -6,11 +6,19 @@ const QUEST_TYPES_SCRIPT := "res://src/quests/QuestTypes.gd"
 
 # Optionnel: si tes singletons existent, on les utilisera
 const WORLD_STATE_SINGLETON := "/root/WorldState"
-const QUEST_MANAGER_SINGLETON := "/root/QuestManager"
+const QUEST_MANAGER_SINGLETON := "res://src/systems/QuestManager.gd"
 const FACTION_MANAGER_SINGLETON := "/root/FactionManager"
 const RNG_SINGLETON := "/root/Rng"
 const TILES_ENUMS_SCRIPT := "res://src/enums/TilesEnums.gd"
 
+const INVENTORY_SCRIPT := "res://src/core/inventory/Inventory.gd"
+const ARTIFACT_SPEC_SCRIPT := "res://src/core/artifacts/ArtifactSpec.gd"
+
+# dépendances attendues (autoloads)
+const ARTIFACT_REGISTRY_SINGLETON := "res://src/core/artifacts/ArtifactRegistry.gd"
+const LOOT_SITE_MANAGER_SINGLETON := "res://src/world/loot/LootSiteManager.gd"
+const ARMY_MANAGER_SINGLETON := "res://src/army/ArmyManager.gd"
+    
 func _ready() -> void:
     print("\n==============================")
     print("=== QUEST SYSTEM TEST HARNESS ===")
@@ -64,6 +72,9 @@ func _ready() -> void:
     print("\n--- TEST 9: HERO COMPETITION 30 DAYS ---")
     _test_hero_competition_30_days()
     
+    print("\n--- TEST 10: RTIFACT LOST / LOOT SITE / RETRIEVE QUEST ---")
+    _test_10()
+    
     print("==============================\n")
     print("\n✅ TEST HARNESS FINISHED (regarde les warnings/erreurs ci-dessus).")
     print("==============================\n")
@@ -84,6 +95,75 @@ func _force_load_tiles_enums() -> void:
 # ------------------------------------------------------------
 #  Utilities: Creation / safety
 # ------------------------------------------------------------
+func _test_10() -> void:
+    
+    _set_day(0)
+    _require_autoload(ARTIFACT_REGISTRY_SINGLETON, "ArtifactRegistry")
+    _require_autoload(LOOT_SITE_MANAGER_SINGLETON, "LootSiteManager")
+    _require_autoload(ARMY_MANAGER_SINGLETON, "ArmyManager")
+    _require_autoload(QUEST_MANAGER_SINGLETON, "QuestManager (optional)")
+
+    # 1) Create artifact spec A1 + register
+    var ArtifactSpec = load(ARTIFACT_SPEC_SCRIPT)
+    if ArtifactSpec == null:
+        _fail("ArtifactSpec.gd introuvable.")
+        return
+
+    var spec = ArtifactSpec.new()
+    spec.id = "A1_DIVINE_RELIC"
+    spec.name = "Relique d’Aube"
+    spec.domain = "divine"
+    spec.power = 2
+    spec.unique = true
+
+    ArtifactRegistryRunner.register_spec(spec)
+    print("✓ Registered artifact spec:", spec.id, spec.name)
+
+    # 2) Create army with inventory + artifact
+    var a :ArmyData = ArmyFactory.create_army("starter")
+    a.runtime_position =  Vector2i(7, 7)
+    a.inventory.gold = 123
+    a.inventory.add_artifact(spec.id)
+    ArtifactRegistryRunner.set_artifact_owner(spec.id, "ARMY", a.id)
+
+    ArmyManagerRunner.register_army(a)
+    print("✓ Army created:", a.id, "pos=", a.runtime_position, "gold=", a.inventory.gold, "artifacts=", a.inventory.artifacts)
+
+    # 3) Destroy army => LootSite spawned
+    ArmyManagerRunner.destroy_army(a.id)
+
+    var site_id := _find_loot_site_containing(spec.id)
+    if site_id == "":
+        _fail("LootSite non trouvé (artefact pas droppé ?) ")
+        return
+
+    print("✓ LootSite found:", site_id)
+    print("Owner after destroy:", ArtifactRegistryRunner.owner_type.get(spec.id, "?"), ArtifactRegistryRunner.owner_id.get(spec.id, "?"))
+
+    # 4) Expire LootSite => artifact LOST
+    _set_day(999) # force expiration
+    LootSiteManagerRunner.tick_day()
+
+    print("Owner after expire:", ArtifactRegistryRunner.owner_type.get(spec.id, "?"), ArtifactRegistryRunner.owner_id.get(spec.id, "?"))
+    if ArtifactRegistryRunner.owner_type.get(spec.id, "") != "LOST":
+        _fail("Artefact devrait être LOST après expiration LootSite.")
+        return
+
+    # 5) Generate retrieve quest (minimal inline)
+    var q := _generate_retrieve_artifact_quest(spec.id)
+    if q == null:
+        _fail("Impossible de générer la quête retrieve.")
+        return
+
+    print("\n✓ Retrieve quest generated:")
+    print("  id:", q.template.id)
+    print("  title:", q.template.title)
+    print("  ctx.artifact_id:", q.context.get("artifact_id", ""))
+    print("  ctx.giver:", q.context.get("giver_faction_id", ""))
+    print("  ctx.profile:", q.context.get("resolution_profile_id", ""))
+
+    print("\n✅ TEST 10 PASSED")
+    print("==============================\n")
 func _test_hero_competition_30_days() -> void:
     # Setup heroes
     var h1 := HeroAgent.new()
@@ -555,3 +635,80 @@ func _warn(msg: String) -> void:
 func _fail(msg: String) -> void:
     push_error("[QuestSystemTest] " + msg)
     print("❌ ", msg)
+
+
+func _generate_retrieve_artifact_quest(artifact_id: String) -> QuestInstance:
+    var spec = ArtifactRegistryRunner.get_spec(artifact_id)
+    if spec == null:
+        return null
+
+    var template := QuestTemplate.new()
+    template.id = "retrieve_%s_%d" % [artifact_id, Time.get_ticks_msec()]
+    template.title = "Retrouver l'artefact : %s" % spec.name
+    template.description = "Un artefact a disparu. Retrouve %s et décide à qui il revient." % spec.name
+    template.category = QuestTypes.QuestCategory.EXPLORATION
+    template.tier = QuestTypes.QuestTier.TIER_2
+    template.objective_type = QuestTypes.ObjectiveType.REACH_POI
+    template.objective_target = "loot_site_for_%s" % artifact_id
+    template.objective_count = 1
+    template.expires_in_days = 15
+
+    var ctx: Dictionary = {
+        "artifact_id": artifact_id,
+        "resolution_profile_id": "artifact_recovery",
+        "giver_faction_id": "humans",
+        "antagonist_faction_id": "bandits"
+    }
+
+    var inst := QuestInstance.new(template, ctx)
+    return inst
+
+
+func _find_loot_site_containing(artifact_id: String) -> String:
+    # LootSiteManager.sites : Dictionary id->LootSite
+    if LootSiteManager == null:
+        return ""
+    # Vérifier que la propriété "sites" existe
+    var has_sites := false
+    for p in LootSiteManagerRunner.get_property_list():
+        if p.name == "sites":
+            has_sites = true
+            break
+
+    if not has_sites:
+        return ""
+    var sites: Dictionary = LootSiteManagerRunner.sites
+    for sid in sites.keys():
+        var s = sites[sid]
+        if s != null and s.inventory != null:
+            if s.inventory.artifacts.has(artifact_id):
+                return String(sid)
+    return ""
+
+
+func _set_day(day: int) -> void:
+    var ws := get_node_or_null(WORLD_STATE_SINGLETON)
+    if ws == null:
+        _warn("WorldState introuvable (%s)" % WORLD_STATE_SINGLETON)
+        return
+
+    # Vérifie que la propriété existe vraiment
+    var has_current_day := false
+    for p in ws.get_property_list():
+        if p.name == "current_day":
+            has_current_day = true
+            break
+
+    if not has_current_day:
+        _warn("WorldState existe mais n'a pas la propriété 'current_day'")
+        return
+
+    ws.set("current_day", day)
+    print("WorldState.current_day =", day)
+
+
+func _require_autoload(path: String, label: String) -> void:
+    var n = get_node_or_null(path)
+    if n == null:
+        push_warning("[TEST 10] Missing autoload: " + label + " at " + path)
+        print("⚠ Missing autoload: %s : %s" % [label, path])

@@ -1042,6 +1042,47 @@ func _create_branch_rewards(type: String, amount: int, target: String = "") -> A
 # HELPERS - RÉCOMPENSES
 # ========================================
 
+func tick_artifact_recovery_offers() -> void:
+    if ArtifactRegistry == null:
+        return
+    for artifact_id in ArtifactRegistryRunner.owner_type.keys():
+        if ArtifactRegistryRunner.is_lost(artifact_id):
+            var q := generate_retrieve_artifact_quest(artifact_id)
+            if q != null:
+                QuestOfferSimRunner.add_offer(q) # ou ton système d'offers
+                
+func generate_retrieve_artifact_quest(artifact_id: String) -> QuestInstance:
+    var spec: ArtifactSpec = ArtifactRegistryRunner.get_spec(artifact_id) if ArtifactRegistry else null
+    if spec == null:
+        return null
+
+    var template := QuestTemplate.new()
+    template.id = "retrieve_%s_%d" % [artifact_id, Time.get_ticks_msec()]
+    template.title = "Retrouver l'artefact : %s" % spec.name
+    template.description = "Un artefact a disparu. Retrouve %s et décide à qui il revient." % spec.name
+    template.category = QuestTypes.QuestCategory.EXPLORATION
+    template.tier = QuestTypes.QuestTier.TIER_2
+    template.objective_type = QuestTypes.ObjectiveType.REACH_POI
+    template.objective_target = "loot_site_for_%s" % artifact_id
+    template.objective_count = 1
+    template.expires_in_days = 15
+
+    # récompense exemple
+    var r := QuestReward.new()
+    r.type = QuestTypes.RewardType.GOLD
+    r.amount = 80
+    template.rewards = [r]
+
+    var ctx := {
+        "artifact_id": artifact_id,
+        "resolution_profile_id": "artifact_recovery",
+        "giver_faction_id": _pick_random_faction(),
+        "antagonist_faction_id": _pick_hostile_faction(),
+        "tier": template.tier,
+        "category": template.category
+    }
+    return QuestInstance.new(template, ctx)
+
 func _generate_rewards_advanced_fixed(poi_type: TilesEnums.CellType, tier: QuestTypes.QuestTier) -> Array[QuestReward]:
     """Génère des récompenses pour quête advanced"""
     

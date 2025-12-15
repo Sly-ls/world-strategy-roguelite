@@ -8,6 +8,7 @@ class_name HeroAgent
 @export var greed: float = 0.5           # préfère NEUTRAL
 @export var loyalty: float = 0.5         # préfère LOYAL
 @export var competence: float = 0.7      # probabilité de réussite
+var inventory: Inventory = Inventory.new()
 
 func pick_resolution_choice(q: QuestInstance) -> String:
     # Heuristique simple (upgradeable plus tard via policy/profiles)

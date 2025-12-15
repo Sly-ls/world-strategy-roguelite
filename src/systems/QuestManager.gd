@@ -76,13 +76,15 @@ func register_template(template: QuestTemplate) -> void:
 # ========================================
 # GESTION DES QUÊTES
 # ========================================
-func start_runtime_quest(inst: QuestInstance) -> QuestInstance:
+func start_runtime_quest(inst: QuestInstance, p_owner_type: String = "PLAYER", p_owner_id: String = "") -> void:
     if inst == null:
-        return null
+        return
+    inst.owner_type = p_owner_type
+    inst.owner_id = p_owner_id
     inst.start()
     active_quests[inst.runtime_id] = inst
     quest_started.emit(inst)
-    return inst
+
 
 func start_quest(template_id: String, context: Dictionary = {}) -> QuestInstance:
     """Démarre une nouvelle quête"""
@@ -169,35 +171,49 @@ func _apply_rewards(inst: QuestInstance) -> void:
         _apply_single_reward(reward, inst)
     
     print("============================\n")
-
 func _apply_single_reward(reward: QuestReward, inst: QuestInstance) -> void:
-    """Applique une récompense unique"""
+    var inv: Inventory = _get_inventory_for_instance(inst)
+
     match reward.type:
         QuestTypes.RewardType.GOLD:
-            ResourceManager.add_resource("gold", reward.amount)
-        
+            if inv != null:
+                inv.add_gold(reward.amount)
+                print("→ Gold(inv) : +%d (owner=%s:%s)" % [reward.amount, inst.owner_type, inst.owner_id])
+            else:
+                ResourceManager.add_resource("gold", reward.amount)
+
         QuestTypes.RewardType.FOOD:
-            ResourceManager.add_resource("food", reward.amount)
-        
-        QuestTypes.RewardType.FACTION_REP:
-            FactionManager.adjust_relation(reward.target_id, reward.amount)
-        
-        QuestTypes.RewardType.TAG_PLAYER:
-            add_player_tag(reward.target_id)
-        
-        QuestTypes.RewardType.TAG_WORLD:
-            add_world_tag(reward.target_id)
-        
-        QuestTypes.RewardType.UNIT:
-            # TODO: Ajouter unité à l'armée (Palier 2)
-            print("→ Unité '%s' (non implémenté)" % reward.target_id)
-        
-        QuestTypes.RewardType.UNLOCK_POI:
-            # TODO: Débloquer POI (Palier 2)
-            print("→ POI '%s' débloqué (non implémenté)" % reward.target_id)
-        
+            if inv != null:
+                inv.add_food(reward.amount)
+            else:
+                ResourceManager.add_resource("food", reward.amount)
+
+        QuestTypes.RewardType.ITEM:
+            # Pour T3.3 on utilise ITEM comme “artifact_id” (provisoire)
+            if inv != null and reward.target_id != "":
+                inv.add_artifact(reward.target_id)
+                if ArtifactRegistryRunner != null:
+                    ArtifactRegistryRunner.set_artifact_owner(reward.target_id, inst.owner_type, inst.owner_id)
+                print("→ Artifact acquired:", reward.target_id, "by", inst.owner_type, inst.owner_id)
+            else:
+                print("→ ITEM:", reward.target_id)
+
         _:
             print("→ Récompense non implémentée : %s" % reward.get_readable_description())
+func _get_inventory_for_instance(inst: QuestInstance) -> Inventory:
+    if inst == null:
+        return null
+
+    match inst.owner_type:
+        "ARMY":
+            var a: ArmyData = ArmyManagerRunner.get_army(inst.owner_id)
+            return a.inventory if a else null
+        "HERO":
+            var h: HeroAgent = HeroManagerRunner.get_hero_by_id(inst.owner_id)
+            return h.inventory if h else null
+        _:
+            return null
+
 
 func _trigger_completion_event(inst: QuestInstance) -> void:
     """Déclenche un event à la complétion (de ChatGPT)"""

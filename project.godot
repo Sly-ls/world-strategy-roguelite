@@ -42,6 +42,10 @@ FactionActionFactoryRunner="*res://src/sim/actions/FactionActionFactory.gd"
 FactionActionResolverRunner="*res://src/sim/actions/FactionActionResolver.gd"
 FactionGoalManagerRunner="*res://src/sim/goals/FactionGoalManager.gd"
 HeroSimRunner="*res://src/sim/HeroSim.gd"
+ArtifactRegistryRunner="*res://src/core/artifacts/ArtifactRegistry.gd"
+LootSiteManagerRunner="*res://src/world/loot/LootSiteManager.gd"
+HeroManagerRunner="*res://src/heroes/HeroManager.gd"
+ArmyManagerRunner="*res://src/army/ArmyManager.gd"
 
 [input]
 

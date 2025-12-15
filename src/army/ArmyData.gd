@@ -16,7 +16,7 @@ var runtime_position: Vector2i = Vector2i(-1, -1)  # Position sur la carte monde
 var player: bool = false
 var morale: int = 0
 var max_morale: int = 0
-
+var inventory: Inventory = Inventory.new()
 ## ===== INITIALISATION =====
 
 func _init(_player: bool = false) -> void:
@@ -165,6 +165,17 @@ func swap_units(from_col: int, from_row: int, to_col: int, to_row: int) -> void:
     set_unit_rc(from_row, from_col, to_unit)
 
 ## ===== WORLD METHODS (repos, soins) =====
+func on_army_destroyed(army_id: String, pos: Vector2i) -> void:
+    var army = ArmyManagerRunner.get_army(army_id)
+    if army == null:
+        return
+
+    # 1) spawn loot site avec inventory de l'armée
+    if LootSiteManagerRunner:
+        LootSiteManagerRunner.spawn_site(pos, army.inventory, 20)
+
+    # 2) vider inventaire si tu gardes army object en mémoire
+    army.inventory = Inventory.new()
 
 func rest(cell_type: TilesEnums.CellType) -> void:
     """Applique les soins de repos selon le type de terrain"""
