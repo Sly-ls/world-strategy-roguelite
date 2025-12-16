@@ -19,7 +19,7 @@ func _connect_signals() -> void:
             QuestManager.quest_resolved.connect(on_quest_resolution_choice)
             if DebugConstants.ARC_LOG: print("[ARC] connected to QuestManager.quest_resolved")
         else:
-            push_warning("[ARC] QuestManager has no signal quest_resolved")     
+            print("[ARC] QuestManager has no signal quest_resolved")     
     else:
         print("[ARC] QuestManagerRunner not found")
     return
@@ -300,7 +300,7 @@ func _spawn_arc_offer(arc: FactionRivalryArc, reason: String) -> void:
         if DebugConstants.ARC_LOG:
             print("[ARC] try_add_offer => %s (offers now=%d)" % [str(ok), QuestOfferSimRunner.offers.size()])
     else:
-        push_warning("[ArcManager] No offer sink found (QuestPool.try_add_offer missing).")
+        print("[ArcManager] No offer sink found (QuestPool.try_add_offer missing).")
 func _spawn_retaliation_for_arc(arc_id: String) -> void:
     var arc :FactionRivalryArc = arcs.get(arc_id, null)
     if arc == null:

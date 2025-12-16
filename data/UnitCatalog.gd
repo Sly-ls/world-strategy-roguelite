@@ -34,13 +34,13 @@ func _load_unit_templates() -> void:
         if res is UnitData:
             var unit_res := res as UnitData
             if unit_res.id == "":
-                push_warning("UnitCatalog: UnitData sans id dans %s" % full_path)
+                print("UnitCatalog: UnitData sans id dans %s" % full_path)
                 continue
             if templates.has(unit_res.id):
-                push_warning("UnitCatalog: id dupliqué '%s' (%s)" % [unit_res.id, full_path])
+                print("UnitCatalog: id dupliqué '%s' (%s)" % [unit_res.id, full_path])
             templates[unit_res.id] = unit_res
         else:
-            push_warning("UnitCatalog: %s n'est pas un UnitData" % full_path)
+            print("UnitCatalog: %s n'est pas un UnitData" % full_path)
 
     dir.list_dir_end()
 

@@ -437,7 +437,7 @@ func _start_world_event(event_id: String) -> void:
         if obj is WorldEventHandler:
             current_event_handler = obj
         else:
-            push_warning("World event %s: logic_script doesn't extend WorldEventHandler" % evt.id)
+            print("World event %s: logic_script doesn't extend WorldEventHandler" % evt.id)
     
         var ui_choices: Array[Dictionary] = []
         for c in evt.choices:

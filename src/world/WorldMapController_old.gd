@@ -244,7 +244,7 @@ func _start_world_event(event_id: String) -> void:
         if obj is WorldEventHandler:
             current_event_handler = obj
         else:
-            push_warning("World event %s: logic_script n'étend pas WorldEventHandler" % evt.id)
+            print("World event %s: logic_script n'étend pas WorldEventHandler" % evt.id)
 
     # convertir les choices en format compris par EventPanel
     var ui_choices: Array[Dictionary] = []

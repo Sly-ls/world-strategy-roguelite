@@ -32,13 +32,13 @@ func _load_events() -> void:
         if res is WorldEvent:
             var evt := res as WorldEvent
             if evt.id == "":
-                push_warning("WorldEventCatalog: event sans id (%s)" % full_path)
+                print("WorldEventCatalog: event sans id (%s)" % full_path)
                 continue
             if events.has(evt.id):
-                push_warning("WorldEventCatalog: id d'event dupliqué '%s'" % evt.id)
+                print("WorldEventCatalog: id d'event dupliqué '%s'" % evt.id)
             events[evt.id] = evt
         else:
-            push_warning("WorldEventCatalog: %s n'est pas un WorldEvent" % full_path)
+            print("WorldEventCatalog: %s n'est pas un WorldEvent" % full_path)
 
     dir.list_dir_end()
     print("WorldEventCatalog: %d events chargés." % events.size())

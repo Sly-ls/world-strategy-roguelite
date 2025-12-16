@@ -45,11 +45,11 @@ func _load_army_templates() -> void:
                 key = file_name.trim_suffix(".tres")
 
             if templates.has(key):
-                push_warning("ArmyCatalog: id d'armée dupliqué '%s' (%s)" % [key, full_path])
+                print("ArmyCatalog: id d'armée dupliqué '%s' (%s)" % [key, full_path])
 
             templates[key] = army_res
         else:
-            push_warning("ArmyCatalog: %s n'est pas un ArmyData" % full_path)
+            print("ArmyCatalog: %s n'est pas un ArmyData" % full_path)
 
     dir.list_dir_end()
 
@@ -111,7 +111,7 @@ func create_random_enemy(difficulty: int = 1) -> ArmyData:
             available.append(template_id)
     
     if available.is_empty():
-        push_warning("ArmyCatalog: aucun template pour difficulté %d, utilise fallback" % difficulty)
+        print("ArmyCatalog: aucun template pour difficulté %d, utilise fallback" % difficulty)
         return _create_fallback_army("enemy_difficulty_%d" % difficulty, false)
     
     var chosen = available.pick_random()
@@ -153,7 +153,7 @@ func create_procedural_patrol(faction: String, strength: int = 3) -> ArmyData:
             return create_enemy_army(key)
     
     # Aucun template trouvé, crée fallback
-    push_warning("ArmyCatalog: aucun template pour faction '%s'" % faction)
+    print("ArmyCatalog: aucun template pour faction '%s'" % faction)
     return _create_fallback_army("%s_patrol" % faction, false)
 
 # ========================================

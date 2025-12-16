@@ -134,7 +134,7 @@ func adjust_relation(faction_id: String, delta: int) -> void:
     """Ajuste la relation avec une faction"""
     var f := get_faction(faction_id)
     if f == null:
-        push_warning("FactionManager: faction '%s' introuvable" % faction_id)
+        print("FactionManager: faction '%s' introuvable" % faction_id)
         return
     
     var old_value := f.relation_with_player

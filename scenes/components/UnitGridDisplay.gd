@@ -39,7 +39,7 @@ func _collect_cards() -> void:
     
     # Vérifier qu'on a bien 15 cartes
     if unit_cards.size() != 15:
-        push_warning("Attention : %d cartes trouvées au lieu de 15" % unit_cards.size())
+        print("Attention : %d cartes trouvées au lieu de 15" % unit_cards.size())
 
 func _get_display_index(army_index: int) -> int:
     """

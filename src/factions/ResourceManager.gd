@@ -51,7 +51,7 @@ func _ready() -> void:
 func add_resource(resource_id: String, amount: int) -> void:
     """Ajoute une quantité de ressource"""
     if not resources.has(resource_id):
-        push_warning("ResourceManager: ressource '%s' inconnue" % resource_id)
+        print("ResourceManager: ressource '%s' inconnue" % resource_id)
         return
     
     var old_value :int = resources[resource_id]

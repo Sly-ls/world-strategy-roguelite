@@ -35,7 +35,7 @@ func _load_crises() -> void:
     """Charge les crises depuis les fichiers .tres"""
     var dir := DirAccess.open("res://data/crises/")
     if not dir:
-        push_warning("Crises directory not found: res://data/crises/")
+        print("Crises directory not found: res://data/crises/")
         return
     
     dir.list_dir_begin()
@@ -63,7 +63,7 @@ func start_crisis(crisis_id: String) -> bool:
     
     # Vérifier qu'il n'y a pas déjà une crise
     if active_crisis:
-        push_warning("Cannot start crisis: another crisis is already active")
+        print("Cannot start crisis: another crisis is already active")
         return false
     
     var crisis := available_crises.get(crisis_id) as WorldCrisis

@@ -10,7 +10,7 @@ func _ready() -> void:
 func _load_profiles() -> void:
     var dir := DirAccess.open("res://data/quest_resolutions/")
     if dir == null:
-        push_warning("ResolutionCatalog: dossier introuvable")
+        print("ResolutionCatalog: dossier introuvable")
         return
 
     dir.list_dir_begin()

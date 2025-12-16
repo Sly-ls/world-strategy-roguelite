@@ -49,7 +49,7 @@ func _load_quest_templates() -> void:
     """Charge tous les templates de quêtes depuis res://data/quests/"""
     var dir := DirAccess.open("res://data/quests/")
     if dir == null:
-        push_warning("QuestManager: Impossible d'ouvrir res://data/quests/")
+        print("QuestManager: Impossible d'ouvrir res://data/quests/")
         return
     
     dir.list_dir_begin()

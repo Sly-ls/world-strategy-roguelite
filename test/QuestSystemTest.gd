@@ -799,7 +799,7 @@ func _dump_world_tags(qm) -> Array:
 
 
 func _warn(msg: String) -> void:
-    push_warning("[QuestSystemTest] " + msg)
+    print("[QuestSystemTest] " + msg)
     print("⚠ ", msg)
 
 
@@ -882,5 +882,5 @@ func _set_day(day: int) -> void:
 func _require_autoload(path: String, label: String) -> void:
     var n = get_node_or_null(path)
     if n == null:
-        push_warning("[TEST 10] Missing autoload: " + label + " at " + path)
+        print("[TEST 10] Missing autoload: " + label + " at " + path)
         print("⚠ Missing autoload: %s : %s" % [label, path])

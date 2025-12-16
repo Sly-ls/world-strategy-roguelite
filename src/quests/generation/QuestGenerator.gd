@@ -417,7 +417,7 @@ func _create_dynamic_template(quest_type: String, params: Dictionary) -> QuestTe
             template.objective_target = ""
             template.objective_count = 1
             template.expires_in_days = 3
-            push_warning("QuestGenerator: quest_type non géré: %s" % quest_type)
+            print("QuestGenerator: quest_type non géré: %s" % quest_type)
             
     return template
 
