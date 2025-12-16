@@ -4,12 +4,12 @@ class_name QuestEffect
 
 enum EffectType {
     GOLD,
-    PLAYER_TAG,
-    WORLD_TAG,
-    FACTION_RELATION
+TAG_PLAYER, 
+REL_GIVER, 
+REL_ANT, 
+TAG_WORLD
 }
 
 @export var type: EffectType
 @export var amount: int = 0
 @export var tag: String = ""
-@export var faction_role: String = "" # "giver" | "antagonist"

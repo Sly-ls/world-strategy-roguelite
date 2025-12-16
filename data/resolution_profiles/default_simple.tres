@@ -1,0 +1,58 @@
+[gd_resource type="Resource" script_class="QuestResolutionProfile" load_steps=11 format=3 uid="uid://em7odfenk4v"]
+
+[ext_resource type="Script" uid="uid://b0jk8e1rkqaih" path="res://src/quests/effects/QuestEffect.gd" id="1_ht8xh"]
+[ext_resource type="Script" uid="uid://d3vpq5tyfsnsb" path="res://src/quests/resolution/QuestResolutionProfile.gd" id="2_ufbbh"]
+
+[sub_resource type="Resource" id="Resource_ht8xh"]
+script = ExtResource("1_ht8xh")
+amount = 100
+metadata/_custom_type_script = "uid://b0jk8e1rkqaih"
+
+[sub_resource type="Resource" id="Resource_ufbbh"]
+script = ExtResource("1_ht8xh")
+type = 3
+amount = -10
+metadata/_custom_type_script = "uid://b0jk8e1rkqaih"
+
+[sub_resource type="Resource" id="Resource_aro6y"]
+script = ExtResource("1_ht8xh")
+type = 2
+amount = 10
+metadata/_custom_type_script = "uid://b0jk8e1rkqaih"
+
+[sub_resource type="Resource" id="Resource_p5vdt"]
+script = ExtResource("1_ht8xh")
+amount = 25
+metadata/_custom_type_script = "uid://b0jk8e1rkqaih"
+
+[sub_resource type="Resource" id="Resource_icmvw"]
+script = ExtResource("1_ht8xh")
+type = 1
+tag = "INDEPENDENT"
+metadata/_custom_type_script = "uid://b0jk8e1rkqaih"
+
+[sub_resource type="Resource" id="Resource_gtwy8"]
+script = ExtResource("1_ht8xh")
+type = 2
+amount = -25
+metadata/_custom_type_script = "uid://b0jk8e1rkqaih"
+
+[sub_resource type="Resource" id="Resource_xfop3"]
+script = ExtResource("1_ht8xh")
+type = 3
+amount = 15
+metadata/_custom_type_script = "uid://b0jk8e1rkqaih"
+
+[sub_resource type="Resource" id="Resource_qbmdx"]
+script = ExtResource("1_ht8xh")
+type = 1
+tag = "TRAITOR"
+metadata/_custom_type_script = "uid://b0jk8e1rkqaih"
+
+[resource]
+script = ExtResource("2_ufbbh")
+id = "default_simple"
+loyal_effects = Array[ExtResource("1_ht8xh")]([SubResource("Resource_ht8xh"), SubResource("Resource_ufbbh"), SubResource("Resource_aro6y")])
+neutral_effects = Array[ExtResource("1_ht8xh")]([SubResource("Resource_p5vdt"), SubResource("Resource_icmvw")])
+traitor_effects = Array[ExtResource("1_ht8xh")]([SubResource("Resource_gtwy8"), SubResource("Resource_xfop3"), SubResource("Resource_qbmdx")])
+metadata/_custom_type_script = "uid://d3vpq5tyfsnsb"

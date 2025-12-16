@@ -186,7 +186,7 @@ func _test_12_arc_rivalry_mvp() -> void:
         _fail("No retaliation offer found")
         return
 
-    print("✅ TEST 13 PASSED — Arc rivalry MVP ok")
+    print("✅ TEST 12 PASSED — Arc rivalry MVP ok")
 
 func _test_11_offers_pro_100_days() -> void:
     print("\n--- TEST 11: OFFERS PRO (100 DAYS) ---")

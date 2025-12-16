@@ -143,7 +143,7 @@ func complete_quest_OLD(runtime_id: String) -> void:
     
     # Event de complétion (de ChatGPT)
     if inst.template.completion_event_id != "":
-        _trigger_completion_event(inst)
+        _trigger_completion_event_OLD(inst)
     
     # Quête suivante (chaîne - de ChatGPT)
     if inst.template.next_quest_id != "":
@@ -216,15 +216,36 @@ func _get_inventory_for_instance(inst: QuestInstance) -> Inventory:
             return null
 
 
-func _trigger_completion_event(inst: QuestInstance) -> void:
+func _trigger_completion_event_OLD(inst: QuestInstance) -> void:
     """Déclenche un event à la complétion (de ChatGPT)"""
     # TODO: Intégration avec WorldMapController pour lancer l'event
     print("→ Event de complétion : %s (à implémenter)" % inst.template.completion_event_id)
+    
 func _apply_effect(inst: QuestInstance, effect: QuestEffect) -> void:
     match effect.type:
         QuestEffect.EffectType.GOLD:
             ResourceManager.add_resource("gold", effect.amount)
 
+        QuestEffect.EffectType.TAG_PLAYER:
+            if effect.tag != "":
+                add_player_tag(effect.tag)
+
+        QuestEffect.EffectType.REL_GIVER:
+            var giver := String(inst.context.get("giver_faction_id", ""))
+            if giver != "":
+                FactionManager.adjust_relation(giver, effect.amount)
+
+        QuestEffect.EffectType.REL_ANT:
+            var ant := String(inst.context.get("antagonist_faction_id", ""))
+            if ant != "":
+                FactionManager.adjust_relation(ant, effect.amount)
+
+
+func _apply_effect_OLD(inst: QuestInstance, effect: QuestEffect) -> void:
+    match effect.type:
+        QuestEffect.EffectType.GOLD:
+            ResourceManager.add_resource("gold", effect.amount)
+""" OLD ENUM VALUE
         QuestEffect.EffectType.PLAYER_TAG:
             add_player_tag(effect.tag)
 
@@ -241,22 +262,24 @@ func _apply_effect(inst: QuestInstance, effect: QuestEffect) -> void:
 
             if faction_id != "":
                 FactionManager.adjust_relation(faction_id, effect.amount)
-                
+  """              
+             
 func resolve_quest(runtime_id: String, choice: String) -> void:
     var inst: QuestInstance = active_quests.get(runtime_id)
     if inst == null:
         return
 
-    var profile := ResolutionFactory.get_profile(inst.resolution_profile_id)
-    if profile == null:
-        push_warning("Profil de résolution manquant: " + inst.resolution_profile_id)
-        return
+    print("[QM] profiles available = ", ResolutionFactory.get_all_profile_ids())
+    var profile_id = String(inst.context.get("resolution_profile_id", "default_simple"))
+    var profile := ResolutionFactory.get_profile(profile_id)
 
-    for effect in profile.get_effects(choice):
-        _apply_effect(inst, effect)
+    # IMPORTANT: même si profile null, on ne bloque pas l’arc
+    if DebugConstants.ARC_LOG:
+        print("profile_id=", inst.resolution_profile_id, " ctx.profile=", inst.context.get("resolution_profile_id","<none>"))
+    if profile != null:
+        for effect in profile.get_effects(choice):
+            _apply_effect(inst, effect)
 
-    if ArcManagerRunner != null and ArcManagerRunner.has_method("on_quest_resolution_choice"):
-        ArcManagerRunner.on_quest_resolution_choice(inst, choice)
     if DebugConstants.ARC_LOG:
         print("[QM] resolve_quest rid=%s choice=%s title=%s ctx.is_arc=%s arc_id=%s stage=%s giver=%s ant=%s" % [
             runtime_id,
@@ -270,7 +293,12 @@ func resolve_quest(runtime_id: String, choice: String) -> void:
         ])
     active_quests.erase(runtime_id)
     quest_completed.emit(inst)
+    if ArcManagerRunner != null and ArcManagerRunner.has_method("on_quest_resolved"):
+        ArcManagerRunner.on_quest_resolved(inst, choice)
+
     quest_resolved.emit(inst, choice)
+
+
 
 
 # ========================================
