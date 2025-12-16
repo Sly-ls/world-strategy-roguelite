@@ -15,7 +15,7 @@ func generate_offers(n: int) -> void:
         var q: QuestInstance = QuestGenerator.generate_random_quest(QuestTypes.QuestTier.TIER_1)
         if q == null ||  offer_created_day.has(q.runtime_id):
             continue
-        offers.append(q)
+        QuestPool.try_add_offer(q)
 
 func is_consumed(runtime_id: String) -> bool:
     return consumed_offers.has(runtime_id)
@@ -110,7 +110,7 @@ func generate_goal_offer(actor_id: String, target_id: String, domain: String, st
         if c.get("offer_sig","") == sig:
             return
     q.context["offer_sig"] = sig
-    offers.append(q)
+    QuestPool.try_add_offer(q)
     offer_created_day[q.runtime_id] = WorldState.current_day
 
 func get_available_offers() -> Array[QuestInstance]:

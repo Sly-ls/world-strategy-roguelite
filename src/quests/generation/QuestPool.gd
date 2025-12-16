@@ -7,7 +7,9 @@ extends Node
 # ========================================
 # CONFIGURATION
 # ========================================
-
+const MAX_OFFERS_GLOBAL := 20
+const MAX_OFFERS_PER_GIVER := 6
+const MAX_OFFERS_PER_SIGNATURE := 1
 @export var pool_size: int = 5  ## Nombre de quêtes dans le pool
 @export var refresh_days: int = 3  ## Refresh tous les N jours
 @export var auto_start_quests: bool = false  ## Démarrer automatiquement
@@ -15,6 +17,9 @@ extends Node
 # ========================================
 # PROPRIÉTÉS
 # ========================================
+var offers: Array[QuestInstance] = []
+var _count_by_giver: Dictionary = {}      # giver_id -> int
+var _count_by_signature: Dictionary = {}  # signature -> int
 
 var available_quests: Array[QuestInstance] = []  ## Quêtes disponibles
 var last_refresh_day: int = 0
@@ -43,6 +48,53 @@ func _initial_generation() -> void:
 # ========================================
 # GESTION DU POOL
 # ========================================
+func try_add_offer(o: QuestInstance) -> bool:
+    if o == null:
+        return false
+
+    # 1) Validité
+    var day := WorldState.current_day if WorldState != null else 0
+    if not o.is_offer_valid(day):
+        return false
+
+    # 2) Cap global
+    if offers.size() >= MAX_OFFERS_GLOBAL:
+        return false
+
+    # 3) Cap par signature
+    var sig := o.get_offer_signature()
+    var sig_count := int(_count_by_signature.get(sig, 0))
+    if sig_count >= MAX_OFFERS_PER_SIGNATURE:
+        return false
+
+    # 4) Cap par giver
+    var giver := String(o.context.get("giver_faction_id", ""))
+    if giver != "":
+        var giver_count := int(_count_by_giver.get(giver, 0))
+        if giver_count >= MAX_OFFERS_PER_GIVER:
+            return false
+
+    # OK -> insert + index update
+    offers.append(o)
+    _count_by_signature[sig] = sig_count + 1
+    if giver != "":
+        _count_by_giver[giver] = int(_count_by_giver.get(giver, 0)) + 1
+
+    return true
+
+func _rebuild_indexes() -> void:
+    _count_by_giver.clear()
+    _count_by_signature.clear()
+
+    for o in offers:
+        if o == null:
+            continue
+        var giver := String(o.context.get("giver_faction_id", ""))
+        var sig := o.get_offer_signature()
+
+        _count_by_signature[sig] = int(_count_by_signature.get(sig, 0)) + 1
+        if giver != "":
+            _count_by_giver[giver] = int(_count_by_giver.get(giver, 0)) + 1
 
 func refresh_pool() -> void:
     """Régénère complètement le pool"""
@@ -75,6 +127,25 @@ func refresh_if_needed() -> void:
     
     if current_day - last_refresh_day >= refresh_days:
         refresh_pool()
+func cleanup_offers() -> void:
+    var day := WorldState.current_day if WorldState != null else 0
+
+    var kept: Array[QuestInstance] = []
+    for o in offers:
+        if o == null:
+            continue
+        if o.is_offer_valid(day):
+            kept.append(o)
+
+    offers = kept
+    _rebuild_indexes()
+func remove_offer_by_runtime_id(runtime_id: String) -> void:
+    var kept: Array[QuestInstance] = []
+    for o in offers:
+        if o != null and o.runtime_id != runtime_id:
+            kept.append(o)
+    offers = kept
+    _rebuild_indexes()
 
 func _cleanup_expired_quests() -> void:
     """Retire les quêtes expirées du pool"""
@@ -235,3 +306,10 @@ func print_pool() -> void:
         ])
     
     print("==================\n")
+
+# ========================================
+# GETTER
+# ========================================
+
+func get_offers() -> Array[QuestInstance]:
+    return offers

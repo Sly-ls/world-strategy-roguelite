@@ -125,6 +125,57 @@ func is_finished() -> bool:
 # ========================================
 # INFORMATIONS
 # ========================================
+func is_offer_valid(current_day: int) -> bool:
+    if template == null:
+        return false
+
+    # Expiration “offer”
+    if expires_on_day > 0 and current_day >= expires_on_day:
+        return false
+
+    # Si offer liée à un LootSite (artefact perdu)
+    var owner_type := String(context.get("owner_type", "")) # ex: "LOOT_SITE"
+    if owner_type == "LOOT_SITE":
+        var owner_id := String(context.get("owner_id", ""))
+        if owner_id == "":
+            return false
+        # LootSiteManagerRunner.sites doit exister, sinon on considère invalide
+        if LootSiteManagerRunner == null:
+            return false
+        if not LootSiteManagerRunner.has_method("get") and not LootSiteManagerRunner.has_method("get_property_list"):
+            return false
+        var sites: Dictionary = LootSiteManagerRunner.sites
+        if not sites.has(owner_id):
+            return false
+    # Si giver faction n’existe pas
+    var giver := String(context.get("giver_faction_id", ""))
+    if giver != "":
+        if FactionManager == null or not FactionManager.has_method("has_faction"):
+            return false
+        if not FactionManager.has_faction(giver):
+            return false
+
+    return true
+
+func get_offer_signature() -> String:
+    # Signature “fonctionnelle”, indépendante du runtime_id
+    # Important: on prend ce qui rend l'offre unique pour le joueur.
+    var qt := ""
+    if template != null:
+        qt = template.id  # si template “generated_*” c’est ok, mais mieux : quest_type dans context
+    var quest_type := String(context.get("quest_type", qt)) # si tu l'as
+    var giver := String(context.get("giver_faction_id", ""))
+    var ant := String(context.get("antagonist_faction_id", ""))
+    var step := String(context.get("goal_step_id", "")) # si offers liées aux goals
+    var domain := String(context.get("domain", ""))
+    var artifact_id := String(context.get("artifact_id", ""))
+
+    # POI si tu en as (pour “ruins at x,y”)
+    var poi_id := String(context.get("poi_id", ""))
+
+    return "%s|giver=%s|ant=%s|step=%s|domain=%s|artifact=%s|poi=%s" % [
+        quest_type, giver, ant, step, domain, artifact_id, poi_id
+    ]
 
 func get_days_remaining() -> int:
     """Obtient les jours restants avant expiration"""

@@ -32,6 +32,7 @@ func tick_day() -> void:
             continue
 
         _take_offer(hero, offer)
+        QuestPool.remove_offer_by_runtime_id(offer.runtime_id)
         taken += 1
 
 func _take_offer(hero: HeroAgent, q: QuestInstance) -> void:

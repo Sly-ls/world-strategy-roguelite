@@ -25,6 +25,7 @@ func advance_day() -> void:
     QuestOfferSimRunner.generate_offers(quest_offers_per_day)
     QuestOfferSimRunner.tick_day()
     QuestGenerator.tick_artifact_recovery_offers()
+    QuestPool.cleanup_offers()
     print("Offers disponibles:%d" % QuestOfferSimRunner.offers.size())
     
     # 4) Crises / événements globaux

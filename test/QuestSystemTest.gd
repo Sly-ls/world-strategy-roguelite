@@ -72,9 +72,11 @@ func _ready() -> void:
     print("\n--- TEST 9: HERO COMPETITION 30 DAYS ---")
     _test_hero_competition_30_days()
     
-    print("\n--- TEST 10: RTIFACT LOST / LOOT SITE / RETRIEVE QUEST ---")
+    print("\n--- TEST 10: ARTIFACT LOST / LOOT SITE / RETRIEVE QUEST ---")
     _test_10()
     
+    print("\n--- TEST 12: OFFERS PRO (100 DAYS) ---")
+    _test_offers_pro_100_days()
     print("==============================\n")
     print("\n✅ TEST HARNESS FINISHED (regarde les warnings/erreurs ci-dessus).")
     print("==============================\n")
@@ -95,6 +97,65 @@ func _force_load_tiles_enums() -> void:
 # ------------------------------------------------------------
 #  Utilities: Creation / safety
 # ------------------------------------------------------------
+func _test_offers_pro_100_days() -> void:
+    # Preconditions
+    if QuestPool == null:
+        _fail("QuestPool autoload manquant")
+        return
+    if not QuestPool.has_method("get_offers"):
+        _fail("QuestPool.get_offers() introuvable")
+        return
+
+    var day: int = 0
+    var max_seen: int = 0
+
+    for d in range(100):
+        day = d
+        _set_day(day)
+
+        # Simule “création d’offers”
+        # 5 offres/jour pour stresser
+        for i in range(5):
+            var q: QuestInstance = QuestGenerator.generate_random_quest(QuestTypes.QuestTier.TIER_1)
+            if q != null:
+                # Important: s'assurer que context contient quest_type
+                if not q.context.has("quest_type"):
+                    q.context["quest_type"] = "generated"  # fallback, mieux : vrai type
+                QuestPool.try_add_offer(q)
+
+        # Cleanup
+        QuestPool.cleanup_offers()
+
+        var offers :Array = QuestPool.get_offers()
+        max_seen = max(max_seen, offers.size())
+
+        # Invariant 1: cap global
+        if offers.size() > 20:
+            _fail("Cap global dépassé: %d offers au day %d" % [offers.size(), day])
+            return
+
+        # Invariant 2: aucune invalide
+        for o in offers:
+            var qi: QuestInstance = o
+            if qi == null:
+                _fail("Offer null dans pool")
+                return
+            if not qi.is_offer_valid(day):
+                _fail("Offer invalide détectée day %d: %s" % [day, qi.get_offer_signature()])
+                return
+
+        # Invariant 3: pas de doublon signature
+        var seen: Dictionary = {}
+        for o2 in offers:
+            var qi2: QuestInstance = o2
+            var sig: String = qi2.get_offer_signature()
+            if seen.has(sig):
+                _fail("Doublon signature day %d: %s" % [day, sig])
+                return
+            seen[sig] = true
+
+    print("✅ TEST 12 PASSED — max offers seen:", max_seen)
+
 func _test_10() -> void:
     
     _set_day(0)
@@ -213,13 +274,20 @@ func _test_8() -> void:
     var g := FactionGoalFactory.create_build_domain_goal("orcs", "corruption")
     FactionGoalManagerRunner.active_goals["orcs"] = FactionGoalState.new(g)
 
-    # Simule un step gather pour déclencher l’offre
     QuestOfferSimRunner.generate_goal_offer("orcs", "", "corruption", "gather")
 
     print("\n=== OFFERS SAMPLE (goal only) ===")
-    var quest_instance_1 :QuestInstance = QuestOfferSimRunner.offers.back()
-    var ctx_1 :Dictionary = quest_instance_1.context
 
+    if QuestOfferSimRunner.offers.is_empty():
+        push_error("TEST 8 failed: offers is empty (generate_goal_offer n'a rien ajouté).")
+        return
+
+    var quest_instance_1: QuestInstance = QuestOfferSimRunner.offers.back()
+    if quest_instance_1 == null:
+        push_error("TEST 8 failed: last offer is null (generate_goal_offer a ajouté null).")
+        return
+
+    var ctx_1: Dictionary = quest_instance_1.context
     print("- %s | giver=%s | ant=%s | step=%s | domain=%s | profile=%s" % [
         quest_instance_1.template.title,
         str(ctx_1.get("giver_faction_id","")),
@@ -227,7 +295,8 @@ func _test_8() -> void:
         str(ctx_1.get("goal_step_id","")),
         str(ctx_1.get("goal_domain","")),
         str(ctx_1.get("resolution_profile_id",""))
-])
+    ])
+
     var found := false
     for q in QuestOfferSimRunner.offers:
         var ctx := q.context
