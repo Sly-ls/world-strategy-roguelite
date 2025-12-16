@@ -2,7 +2,7 @@
 extends Node
 class_name QuestOfferSim
 
-var offers: Array[QuestInstance] = []
+#var offers: Array[QuestInstance] = []
 var consumed_offers: Dictionary = {} # runtime_id -> {"by": hero_id, "day": int}
 @export var max_offers: int = 10
 var offer_created_day: Dictionary = {} # runtime_id -> day
@@ -21,10 +21,10 @@ func is_consumed(runtime_id: String) -> bool:
     return consumed_offers.has(runtime_id)
 
 func take_offer(index: int) -> QuestInstance:
-    if index < 0 or index >= offers.size():
+    if index < 0 or index >= QuestPool.get_offers().size():
         return null
-    var q := offers[index]
-    offers.remove_at(index)
+    var q := QuestPool.get_offers()[index]
+    QuestPool.get_offers().remove_at(index)
     return q
 
 func tick_day() -> void:
@@ -32,8 +32,8 @@ func tick_day() -> void:
     var day := WorldState.current_day
     var to_remove: Array[int] = []
 
-    for i in range(offers.size()):
-        var q: QuestInstance = offers[i]
+    for i in range(QuestPool.get_offers().size()):
+        var q: QuestInstance = QuestPool.get_offers()[i]
         var created := int(offer_created_day.get(q.runtime_id, day))
 
         var expires_in := q.template.expires_in_days
@@ -43,13 +43,13 @@ func tick_day() -> void:
     # remove from end to start
     for j in range(to_remove.size() - 1, -1, -1):
         var idx := to_remove[j]
-        var q := offers[idx]
+        var q := QuestPool.get_offers()[idx]
         offer_created_day.erase(q.runtime_id)
-        offers.remove_at(idx)
+        QuestPool.get_offers().remove_at(idx)
 
     # 2) Cap
-    while offers.size() > max_offers:
-        var removed :QuestInstance = offers.pop_front()
+    while QuestPool.get_offers().size() > max_offers:
+        var removed :QuestInstance = QuestPool.get_offers().pop_front()
         offer_created_day.erase(removed.runtime_id)
 
 func generate_goal_offer(actor_id: String, target_id: String, domain: String, step_id: String, tier: QuestTypes.QuestTier = QuestTypes.QuestTier.TIER_1) -> void:
@@ -105,7 +105,7 @@ func generate_goal_offer(actor_id: String, target_id: String, domain: String, st
     ])
 
     var sig := "%s|%s|%s|%s|%d" % [actor_id, target_id, quest_type, step_id, WorldState.current_day]
-    for existing in offers:
+    for existing in QuestPool.get_offers():
         var c := existing.context
         if c.get("offer_sig","") == sig:
             return
@@ -115,7 +115,7 @@ func generate_goal_offer(actor_id: String, target_id: String, domain: String, st
 
 func get_available_offers() -> Array[QuestInstance]:
     var out: Array[QuestInstance] = []
-    for q in offers:
+    for q in QuestPool.get_offers():
         if q == null:
             continue
         if consumed_offers.has(q.runtime_id):
@@ -128,9 +128,9 @@ func consume_offer(runtime_id: String, by_id: String) -> void:
     # option A: on laisse dans offers mais marqué consommé (pratique pour debug)
     # option B: on retire de offers (plus clean pour gameplay)
     # Ici: option B
-    for i in range(offers.size()):
-        if offers[i] and offers[i].runtime_id == runtime_id:
-            offers.remove_at(i)
+    for i in range(QuestPool.get_offers().size()):
+        if QuestPool.get_offers()[i] and QuestPool.get_offers()[i].runtime_id == runtime_id:
+            QuestPool.get_offers().remove_at(i)
             break
 
 func _pick_quest_type_for_step(step_id: String) -> String:

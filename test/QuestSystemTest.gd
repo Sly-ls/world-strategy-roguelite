@@ -263,12 +263,12 @@ func _test_7() -> void:
     WorldSimRunner.simulate_days(10)
     FactionManager.print_all_factions()
     print("World tags:", QuestManager.world_tags)
-    print("Offers:", QuestOfferSimRunner.offers.size())
+    print("Offers:", QuestPool.get_offers().size())
     FactionManager.print_relations_between()
     _print_sample_offers()
     
 func _test_8() -> void:
-    QuestOfferSimRunner.offers.clear()
+    QuestPool.get_offers().clear()
     QuestOfferSimRunner.offer_created_day.clear()
 
     var g := FactionGoalFactory.create_build_domain_goal("orcs", "corruption")
@@ -278,11 +278,11 @@ func _test_8() -> void:
 
     print("\n=== OFFERS SAMPLE (goal only) ===")
 
-    if QuestOfferSimRunner.offers.is_empty():
+    if QuestPool.get_offers().is_empty():
         push_error("TEST 8 failed: offers is empty (generate_goal_offer n'a rien ajouté).")
         return
 
-    var quest_instance_1: QuestInstance = QuestOfferSimRunner.offers.back()
+    var quest_instance_1: QuestInstance = QuestPool.get_offers().back()
     if quest_instance_1 == null:
         push_error("TEST 8 failed: last offer is null (generate_goal_offer a ajouté null).")
         return
@@ -298,7 +298,7 @@ func _test_8() -> void:
     ])
 
     var found := false
-    for q in QuestOfferSimRunner.offers:
+    for q in QuestPool.get_offers():
         var ctx := q.context
         if not ctx.get("is_goal_offer", false):
             continue
@@ -316,8 +316,8 @@ func _test_8() -> void:
         
 func _print_sample_offers() -> void:
     print("\n=== OFFERS SAMPLE ===")
-    for i in range(min(QuestOfferSimRunner.offers.size(), 5)):
-        var q: QuestInstance = QuestOfferSimRunner.offers[i]
+    for i in range(min(QuestPool.get_offers().size(), 5)):
+        var q: QuestInstance = QuestPool.get_offers()[i]
         var ctx := q.context
         if not ctx.get("is_goal_offer", false):
             continue
@@ -773,7 +773,8 @@ func _set_day(day: int) -> void:
         return
 
     ws.set("current_day", day)
-    print("WorldState.current_day =", day)
+    if day %10 == 0:
+        print("WorldState.current_day =", day)
 
 
 func _require_autoload(path: String, label: String) -> void:
