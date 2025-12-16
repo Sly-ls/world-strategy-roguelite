@@ -13,6 +13,7 @@ signal quest_completed(quest: QuestInstance)
 signal quest_failed(quest: QuestInstance)
 signal quest_expired(quest: QuestInstance)
 signal quest_progress_updated(quest: QuestInstance, progress: int, total: int)
+signal quest_resolved(inst: QuestInstance, choice: String)
 
 # ========================================
 # PROPRIÉTÉS
@@ -254,8 +255,23 @@ func resolve_quest(runtime_id: String, choice: String) -> void:
     for effect in profile.get_effects(choice):
         _apply_effect(inst, effect)
 
+    if ArcManagerRunner != null and ArcManagerRunner.has_method("on_quest_resolution_choice"):
+        ArcManagerRunner.on_quest_resolution_choice(inst, choice)
+    if DebugConstants.ARC_LOG:
+        print("[QM] resolve_quest rid=%s choice=%s title=%s ctx.is_arc=%s arc_id=%s stage=%s giver=%s ant=%s" % [
+            runtime_id,
+            choice,
+            inst.template.title,
+            str(inst.context.get("is_arc_rivalry", false)),
+            str(inst.context.get("arc_id", "")),
+            str(inst.context.get("arc_stage", "")),
+            str(inst.context.get("giver_faction_id", "")),
+            str(inst.context.get("antagonist_faction_id", "")),
+        ])
     active_quests.erase(runtime_id)
     quest_completed.emit(inst)
+    quest_resolved.emit(inst, choice)
+
 
 # ========================================
 # PROGRESSION

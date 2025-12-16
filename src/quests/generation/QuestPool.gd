@@ -55,16 +55,19 @@ func try_add_offer(o: QuestInstance) -> bool:
     # 1) Validité
     var day := WorldState.current_day if WorldState != null else 0
     if not o.is_offer_valid(day):
+        if DebugConstants.ARC_LOG: print("[OFFER] reject invalid: %s" % o.template.title)
         return false
 
     # 2) Cap global
     if offers.size() >= MAX_OFFERS_GLOBAL:
+        if DebugConstants.ARC_LOG: print("[OFFER] reject global cap: %d/%d" % [offers.size(), MAX_OFFERS_GLOBAL])
         return false
 
     # 3) Cap par signature
     var sig := o.get_offer_signature()
     var sig_count := int(_count_by_signature.get(sig, 0))
     if sig_count >= MAX_OFFERS_PER_SIGNATURE:
+        if DebugConstants.ARC_LOG: print("[OFFER] reject signature cap: sig=%s count=%d/%d" % [sig, sig_count, MAX_OFFERS_PER_SIGNATURE])
         return false
 
     # 4) Cap par giver
@@ -72,6 +75,7 @@ func try_add_offer(o: QuestInstance) -> bool:
     if giver != "":
         var giver_count := int(_count_by_giver.get(giver, 0))
         if giver_count >= MAX_OFFERS_PER_GIVER:
+            if DebugConstants.ARC_LOG: print("[OFFER] reject giver cap: giver=%s count=%d/%d" % [giver, giver_count, MAX_OFFERS_PER_GIVER])
             return false
 
     # OK -> insert + index update

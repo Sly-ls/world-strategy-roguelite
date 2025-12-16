@@ -15,9 +15,11 @@ func apply(action: FactionAction) -> void:
             _apply_diplomacy(action)
         FactionAction.ActionType.RAID:
             _apply_raid(action)
+            if ArcManagerRunner != null and ArcManagerRunner.has_method("on_faction_hostile_action"):
+                ArcManagerRunner.on_faction_hostile_action(action.actor_faction_id, action.target_faction_id, "RAID")
+
         _:
             _apply_generic(action)
-
     for t in action.tags_to_add_world:
         QuestManager.add_world_tag(t)
         

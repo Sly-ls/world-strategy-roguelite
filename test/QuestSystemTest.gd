@@ -19,11 +19,12 @@ const ARTIFACT_REGISTRY_SINGLETON := "res://src/core/artifacts/ArtifactRegistry.
 const LOOT_SITE_MANAGER_SINGLETON := "res://src/world/loot/LootSiteManager.gd"
 const ARMY_MANAGER_SINGLETON := "res://src/army/ArmyManager.gd"
     
+var test_to_run :Dictionary = {}
 func _ready() -> void:
+    _init_tests_to_run()
     print("\n==============================")
     print("=== QUEST SYSTEM TEST HARNESS ===")
     print("==============================\n")
-
     _force_load_tiles_enums()
     _ensure_world_day(0)
 
@@ -31,26 +32,55 @@ func _ready() -> void:
     if gen == null:
         _fail("Impossible de créer QuestGenerator. Vérifie le chemin : %s" % QUEST_GENERATOR_SCRIPT)
         return
-
-    # --- Test 1 : génération aléatoire Tier 1
-    print("\n--- TEST 1: generate_random_quest(TIER_1) ---")
-    var quest1 = _safe_generate_random_tier1(gen)
-    _print_quest_instance(quest1)
-
-    # --- Test 2 : génération POI (ruines)
-    print("\n--- TEST 2: generate_quest_for_poi(RUINS) ---")
-    var quest2 = _safe_generate_poi_ruins(gen)
-    _print_quest_instance(quest2)
-
-    # --- Test 3 : can_appear()
-    print("\n--- TEST 3: template.can_appear() ---")
-    _test_can_appear(quest1)
-    _test_can_appear(quest2)
-
-    # --- Test 4 : tentative d’intégration QuestManager (si dispo)
-    print("\n--- TEST 4: QuestManager integration (if available) ---")
-    _try_quest_manager_flow(quest1)
+    var quest1 = null
+    var quest2 = null
+    if test_to_run.get("all") || test_to_run.get("1"):
+        quest1 = _test_1_safe_generate_random_tier1(gen)
+    if test_to_run.get("all") || test_to_run.get("2"):
+        quest2 = _test_2_safe_generate_poi_ruins(gen)
+    if test_to_run.get("all") || test_to_run.get("3") && (test_to_run.get("1") && test_to_run.get("2")):
+        _test_3(quest1, quest2)
+    if test_to_run.get("all") || (test_to_run.get("4") && test_to_run.get("1")):
+        _test_4(quest1)
+    if test_to_run.get("all") || test_to_run.get("5"):
+        _test_5(gen)
+    if test_to_run.get("all") || test_to_run.get("6"):
+        _test_6_full_resolution_pipeline(gen)
+    if test_to_run.get("all") || test_to_run.get("7"):
+        _test_7()
+    if test_to_run.get("all") || test_to_run.get("8"):
+        _test_8()
+    if test_to_run.get("all") || test_to_run.get("9"):
+        _test_9_hero_competition_30_days()
+    if test_to_run.get("all") || test_to_run.get("10"):
+        _test_10()
+    if test_to_run.get("all") || test_to_run.get("11"):
+        _test_11_offers_pro_100_days()
+    if test_to_run.get("all") || test_to_run.get("12"):
+        _test_12_arc_rivalry_mvp()
     
+    print("==============================\n")
+    print("\n✅ TEST HARNESS FINISHED (regarde les warnings/erreurs ci-dessus).")
+    print("==============================\n")
+    
+func _init_tests_to_run():
+
+    test_to_run = {
+        "all":false,
+        "1": false,
+        "2": false,
+        "3": false,
+        "4": false,
+        "5": false,
+        "6": false,
+        "7": false,
+        "8": false,
+        "9": false,
+        "10": false,
+        "11": false,
+        "12": true
+    }
+func _test_5(gen):
     print("\n--- TEST 5: LOYAL / NEUTRAL / TRAITOR ---")
     var qm = get_node_or_null(QUEST_MANAGER_SINGLETON)
     if qm != null and gen != null and qm.has_method("start_runtime_quest") and qm.has_method("resolve_quest"):
@@ -59,28 +89,14 @@ func _ready() -> void:
         _run_resolution_case(qm, gen, "TRAITOR")
     else:
         _warn("TEST 5 ignoré: QuestManager ou méthodes manquantes.")
-        
-    print("\n--- TEST 6: FULL PALIER 2 PIPELINE ---")
-    _test_full_resolution_pipeline(gen)
+func _test_4(quest1):
+    print("\n--- TEST 4: QuestManager integration (if available) ---")
+    _try_quest_manager_flow(quest1)
+func _test_3(quest1, quest2):
+    print("\n--- TEST 3: template.can_appear() ---")
+    _test_can_appear(quest1)
+    _test_can_appear(quest2)
     
-    print("\n--- TEST 7: WORLD SIM 10 DAYS ---")
-    _test_7()
-
-    print("\n--- TEST 8: GOAL OFFER DOMAIN ---")
-    _test_8()
-
-    print("\n--- TEST 9: HERO COMPETITION 30 DAYS ---")
-    _test_hero_competition_30_days()
-    
-    print("\n--- TEST 10: ARTIFACT LOST / LOOT SITE / RETRIEVE QUEST ---")
-    _test_10()
-    
-    print("\n--- TEST 12: OFFERS PRO (100 DAYS) ---")
-    _test_offers_pro_100_days()
-    print("==============================\n")
-    print("\n✅ TEST HARNESS FINISHED (regarde les warnings/erreurs ci-dessus).")
-    print("==============================\n")
-
 func _force_load_tiles_enums() -> void:
     if ClassDB.class_exists("TilesEnums"):
         return
@@ -97,7 +113,83 @@ func _force_load_tiles_enums() -> void:
 # ------------------------------------------------------------
 #  Utilities: Creation / safety
 # ------------------------------------------------------------
-func _test_offers_pro_100_days() -> void:
+func _test_12_arc_rivalry_mvp() -> void:
+
+    print("\n--- TEST 12: ARC RIVALRY MVP ---")
+    # reset
+    if QuestPool != null and QuestPool.has_method("clear_offers"):
+        QuestPool.clear_offers()
+
+    if ArcManagerRunner != null and ArcManagerRunner.has_method("reset"):
+        ArcManagerRunner.reset()
+
+    _set_day(0)
+
+    # 1) hostile action => offer
+    if ArcManagerRunner == null or not ArcManagerRunner.has_method("on_faction_hostile_action"):
+        _fail("ArcManagerRunner missing / no on_faction_hostile_action()")
+        return
+
+    ArcManagerRunner.on_faction_hostile_action("elves", "humans", "RAID")
+
+    # récup une offer (selon ton QuestPool)
+    var offers: Array = []
+    if QuestPool != null and QuestPool.has_method("get_offers"):
+        offers = QuestPool.get_offers()
+    elif QuestPool != null and QuestPool.has_variable("offers"):
+        offers = QuestPool.offers
+
+    if offers.is_empty():
+        _fail("No arc offer generated")
+        return
+
+    var offer :QuestInstance = offers.back()
+    var ctx :Dictionary = offer.context
+    if not bool(ctx.get("is_arc_rivalry", false)):
+        _fail("Last offer is not an arc offer")
+        return
+
+    # 2) resolve => retaliation next day
+    QuestManager.start_runtime_quest(offer)
+
+# 1) Simuler la completion (mettre la quête en "résolution requise")
+    if QuestManager.has_method("complete_quest"):
+        QuestManager.complete_quest(offer.runtime_id)
+    elif QuestManager.has_method("update_quest_progress_by_id"):
+        # fallback: pousser la progression jusqu'au count
+        var total := int(offer.template.objective_count)
+        QuestManager.update_quest_progress_by_id(offer.runtime_id, total)
+
+    # 2) Résoudre (ça doit setter pending_retaliation via ArcManagerRunner.on_quest_resolution_choice)
+    QuestManager.resolve_quest(offer.runtime_id, "LOYAL")
+    _set_day(1)
+    if ArcManagerRunner.has_method("tick_day"):
+        ArcManagerRunner.tick_day()
+
+    # check retaliation offer exists (giver should be "humans" vs "elves")
+    var offers2: Array = []
+    if QuestPool.has_method("get_offers"):
+        offers2 = QuestPool.get_offers()
+    elif QuestPool.has_variable("offers"):
+        offers2 = QuestPool.offers
+
+    var found := false
+    for q in offers2:
+        var c :Dictionary = q.context
+        if not bool(c.get("is_arc_rivalry", false)):
+            continue
+        if String(c.get("giver_faction_id","")) == "humans" and String(c.get("antagonist_faction_id","")) == "elves":
+            found = true
+            break
+
+    if not found:
+        _fail("No retaliation offer found")
+        return
+
+    print("✅ TEST 13 PASSED — Arc rivalry MVP ok")
+
+func _test_11_offers_pro_100_days() -> void:
+    print("\n--- TEST 11: OFFERS PRO (100 DAYS) ---")
     # Preconditions
     if QuestPool == null:
         _fail("QuestPool autoload manquant")
@@ -158,6 +250,7 @@ func _test_offers_pro_100_days() -> void:
 
 func _test_10() -> void:
     
+    print("\n--- TEST 10: ARTIFACT LOST / LOOT SITE / RETRIEVE QUEST ---")
     _set_day(0)
     _require_autoload(ARTIFACT_REGISTRY_SINGLETON, "ArtifactRegistry")
     _require_autoload(LOOT_SITE_MANAGER_SINGLETON, "LootSiteManager")
@@ -225,7 +318,8 @@ func _test_10() -> void:
 
     print("\n✅ TEST 10 PASSED")
     print("==============================\n")
-func _test_hero_competition_30_days() -> void:
+func _test_9_hero_competition_30_days() -> void:
+    print("\n--- TEST 9: HERO COMPETITION 30 DAYS ---")
     # Setup heroes
     var h1 := HeroAgent.new()
     h1.id = "h1"; h1.name = "Sir Aldren"; h1.faction_id = "humans"
@@ -260,6 +354,8 @@ func _test_hero_competition_30_days() -> void:
     print("World tags:", QuestManager.world_tags)
 
 func _test_7() -> void:
+    
+    print("\n--- TEST 7: WORLD SIM 10 DAYS ---")
     WorldSimRunner.simulate_days(10)
     FactionManager.print_all_factions()
     print("World tags:", QuestManager.world_tags)
@@ -268,6 +364,7 @@ func _test_7() -> void:
     _print_sample_offers()
     
 func _test_8() -> void:
+    print("\n--- TEST 8: GOAL OFFER DOMAIN ---")
     QuestPool.get_offers().clear()
     QuestOfferSimRunner.offer_created_day.clear()
 
@@ -345,31 +442,35 @@ func _create_generator() -> Node:
     return gen
 
 
-func _safe_generate_random_tier1(gen: Node):
+func _test_1_safe_generate_random_tier1(gen: Node):
     # On essaye d’obtenir QuestTypes.TIER_1 si possible
+    print("\n--- TEST 1: generate_random_quest(TIER_1) ---")
     var tier_1 = _get_tier1_value()
     if gen.has_method("generate_random_quest"):
-        return gen.generate_random_quest(tier_1)
+        var quest1 = gen.generate_random_quest(tier_1)
+        _print_quest_instance(quest1)
+        return quest1
     _warn("QuestGenerator n'a pas generate_random_quest()")
     return null
 
 
-func _safe_generate_poi_ruins(gen: Node):
+func _test_2_safe_generate_poi_ruins(gen: Node):
     # On a besoin de TilesEnums.CellType.RUINS (on ne peut pas le hardcoder sans ton enum),
     # donc on teste plusieurs options:
+    print("\n--- TEST 2: generate_quest_for_poi(RUINS) ---")
     var ruins_type = _guess_ruins_celltype()
     var poi_pos := Vector2i(10, 10)
 
     if ruins_type == null:
         _warn("Impossible de déterminer TilesEnums.CellType.RUINS. TEST 2 ignoré.")
-        return null
-
-    if gen.has_method("generate_quest_for_poi"):
-        return gen.generate_quest_for_poi(poi_pos, ruins_type)
-
-    _warn("QuestGenerator n'a pas generate_quest_for_poi()")
     return null
 
+    if gen.has_method("generate_quest_for_poi"):
+        var quest2 = gen.generate_quest_for_poi(poi_pos, ruins_type)
+        _print_quest_instance(quest2)
+        return quest2
+    _warn("QuestGenerator n'a pas generate_quest_for_poi()")
+    return null
 
 func _test_can_appear(quest_instance) -> void:
     if quest_instance == null:
@@ -482,8 +583,9 @@ func _run_resolution_case(qm: Node, gen: Node, choice: String) -> void:
     print("Player tags: ", tags_p_before, " -> ", tags_p_after)
     print("World tags: ", tags_w_before, " -> ", tags_w_after)
     
-func _test_full_resolution_pipeline(gen: Node) -> void:
+func _test_6_full_resolution_pipeline(gen: Node) -> void:
     # 1️⃣ Snapshot initial
+    print("\n--- TEST 6: FULL PALIER 2 PIPELINE ---")
     var gold_before := ResourceManager.get_resource("gold")
     var player_tags_before := QuestManager.player_tags.duplicate()
     var world_tags_before := QuestManager.world_tags.duplicate()
