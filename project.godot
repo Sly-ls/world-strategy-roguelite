@@ -48,6 +48,7 @@ HeroManagerRunner="*res://src/heroes/HeroManager.gd"
 ArmyManagerRunner="*res://src/army/ArmyManager.gd"
 ArcManagerRunner="*res://src/quests/arcs/ArcManager.gd"
 DebugConstants="*res://test/DebugConstants.gd"
+myLogger="*res://logging/logger.gd"
 
 [input]
 
