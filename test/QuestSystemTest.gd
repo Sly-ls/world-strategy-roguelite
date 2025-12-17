@@ -19,53 +19,7 @@ const ARTIFACT_REGISTRY_SINGLETON := "res://src/core/artifacts/ArtifactRegistry.
 const LOOT_SITE_MANAGER_SINGLETON := "res://src/world/loot/LootSiteManager.gd"
 const ARMY_MANAGER_SINGLETON := "res://src/army/ArmyManager.gd"
     
-var test_to_run :Dictionary = {}
-func _ready() -> void:
-    _init_tests_to_run()
-    print("\n==============================")
-    print("=== QUEST SYSTEM TEST HARNESS ===")
-    print("==============================\n")
-    _force_load_tiles_enums()
-    _ensure_world_day(0)
-
-    var gen = _create_generator()
-    if gen == null:
-        _fail("Impossible de créer QuestGenerator. Vérifie le chemin : %s" % QUEST_GENERATOR_SCRIPT)
-        return
-    var quest1 = null
-    var quest2 = null
-    if test_to_run.get("all") || test_to_run.get("1"):
-        quest1 = _test_1_safe_generate_random_tier1(gen)
-    if test_to_run.get("all") || test_to_run.get("2"):
-        quest2 = _test_2_safe_generate_poi_ruins(gen)
-    if test_to_run.get("all") || test_to_run.get("3") && (test_to_run.get("1") && test_to_run.get("2")):
-        _test_3(quest1, quest2)
-    if test_to_run.get("all") || (test_to_run.get("4") && test_to_run.get("1")):
-        _test_4(quest1)
-    if test_to_run.get("all") || test_to_run.get("5"):
-        _test_5(gen)
-    if test_to_run.get("all") || test_to_run.get("6"):
-        _test_6_full_resolution_pipeline(gen)
-    if test_to_run.get("all") || test_to_run.get("7"):
-        _test_7()
-    if test_to_run.get("all") || test_to_run.get("8"):
-        _test_8()
-    if test_to_run.get("all") || test_to_run.get("9"):
-        _test_9_hero_competition_30_days()
-    if test_to_run.get("all") || test_to_run.get("10"):
-        _test_10()
-    if test_to_run.get("all") || test_to_run.get("11"):
-        _test_11_offers_pro_100_days()
-    if test_to_run.get("all") || test_to_run.get("12"):
-        _test_12_arc_rivalry_mvp()
-    
-    print("==============================\n")
-    print("\n✅ TEST HARNESS FINISHED (regarde les warnings/erreurs ci-dessus).")
-    print("==============================\n")
-    
-func _init_tests_to_run():
-
-    test_to_run = {
+var test_to_run :Dictionary = {
         "all":false,
         "1": false,
         "2": false,
@@ -80,6 +34,56 @@ func _init_tests_to_run():
         "11": false,
         "12": true
     }
+    
+func _ready() -> void:
+    print("\n==============================")
+    print("=== QUEST SYSTEM TEST HARNESS ===")
+    print("==============================\n")
+    _force_load_tiles_enums()
+    _ensure_world_day(0)
+
+    var gen = _create_generator()
+    if gen == null:
+        _fail("Impossible de créer QuestGenerator. Vérifie le chemin : %s" % QUEST_GENERATOR_SCRIPT)
+        return
+    var quest1 = null
+    var quest2 = null
+    if _is_test_to_run("1"):
+        quest1 = _test_1_safe_generate_random_tier1(gen)
+    if _is_test_to_run("2"):
+        quest2 = _test_2_safe_generate_poi_ruins(gen)
+    if _is_test_to_run("3", "1", "2"):
+        _test_3(quest1, quest2)
+    if _is_test_to_run("4", "1"):
+        _test_4(quest1)
+    if _is_test_to_run("5"):
+        _test_5(gen)
+    if _is_test_to_run("6"):
+        _test_6_full_resolution_pipeline(gen)
+    if _is_test_to_run("7"):
+        _test_7()
+    if _is_test_to_run("8"):
+        _test_8()
+    if _is_test_to_run("9"):
+        _test_9_hero_competition_30_days()
+    if _is_test_to_run("10"):
+        _test_10()
+    if _is_test_to_run("11"):
+        _test_11_offers_pro_100_days()
+    if _is_test_to_run("12"):
+        _test_12_arc_rivalry_mvp()
+    
+    print("==============================\n")
+    print("\n✅ TEST HARNESS FINISHED (regarde les warnings/erreurs ci-dessus).")
+    print("==============================\n")
+
+func _is_test_to_run(test_id:String, requiered_test_1: String = "", required_test_2="") -> bool:
+    var will_run = test_to_run.get("all") || test_to_run.get(test_id)
+    if will_run && requiered_test_1 != "":
+        will_run = test_to_run.get(requiered_test_1)
+    if will_run && required_test_2 != "":
+        will_run = test_to_run.get(required_test_2)
+    return will_run
 func _test_5(gen):
     print("\n--- TEST 5: LOYAL / NEUTRAL / TRAITOR ---")
     var qm = get_node_or_null(QUEST_MANAGER_SINGLETON)
