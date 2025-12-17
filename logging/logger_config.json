@@ -1,0 +1,24 @@
+{
+  "mode": "auto",
+  "default_level": "DEBUG",
+  "default_domain_level": "DEBUG",
+  "domains": {
+    "SYSTEM": "DEBUG",
+    "QUEST": "DEBUG",
+    "ARC": "DEBUG",
+    "WORLD": "DEBUG",
+    "ARMY": "DEBUG",
+    "COMBAT": "DEBUG"
+  },
+  "appenders": {
+    "console": { "enabled": true, "min_level": "DEBUG", "rich": true },
+    "file": {
+      "enabled": true,
+      "min_level": "DEBUG",
+      "dir": "user://logs",
+      "pattern": "game_{date}.log",
+      "rotate_max_bytes": 2097152,
+      "rotate_max_files": 5
+    }
+  }
+}
