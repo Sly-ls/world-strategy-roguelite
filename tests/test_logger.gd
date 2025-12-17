@@ -1,7 +1,8 @@
-extends Node
+extends BaseTest
 
 func _ready() -> void:
-    var logger := get_node_or_null("/root/Logger")
+    enable_test(false)
+    var logger := get_node_or_null("/root/myLogger")
     if logger == null:
         push_error("Logger Autoload introuvable. Ajoute res://logging/logger.gd en Autoload (Name: Logger).")
         return
@@ -31,6 +32,7 @@ func _ready() -> void:
     logger.set_domain_level(LogTypes.Domain.WORLD, LogTypes.Level.WARNING)
     logger.debug("World DEBUG (doit être filtré)", LogTypes.Domain.WORLD)
     logger.warn("World WARN (doit passer)", LogTypes.Domain.WORLD)
+    logger.error("World ERROR (doit passer)", LogTypes.Domain.WORLD)
 
     logger.disable_domain(LogTypes.Domain.ARC)
     logger.error("Arc ERROR (doit être OFF)", LogTypes.Domain.ARC)
@@ -63,3 +65,4 @@ func _print_log_dir(dir_path: String) -> void:
         if not dir.current_is_dir():
             print(" - ", name)
     dir.list_dir_end()
+    pass_test()

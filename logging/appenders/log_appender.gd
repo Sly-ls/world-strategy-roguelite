@@ -2,6 +2,7 @@ extends Node
 class_name LogAppender
 
 @export var min_level: int = LogTypes.Level.DEBUG
+@export var enabled: bool = true
 
 func append(_record: Dictionary) -> void:
     pass

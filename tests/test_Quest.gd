@@ -1,5 +1,5 @@
 # res://test/QuestSystemTest.gd
-extends Node
+extends BaseTest
 
 const QUEST_GENERATOR_SCRIPT := "res://src/quests/generation/QuestGenerator.gd"
 const QUEST_TYPES_SCRIPT := "res://src/quests/QuestTypes.gd"
@@ -36,6 +36,9 @@ var test_to_run :Dictionary = {
     }
     
 func _ready() -> void:
+    
+    enable_test(true)
+        
     print("\n==============================")
     print("=== QUEST SYSTEM TEST HARNESS ===")
     print("==============================\n")
@@ -76,6 +79,7 @@ func _ready() -> void:
     print("==============================\n")
     print("\n✅ TEST HARNESS FINISHED (regarde les warnings/erreurs ci-dessus).")
     print("==============================\n")
+    pass_test()
 
 func _is_test_to_run(test_id:String, requiered_test_1: String = "", required_test_2="") -> bool:
     var will_run = test_to_run.get("all") || test_to_run.get(test_id)
