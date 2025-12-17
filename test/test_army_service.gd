@@ -21,12 +21,9 @@ func test_army_service():
     for i in range(3):
         var unit = UnitData.new()
         unit.unit_name = "Test Unit %d" % (i + 1)
-        unit.unit_type = TilesEnums.UnitType.INFANTRY
         unit.max_hp = 100
-        unit.current_hp = 100
-        unit.attack = 10
-        unit.defense = 5
-        unit.speed = 5
+        unit.hp = 100
+        unit.powers[PowerEnums.PowerType.MELEE]= 10
         test_army.units.append(unit)
     
     # Remplit avec nulls
@@ -48,8 +45,8 @@ func test_army_service():
     var new_unit = UnitData.new()
     new_unit.unit_name = "Nouvelle Recrue"
     new_unit.max_hp = 80
-    new_unit.current_hp = 80
-    new_unit.attack = 8
+    new_unit.hp = 80
+    new_unit.powers[PowerEnums.PowerType.RANGED]= 10
     
     var added = army_service.add_unit_to_player(new_unit)
     assert(added, "L'ajout devrait réussir")
