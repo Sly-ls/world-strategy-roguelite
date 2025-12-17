@@ -47,7 +47,7 @@ LootSiteManagerRunner="*res://src/world/loot/LootSiteManager.gd"
 HeroManagerRunner="*res://src/heroes/HeroManager.gd"
 ArmyManagerRunner="*res://src/army/ArmyManager.gd"
 ArcManagerRunner="*res://src/quests/arcs/ArcManager.gd"
-DebugConstants="*res://test/DebugConstants.gd"
+DebugConstants="*res://tests/DebugConstants.gd"
 myLogger="*res://logging/logger.gd"
 
 [input]
