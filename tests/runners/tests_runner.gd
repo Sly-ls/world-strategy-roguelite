@@ -11,6 +11,10 @@ extends Node
 @export var per_test_timeout_sec: float = 10.0
 
 func _ready() -> void:
+    
+    print("====================================\n")
+    print("Recherche des tests")
+    print("====================================\n")
     var tests := _discover_tests(root_dir)
     tests.sort()
 
@@ -25,6 +29,7 @@ func _ready() -> void:
 
     var results := []
     for path in tests:
+        print("Starting test : %s", path)
         var ok := await _run_one(path)
         results.append({ "path": path, "ok": ok })
         if stop_on_failure and not ok:
@@ -43,7 +48,8 @@ func _discover_tests(dir_path: String) -> Array[String]:
     var out: Array[String] = []
     
     # ✅ stoppe la récursion si le répertoire est exclu
-    if _is_excluded_dir(dir_path):
+    if _is_excluded_dir(dir_path):    
+        print("Tests dans le repertoire: %s", dir_path)
         return out
         
     var dir := DirAccess.open(dir_path)
@@ -64,9 +70,10 @@ func _discover_tests(dir_path: String) -> Array[String]:
             out.append_array(_discover_tests(full))
         else:
             # Pattern: test_*.gd (on exclut base_test.gd)
-            if name.begins_with("test_") and name.ends_with(".gd"):
+            if (name.begins_with("test_") or name.ends_with("Test.gd")):
                 if name == "base_test.gd":
                     continue
+                print("test ajouté : %s", name)
                 out.append(full)
 
     dir.list_dir_end()

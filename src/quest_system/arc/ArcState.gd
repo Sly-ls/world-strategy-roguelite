@@ -9,6 +9,9 @@ var entered_day: int = 0
 var last_event_day: int = -999999
 var lock_until_day: int = -999999     # empêche re-trigger trop vite
 
+var stable_low_tension_days: int = 0
+var stable_high_trust_days: int = 0
+
 # compteurs “phase” (réinitialisés à chaque changement d’état)
 var phase_hostile: int = 0
 var phase_peace: int = 0
