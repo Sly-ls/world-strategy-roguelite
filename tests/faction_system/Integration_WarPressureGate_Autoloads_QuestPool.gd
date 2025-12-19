@@ -1,4 +1,4 @@
-extends Node
+extends BaseTest
 class_name Integration_WarPressureGate_Autoloads_QuestPool
 
 # Domestic state minimal compatible avec DomesticPolicyGate (pressure())

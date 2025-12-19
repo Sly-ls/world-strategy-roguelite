@@ -1,5 +1,5 @@
 # tests/MediationFailureConsequencesTest.gd
-extends Node
+extends BaseTest
 class_name MediationFailureConsequencesTest
 
 # fallback minimal if your real class isn't available

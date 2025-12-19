@@ -1,4 +1,4 @@
-extends Node
+extends BaseTest
 class_name DomesticPressureGateTest
 
 func _is_offensive(action: StringName) -> bool:

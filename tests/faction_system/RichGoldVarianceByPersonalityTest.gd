@@ -1,4 +1,4 @@
-extends Node
+extends BaseTest
 class_name RichGoldVarianceByPersonalityTest
 
 func _ready() -> void:

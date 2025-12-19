@@ -1,5 +1,5 @@
 # tests/Integration_WarPressureGate_Autoloads.gd
-extends Node
+extends BaseTest
 class_name Integration_WarPressureGate_Autoloads
 
 class DomesticState:

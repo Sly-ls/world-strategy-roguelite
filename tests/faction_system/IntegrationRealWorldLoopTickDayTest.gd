@@ -1,5 +1,5 @@
 # tests/IntegrationRealWorldLoopTickDayTest.gd
-extends Node
+extends BaseTest
 class_name IntegrationRealWorldLoopTickDayTest
 
 class TestQuestPool:

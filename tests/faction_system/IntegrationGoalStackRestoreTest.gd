@@ -1,4 +1,4 @@
-extends Node
+extends BaseTest
 class_name IntegrationGoalStackRestoreTest
 
 static func maybe_restore_suspended_goal(goal: Dictionary, ctx: Dictionary, domestic_state) -> Dictionary:

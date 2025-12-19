@@ -1,4 +1,4 @@
-extends Node
+extends BaseTest
 class_name ThirdPartyMediationConvergenceTest
 
 func _ready() -> void:

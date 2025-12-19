@@ -1,4 +1,4 @@
-extends Node
+extends BaseTest
 class_name Integration_QuestManager_Mediation3Factions_Success_Test
 
 class StubArcNotebook:

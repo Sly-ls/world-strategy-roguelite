@@ -1,4 +1,4 @@
-extends Node
+extends BaseTest
 class_name ThirdPartyOpportunismCreatesArcTest
 
 func _ready() -> void:

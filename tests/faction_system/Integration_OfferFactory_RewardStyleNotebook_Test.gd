@@ -1,4 +1,4 @@
-extends Node
+extends BaseTest
 class_name Integration_OfferFactory_RewardStyleNotebook_Test
 
 class StubArcNotebook:

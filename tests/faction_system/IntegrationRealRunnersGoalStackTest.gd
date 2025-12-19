@@ -1,5 +1,5 @@
 # tests/IntegrationRealRunnersGoalStackTest.gd
-extends Node
+extends BaseTest
 class_name IntegrationRealRunnersGoalStackTest
 
 class TestQuestPool:

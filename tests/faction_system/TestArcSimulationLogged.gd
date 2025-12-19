@@ -1,5 +1,4 @@
-# Godot 4.x
-extends Node
+extends BaseTest
 class_name TestArcSimulationLogged
 
 const GOLDEN_PATH := "user://golden_faction_profiles.json"

@@ -1,4 +1,4 @@
-extends Node
+extends BaseTest
 class_name TreatyEnforcementStabilizesTest
 
 func _ready() -> void:

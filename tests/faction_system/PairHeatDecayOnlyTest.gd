@@ -1,4 +1,4 @@
-extends Node
+extends BaseTest
 class_name PairHeatDecayOnlyTest
 
 func _ready() -> void:

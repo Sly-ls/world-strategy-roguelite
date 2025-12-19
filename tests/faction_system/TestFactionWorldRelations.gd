@@ -1,6 +1,4 @@
-# Godot 4.x
-# Scène de test: un Node avec ce script attaché.
-extends Node
+extends BaseTest
 class_name TestFactionWorldRelations
 
 const GOLDEN_PATH := "user://golden_faction_profiles.json"

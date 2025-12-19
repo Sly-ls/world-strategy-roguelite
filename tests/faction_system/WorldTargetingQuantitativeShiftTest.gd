@@ -1,4 +1,4 @@
-extends Node
+extends BaseTest
 class_name WorldTargetingQuantitativeShiftTest
 
 var rng := RandomNumberGenerator.new()

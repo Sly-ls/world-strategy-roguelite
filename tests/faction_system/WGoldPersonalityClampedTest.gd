@@ -1,4 +1,3 @@
-# tests/WGoldPersonalityClampedTest.gd
 extends BaseTest
 class_name WGoldPersonalityClampedTest
 

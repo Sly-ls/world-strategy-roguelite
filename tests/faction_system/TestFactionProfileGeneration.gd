@@ -1,6 +1,4 @@
-# Godot 4.x
-# Attache ce script à un Node dans une scène "tests" et lance la scène.
-extends Node
+extends BaseTest
 class_name TestFactionProfileGeneration
 
 const N_PER_MODE := 100

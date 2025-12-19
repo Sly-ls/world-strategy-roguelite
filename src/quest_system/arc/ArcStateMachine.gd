@@ -288,8 +288,7 @@ static func tick_tribute_if_any(
         winner: FactionManager.get_faction_profile(winner),
         loser: FactionManager.get_faction_profile(loser)
     }
-    var winner_profile:Faction = FactionManager.get_faction(winner)
-    var desired := ArcStateMachine.decide_state_on_tribute_default( winner, loser, day, arc_state, relations, notebook, faction_profiles, ctx )
+    var desired := ArcStateMachine.decide_state_on_tribute_default( winner, loser, day, arc_state, relations, notebook, faction_profiles, null )
 
     if ArcStateMachine.maybe_break_treaty(arc_state, day, desired):
         notebook.inc_pair_counter(pair_key, &"treaty_breaks", 1)

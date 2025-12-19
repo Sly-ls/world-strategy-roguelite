@@ -1,5 +1,11 @@
 extends Node
 
+@export var excluded_dirs: PackedStringArray = [
+    "res://tests/combat",
+    "res://tests/logger",
+    "res://tests/quest",
+	"res://tests/runners"
+]
 @export var root_dir: String = "res://tests"
 @export var stop_on_failure: bool = false
 @export var per_test_timeout_sec: float = 10.0
@@ -25,9 +31,21 @@ func _ready() -> void:
             break
 
     _print_summary(results)
-
+func _is_excluded_dir(path: String) -> bool:
+    var p := path.simplify_path()
+    for ex in excluded_dirs:
+        var e := String(ex).simplify_path()
+        # exclude exact dir OR anything under it
+        if p == e or p.begins_with(e + "/"):
+            return true
+    return false
 func _discover_tests(dir_path: String) -> Array[String]:
     var out: Array[String] = []
+    
+    # ✅ stoppe la récursion si le répertoire est exclu
+    if _is_excluded_dir(dir_path):
+        return out
+        
     var dir := DirAccess.open(dir_path)
     if dir == null:
         push_error("TestRunner: impossible d'ouvrir %s" % dir_path)
