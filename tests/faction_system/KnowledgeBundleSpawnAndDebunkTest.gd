@@ -90,7 +90,7 @@ func _test_bundle_spawns_then_debunk_reduces_bundle() -> void:
 
     # Spawn bundle offers for rumor2
     var pool := TestQuestPool.new()
-    var notebook := TestArcNotebook.new()
+    var notebook := Notebook.new()
 
     var offers_before: Array = KnowledgeOfferFactory.spawn_offers_for_rumor(
         knowledge,

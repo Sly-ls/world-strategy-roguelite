@@ -59,8 +59,8 @@ func _test_enemy_score_decreases_for_B_between_day10_and_day30() -> void:
     # --- Snapshot J10 (B encore en rivalité hostile) ---
     ctx.day = 10
     var res10 := WorldTargeting.compute_priority_targets(ctx, nb, self_id)
-    var b_enemy_10 := _score_for_id(res10["enemy_rank"], b)
-    var b_ally_10 := _score_for_id(res10["ally_rank"], b)
+    var b_enemy_10 :int = _score_for_id(res10["enemy_rank"], b)
+    var b_ally_10 :int = _score_for_id(res10["ally_rank"], b)
 
     _assert(b_enemy_10 != null, "day10: B must appear in enemy_rank")
     _assert(b_ally_10 != null, "day10: B must appear in ally_rank")
@@ -83,8 +83,8 @@ func _test_enemy_score_decreases_for_B_between_day10_and_day30() -> void:
     arc_c["wear_mean"] = 12.0
 
     var res30 := WorldTargeting.compute_priority_targets(ctx, nb, self_id)
-    var b_enemy_30 := _score_for_id(res30["enemy_rank"], b)
-    var b_ally_30 := _score_for_id(res30["ally_rank"], b)
+    var b_enemy_30 :int = _score_for_id(res30["enemy_rank"], b)
+    var b_ally_30 :int = _score_for_id(res30["ally_rank"], b)
 
     _assert(b_enemy_30 != null, "day30: B must appear in enemy_rank")
     _assert(b_ally_30 != null, "day30: B must appear in ally_rank")

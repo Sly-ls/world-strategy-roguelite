@@ -97,14 +97,14 @@ static func _weighted_pick(variants: Array, rng: RandomNumberGenerator) -> Dicti
     return variants.back()
 
 static func _roll_deadline_days(v: Dictionary, rng: RandomNumberGenerator) -> int:
-    var d := v.get("deadline", [6, 9])
+    var d :Array= v.get("deadline", [6, 9])
     return rng.randi_range(int(d[0]), int(d[1]))
 
 static func _roll_count(bundle: Dictionary, rng: RandomNumberGenerator) -> int:
     return rng.randi_range(int(bundle.get("count_min", 1)), int(bundle.get("count_max", 1)))
 
 static func _pair_key(a: StringName, b: StringName) -> StringName:
-    return StringName((String(a) <= String(b)) ? (String(a) + "|" + String(b)) : (String(b) + "|" + String(a)))
+    return StringName((String(a) + "|" + String(b)) if (String(a) <= String(b)) else (String(b) + "|" + String(a)))
 
 # -------------------------------------------------
 # Target POI resolution (stub + autoload-friendly)
@@ -127,9 +127,9 @@ static func _build_template_fallback(tag: String, tier: int, deadline_days: int)
     t.id = StringName("arc_" + tag)
     t.title = "Arc: " + tag
     t.description = "Arc offer: " + tag
-    t.category = "ARC"
+    t.category = QuestTypes.QuestCategory.ARC
     t.tier = tier
-    t.objective_type = "GENERIC"
+    t.objective_type = QuestTypes.ObjectiveType.GENERIC
     t.objective_target = tag
     t.objective_count = 1
     t.expires_in_days = deadline_days
@@ -276,7 +276,7 @@ static func _spawn_single_offer_from_variant(
         template = _build_template_fallback(tag, tier, deadline_days)
 
     var inst := QuestInstance.new(template, ctx)
-    inst.status = "AVAILABLE"
+    inst.status = QuestTypes.QuestStatus.AVAILABLE
     inst.started_on_day = day
     inst.expires_on_day = day + deadline_days
     inst.progress = 0

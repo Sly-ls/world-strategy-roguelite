@@ -95,8 +95,8 @@ func _test_non_payment_spawns_collect_offer_then_payment_succeeds() -> void:
     spawn_called = false
     spawn_args = {}
 
-    var winner_gold_before := economies[winner].gold
-    var loser_gold_before := economies[loser].gold
+    var winner_gold_before :int = economies[winner].gold
+    var loser_gold_before :int = economies[loser].gold
     var weeks_before := int(arc.war_terms["tribute_weeks_left"])
 
     ArcStateMachine.tick_tribute_if_any(

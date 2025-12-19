@@ -18,7 +18,8 @@ enum QuestCategory {
     DELIVERY,       ## Quête de livraison
     WORLD_EVENT,     ## Quête liée à un événement mondial
     COALITION,
-    DOMESTIC
+    DOMESTIC,
+    ARC
 }
 
 # ========================================

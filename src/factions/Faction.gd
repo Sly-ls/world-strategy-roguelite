@@ -39,6 +39,10 @@ enum FactionType {
 var is_destroyed: bool = false
 var territories: Array[Vector2i] = []  ## POI contrôlés (futur)
 
+## Profil de la faction (axes + personnalité)
+## Utilisé par le système d'arcs et de relations inter-factions
+var profile: FactionProfile = null
+
 # ========================================
 # MÉTHODES
 # ========================================

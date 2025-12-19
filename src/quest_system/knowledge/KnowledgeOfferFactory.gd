@@ -5,7 +5,23 @@ extends RefCounted
 const HEAT_LOW := 15.0
 const HEAT_MED := 25.0
 const HEAT_HIGH := 40.0
-
+const KNOWLEDGE_TEMPLATES := {
+    &"INVESTIGATE": [
+        &"knowledge.investigate.stealth",    # infiltrer / récupérer des preuves
+        &"knowledge.investigate.diplomacy",  # interroger / convaincre témoins
+        &"knowledge.investigate.retrieve",   # récupérer un objet de preuve
+    ],
+    &"PROVE_INNOCENCE": [
+        &"knowledge.innocence.diplomacy",    # audience / plaidoirie / négociation
+        &"knowledge.innocence.escort",       # escorter un émissaire / témoin
+        &"knowledge.innocence.retrieve",     # récupérer contre-preuve
+    ],
+    &"FORGE_EVIDENCE": [
+        &"knowledge.forge.stealth",          # falsifier sceaux / lettres
+        &"knowledge.forge.retrieve",         # voler un artefact “incriminant”
+        &"knowledge.forge.sabotage",         # mise en scène / sabotage cadré
+    ],
+}
 static func spawn_offers_for_rumor(
     knowledge: FactionKnowledgeModel,
     rumor: Dictionary,
@@ -43,9 +59,15 @@ static func spawn_offers_for_rumor(
 
         # récupère la confidence du belief associé (si dispo)
         var conf := _get_confidence(knowledge, observer, event_id, claimed_actor, claim_type)
-
-        var deadline_days := (heat >= HEAT_HIGH) ? 4 : (heat >= HEAT_MED) ? 6 : 8
-        var tier := clampi(1 + int(floor(heat / 20.0)) + (conf >= 0.60 ? 1 : 0), 1, 5)
+        var deadline_days = 8
+        if (heat >= HEAT_HIGH):
+            deadline_days= 4
+        elif (heat >= HEAT_MED):
+            deadline_days= 6
+        var conf_ratio =0
+        if conf >= 0.60:
+            conf_ratio = 1
+        var tier := clampi(1 + int(floor(heat / 20.0)) + conf_ratio, 1, 5)
 
         # 1) INVESTIGATE (giver = observer/victim)
         if conf >= 0.35 and heat >= HEAT_LOW and out.size() < max_offers:
@@ -150,7 +172,7 @@ static func _spawn_knowledge_offer(
     }
 
     var inst := QuestInstance.new(template, ctx)
-    inst.status = "AVAILABLE"
+    inst.status = QuestTypes.QuestStatus.AVAILABLE
     inst.started_on_day = int(ctx.get("day", 0))
     inst.expires_on_day = inst.started_on_day + deadline_days
     return inst
