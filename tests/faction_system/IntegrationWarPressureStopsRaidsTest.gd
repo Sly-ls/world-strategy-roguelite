@@ -1,0 +1,148 @@
+extends Node
+class_name IntegrationWarPressureStopsRaidsTest
+
+class TestQuestPool:
+    var offers: Array = []
+    func try_add_offer(inst) -> bool:
+        offers.append(inst)
+        return true
+
+class TestArcNotebook:
+    var last_domestic: Dictionary = {}
+    var last_truce: Dictionary = {}
+
+    func can_spawn_domestic_offer(fid: StringName, day: int, cooldown: int) -> bool:
+        return (day - int(last_domestic.get(fid, -999999))) >= cooldown
+    func mark_domestic_offer_spawned(fid: StringName, day: int) -> void:
+        last_domestic[fid] = day
+
+    func can_spawn_truce_offer(a: StringName, b: StringName, day: int, cooldown: int) -> bool:
+        var k := StringName(String(a) + "|" + String(b))
+        return (day - int(last_truce.get(k, -999999))) >= cooldown
+    func mark_truce_offer_spawned(a: StringName, b: StringName, day: int) -> void:
+        var k := StringName(String(a) + "|" + String(b))
+        last_truce[k] = day
+
+# Planner mini (intégration du gate + budget inflation)
+class PlannerSim:
+    func _is_offensive(action: StringName) -> bool:
+        return action == &"arc.raid" or action == &"arc.declare_war" or action == &"arc.sabotage"
+
+    func _can_afford(action: StringName, base_cost: int, ctx: Dictionary) -> bool:
+        var budget := int(ctx.get("budget_points", 0))
+        var mult := float(ctx.get("budget_mult_offensive", 1.0))
+        var cost := base_cost
+        if _is_offensive(action):
+            cost = int(ceil(float(base_cost) / max(0.01, mult)))
+        return budget >= cost
+
+    func plan_action(goal: Dictionary, ctx: Dictionary) -> StringName:
+        var fid: StringName = ctx["faction_id"]
+        var dom = ctx.get("domestic_state", null)
+        if dom != null:
+            goal = DomesticPolicyGate.apply(fid, goal, ctx, dom, {
+                "pressure_threshold": 0.7,
+                "force_days": 7,
+                "min_offensive_budget_mult": 0.25
+            })
+
+        # WAR => préfère raid si possible
+        if StringName(goal.get("type", &"")) == &"WAR":
+            if _can_afford(&"arc.raid", 10, ctx):
+                return &"arc.raid"
+            return &"arc.defend"
+
+        # TRUCE => truce talks
+        if StringName(goal.get("type", &"")) == &"TRUCE":
+            return &"arc.truce_talks"
+
+        return &"arc.idle"
+
+
+func _ready() -> void:
+    _test_20_days_war_pressure_stops_raids_after_day15_and_spawns_truce_domestic()
+    print("\n✅ IntegrationWarPressureStopsRaidsTest: OK\n")
+    get_tree().quit()
+
+
+func _test_20_days_war_pressure_stops_raids_after_day15_and_spawns_truce_domestic() -> void:
+    var A := &"A"
+    var B := &"B"
+
+    var pool := TestQuestPool.new()
+    var nb := TestArcNotebook.new()
+    var planner := PlannerSim.new()
+
+    # Domestic state (utilise TA classe si tu l’as déjà)
+    var dom := FactionDomesticState.new()
+    dom.stability = 60
+    dom.war_support = 75
+    dom.unrest = 10
+
+    # Economy (optionnel)
+    var economy : FactionEconomy = FactionEconomy.new(20)
+    if Engine.has_singleton("Dummy"): pass # noop, juste pour éviter warning
+    # Si tu as une classe d’économie, branche-la ici; sinon DomesticOfferFactory fallback propaganda.
+
+    # Sim config
+    var actions_by_day: Dictionary = {}
+    var goal := {"type": &"WAR", "target_id": B}
+
+    # On force une montée déterministe de la pression (sim “guerre longue”)
+    # => à J15 on passe typiquement > 0.7
+    for day in range(1, 21):
+        # Approx: chaque jour de guerre, support↓ et unrest↑
+        dom.war_support = int(clampi(dom.war_support - 4, 0, 100))
+        dom.unrest = int(clampi(dom.unrest + 4, 0, 100))
+
+        var ctx := {
+            "day": day,
+            "faction_id": A,
+            "domestic_state": dom,
+            "budget_points": 10
+        }
+
+        # 1) plan action (gate intégré)
+        var act: StringName = planner.plan_action(goal, ctx)
+        actions_by_day[day] = act
+
+        # 2) spawn offers : domestic + truce (comme en prod)
+        DomesticOfferFactory.spawn_offer_if_needed(A, dom, day, pool, nb, economy, {"cooldown_days": 3})
+        ArcTruceOfferFactory.spawn_truce_offer_if_needed(A, B, dom, day, pool, nb)
+
+    # ---- Assertions ----
+
+    # A) Il y a des raids avant J15 (sinon le test ne prouve rien)
+    var raids_pre := 0
+    for day in range(1, 15):
+        if actions_by_day[day] == &"arc.raid":
+            raids_pre += 1
+    _assert(raids_pre >= 1, "should have at least one raid before day 15 (got %d)" % raids_pre)
+
+    # B) Plus aucun raid à partir de J15
+    for day in range(15, 21):
+        _assert(actions_by_day[day] != &"arc.raid", "no raids expected from day 15 (day %d had %s)" % [day, String(actions_by_day[day])])
+
+    # C) On a au moins une offre TRUCE à partir de J15
+    var truce_offer_post := 0
+    var domestic_offer_post := 0
+    for inst in pool.offers:
+        var sd := int(inst.started_on_day) if inst.has_property("started_on_day") else int(inst.context.get("day", 0))
+        if sd < 15:
+            continue
+        if StringName(inst.context.get("arc_action_type", &"")) == &"arc.truce_talks":
+            truce_offer_post += 1
+        if bool(inst.context.get("is_domestic_offer", false)):
+            domestic_offer_post += 1
+
+    _assert(truce_offer_post >= 1, "expected at least one TRUCE offer from day 15+")
+    _assert(domestic_offer_post >= 1, "expected at least one DOMESTIC offer from day 15+")
+
+    # D) Bonus : pression bien élevée
+    _assert(float(dom.pressure()) > 0.7, "pressure should end above 0.7 (got %.3f)" % float(dom.pressure()))
+
+
+func _assert(cond: bool, msg: String) -> void:
+    if not cond:
+        push_error("TEST FAIL: " + msg)
+        assert(false)

@@ -14,7 +14,7 @@
 #wh.min_level = LogTypes.Level.ERROR
 #Logger.add_appender(wh)
 extends Node
-class_name myLoggerClass
+class_name MyLoggerClass
 
 # ProjectSettings (optionnels)
 const PS_MODE := "logging/mode"                 # "auto" | "dev" | "release"

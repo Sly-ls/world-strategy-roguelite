@@ -16,7 +16,9 @@ enum QuestCategory {
     SURVIVAL,       ## Quête de survie
     DIPLOMATIC,     ## Quête diplomatique (relations factions)
     DELIVERY,       ## Quête de livraison
-    WORLD_EVENT     ## Quête liée à un événement mondial
+    WORLD_EVENT,     ## Quête liée à un événement mondial
+    COALITION,
+    DOMESTIC
 }
 
 # ========================================
@@ -63,7 +65,8 @@ enum ObjectiveType {
     DELIVER_RESOURCES,
     COLLECT_RESOURCES,
     REACH_LOCATION,
-    DEFEAT_ENEMIES
+    DEFEAT_ENEMIES,
+    GENERIC
     
 }
 
