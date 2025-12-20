@@ -233,14 +233,14 @@ func on_hostile_action(attacker_id: StringName, defender_id: StringName, action_
     return arc
 
 ## Résolution de quête
-func on_quest_resolution_choice(inst: QuestInstance, choice: String) -> void:
+func on_quest_resolution_choice(inst, choice: String) -> void:
     if inst == null:
         return
 
-    var ctx: Dictionary = inst.context if inst.context != null else {}
+    var ctx: Dictionary = inst.context if inst.has("context") else {}
     if not bool(ctx.get("is_arc_rivalry", false)):
         return
-        
+
     var arc_id := String(ctx.get("arc_id", ""))
     if arc_id == "" or not arcs.has(arc_id):
         return

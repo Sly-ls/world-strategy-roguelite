@@ -4,8 +4,8 @@ extends Node
     "res://tests/combat",
     "res://tests/logger",
     "res://tests/quest",
-    "res://tests/quest_generation",
-    #"res://tests/faction",
+     #"res://tests/quest_generation",
+    "res://tests/faction",
     "res://tests/runners",
     #"res://tests/faction", comment to let the test flow
 ]
