@@ -26,18 +26,13 @@ var relation_scores: Dictionary = {}
 # RNG pour génération reproductible
 var _profile_rng: RandomNumberGenerator = RandomNumberGenerator.new()
 
-func _pair_key(a: String, b: String) -> String:
-    if a < b:
-        return "%s|%s" % [a, b]
-    return "%s|%s" % [b, a]
-
 func set_relation_between(a: String, b: String, value: int) -> void:
-    relations_between[_pair_key(a, b)] = value
+    relations_between[Utils.pair_key(a, b)] = value
 
 func get_relation_between(a: String, b: String) -> int:
     if a == "" or b == "" or a == b:
         return 0
-    return int(relations_between.get(_pair_key(a, b), 0))
+    return int(relations_between.get(Utils.pair_key(a, b), 0))
 
 # ========================================
 # LIFECYCLE

@@ -102,10 +102,6 @@ static func _roll_deadline_days(v: Dictionary, rng: RandomNumberGenerator) -> in
 
 static func _roll_count(bundle: Dictionary, rng: RandomNumberGenerator) -> int:
     return rng.randi_range(int(bundle.get("count_min", 1)), int(bundle.get("count_max", 1)))
-
-static func _pair_key(a: StringName, b: StringName) -> StringName:
-    return StringName((String(a) + "|" + String(b)) if (String(a) <= String(b)) else (String(b) + "|" + String(a)))
-
 # -------------------------------------------------
 # Target POI resolution (stub + autoload-friendly)
 # -------------------------------------------------
@@ -224,7 +220,7 @@ static func _spawn_single_offer_from_variant(
 
     var domain := String(variant.get("domain", "combat"))
     var deadline_days := _roll_deadline_days(variant, rng)
-    var pair_key := _pair_key(giver_id, ant_id)
+    var pair_key := Utils.pair_key(giver_id, ant_id)
 
     # --- cible POI si demandée ---
     var target_poi := {}

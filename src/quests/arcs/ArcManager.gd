@@ -83,7 +83,7 @@ func on_quest_resolution_choice(inst: QuestInstance, choice: String) -> void:
         })
         
         # Mettre à jour l'arc state si on l'a
-        var pair_key := ArcNotebook.pair_key(giver_id, ant_id)
+        var pair_key := Utils.pair_key(giver_id, ant_id)
         if arc_states.has(pair_key):
             var arc_state: ArcState = arc_states[pair_key]
             var rel_ab := _get_relation(giver_id, ant_id)
@@ -122,7 +122,7 @@ func _get_profile(faction_id: StringName) -> FactionProfile:
 
 # --- Helper pour obtenir/créer un arc state ---
 func get_or_create_arc_state(a: StringName, b: StringName) -> ArcState:
-    var k := ArcNotebook.pair_key(a, b)
+    var k := Utils.pair_key(a, b)
     if not arc_states.has(k):
         var state := ArcState.new()
         state.a_id = a if String(a) <= String(b) else b

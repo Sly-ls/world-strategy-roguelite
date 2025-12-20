@@ -554,7 +554,7 @@ func _anti_hegemon_join_score(f: StringName, hegemon: StringName, profiles: Dict
     # history pressure (optional)
     var hist := 0.0
     if arc_notebook != null and arc_notebook.has_method("get_pair_counter"):
-        var pk := _pair_key(f, hegemon)
+        var pk := Utils.pair_key(f, hegemon)
         hist = clampf(0.05 * float(arc_notebook.get_pair_counter(pk, &"hostile_events", 0)), 0.0, 0.4)
 
     var s := 0.30*weak + 0.30*clampf(-rel, 0.0, 1.0) + 0.15*honor - 0.15*diplomacy + 0.10*opportunism + hist
@@ -656,8 +656,3 @@ func _p(profile, key: StringName, default_val: float) -> float:
     if profile is Dictionary:
         return float(profile.get("personality", {}).get(key, default_val))
     return default_val
-
-func _pair_key(a: StringName, b: StringName) -> StringName:
-    var sa := String(a)
-    var sb := String(b)
-    return StringName((sa + "|" + sb) if (sa <= sb) else (sb + "|" + sa))

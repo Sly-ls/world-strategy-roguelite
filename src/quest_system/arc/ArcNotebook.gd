@@ -93,14 +93,6 @@ func _day() -> int:
     return 0
 
 ## Instance version (non-normalisée, garde l'ordre attacker|defender)
-func _pair_key(a: String, b: String) -> String:
-    return "%s|%s" % [a, b]
-
-## Static version avec StringName, normalisée (a|b où a <= b)
-static func pair_key(a: StringName, b: StringName) -> StringName:
-    var sa := String(a)
-    var sb := String(b)
-    return StringName(sa + "|" + sb) if sa <= sb else StringName(sb + "|" + sa)
 
 ## Retourne le nom du stage
 static func stage_name(stage: int) -> String:
@@ -139,7 +131,7 @@ func _create_arc(arc_id: String, attacker_id: StringName, defender_id: StringNam
 
 ## Assure qu'un arc existe pour la paire attacker->defender
 func ensure_arc(attacker_id: StringName, defender_id: StringName, reason: StringName, meta: Dictionary = {}) -> Dictionary:
-    var key := _pair_key(String(attacker_id), String(defender_id))
+    var key := Utils.pair_key(String(attacker_id), String(defender_id))
     if arcs_by_pair.has(key):
         return arcs[String(arcs_by_pair[key])]
 
@@ -213,7 +205,7 @@ func get_arc(arc_id: String) -> Dictionary:
 
 ## Récupère un arc par paire
 func get_arc_for_pair(attacker_id: StringName, defender_id: StringName) -> Dictionary:
-    var key := _pair_key(String(attacker_id), String(defender_id))
+    var key := Utils.pair_key(String(attacker_id), String(defender_id))
     if arcs_by_pair.has(key):
         return arcs.get(String(arcs_by_pair[key]), {})
     return {}
@@ -295,7 +287,7 @@ func tick_day(ttl_days: int = ARC_TTL_DAYS) -> Array[Dictionary]:
         var attacker_id := String(arc.get("attacker_id", ""))
         var defender_id := String(arc.get("defender_id", ""))
         arcs.erase(arc_id)
-        arcs_by_pair.erase(_pair_key(attacker_id, defender_id))
+        arcs_by_pair.erase(Utils.pair_key(attacker_id, defender_id))
 
     # 2) Retaliation list
     var ret: Array[Dictionary] = []
@@ -321,7 +313,7 @@ func _get_relation_snapshot(a: String, b: String) -> int:
 # Per-Pair History (ArcPairHistory)
 # =============================================================================
 func get_pair(a: StringName, b: StringName) -> ArcPairHistory:
-    var k := pair_key(a, b)
+    var k := Utils.pair_key(a, b)
     if not pairs.has(k):
         pairs[k] = ArcPairHistory.new()
     return pairs[k]
@@ -334,13 +326,13 @@ func register(a: StringName, b: StringName, arc_type: StringName, day: int) -> v
 # Pair Heat (for targeting/priority)
 # =============================================================================
 func get_pair_heat_obj(a: StringName, b: StringName) -> PairHeat:
-    var k := pair_key(a, b)
+    var k := Utils.pair_key(a, b)
     if not pair_heats.has(k):
         pair_heats[k] = PairHeat.new()
     return pair_heats[k]
 
 func get_pair_heat(self_id: StringName, other_id: StringName, day: int = 0, decay_per_day: float = 0.93) -> Dictionary:
-    var key := pair_key(self_id, other_id)
+    var key := Utils.pair_key(self_id, other_id)
     var heat: PairHeat = pair_heat_by_key.get(key, null)
     if heat == null:
         return {"hostile_from_other": 0.0, "friendly_from_other": 0.0, "hostile_to_other": 0.0, "friendly_to_other": 0.0}
@@ -412,7 +404,7 @@ func record_pair_event(
     get_pair(a, b).register(action, day)
     
     # Update pair heat
-    var key := pair_key(a, b)
+    var key := Utils.pair_key(a, b)
     var heat: PairHeat = pair_heat_by_key.get(key, null)
     if heat == null:
         heat = PairHeat.new()
@@ -544,11 +536,11 @@ func compute_relation_cap_pct(a: StringName, b: StringName) -> float:
 # Query Events
 # =============================================================================
 func get_events_for_pair(a: StringName, b: StringName) -> Array:
-    var k := pair_key(a, b)
+    var k := Utils.pair_key(a, b)
     var result: Array = []
     for e in pair_events:
         if e.has("a") and e.has("b"):
-            var ek := pair_key(e["a"], e["b"])
+            var ek := Utils.pair_key(e["a"], e["b"])
             if ek == k:
                 result.append(e)
     return result

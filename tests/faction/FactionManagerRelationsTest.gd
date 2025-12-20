@@ -30,8 +30,8 @@ func _ready() -> void:
 # =============================================================================
 
 func _test_pair_key_symmetry() -> void:
-    var key1 := FactionManager._pair_key("humans", "orcs")
-    var key2 := FactionManager._pair_key("orcs", "humans")
+    var key1 := Utils.pair_key("humans", "orcs")
+    var key2 := Utils.pair_key("orcs", "humans")
     
     _assert(key1 == key2, "_pair_key doit être symétrique: '%s' vs '%s'" % [key1, key2])
     _assert(key1.find("|") > 0, "_pair_key doit contenir '|'")

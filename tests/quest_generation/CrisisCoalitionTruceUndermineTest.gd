@@ -201,7 +201,7 @@ func _test_crisis_coalition_truce_then_undermine_creates_suspicion() -> void:
     _assert(coal.member_ids.has(A) and coal.member_ids.has(B) and coal.member_ids.has(D), "coalition should include A,B,D")
 
     # Verify pair lock truce between members (A|B in particular)
-    var pair_key_ab := _pair_key(A, B)
+    var pair_key_ab := Utils.pair_key(A, B)
     _assert(notebook.pair_locks.has(pair_key_ab), "expected pair lock for A|B to exist (temporary coalition truce)")
     var lock :Dictionary = notebook.pair_locks[pair_key_ab]
     _assert(int(lock["until"]) >= 10 + 10, "truce lock should last ~10+ days, got until=%d" % int(lock["until"]))
@@ -226,9 +226,3 @@ func _test_crisis_coalition_truce_then_undermine_creates_suspicion() -> void:
 
     var betrayals_after := notebook.count_events(&"COALITION_BETRAYAL")
     _assert(betrayals_after > betrayals_before, "should record COALITION_BETRAYAL suspicion event after undermine")
-
-
-func _pair_key(a: StringName, b: StringName) -> StringName:
-    var sa := String(a)
-    var sb := String(b)
-    return StringName( (sa + "|" + sb) if (sa <= sb) else (sb + "|" + sa))
