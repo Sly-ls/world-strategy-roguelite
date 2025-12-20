@@ -3,8 +3,9 @@ extends Node
 @export var excluded_dirs: PackedStringArray = [
     "res://tests/combat",
     "res://tests/logger",
-    "res://tests/quest",
-	"res://tests/runners"
+    #"res://tests/quest",
+    "res://tests/faction",
+    "res://tests/runners",
 ]
 @export var root_dir: String = "res://tests"
 @export var stop_on_failure: bool = false

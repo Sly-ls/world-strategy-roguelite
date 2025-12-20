@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://0kmyjm2y4alg"]
 
-[ext_resource type="Script" uid="uid://dbk6xkuleroni" path="res://tests/runners/tests_runner.gd" id="1_0ba4n"]
+[ext_resource type="Script" uid="uid://dbk6xkuleroni" path="res://tests/tests_runner.gd" id="1_0ba4n"]
 
 [node name="QuestSystemTest" type="Node2D"]
 script = ExtResource("1_0ba4n")

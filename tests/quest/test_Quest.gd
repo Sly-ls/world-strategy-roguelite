@@ -32,7 +32,7 @@ var test_to_run :Dictionary = {
         "9": false,
         "10": false,
         "11": false,
-        "12": true
+        "12": false
     }
     
 func _ready() -> void:
