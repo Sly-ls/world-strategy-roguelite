@@ -114,8 +114,3 @@ func _has_prop(obj: Object, prop: String) -> bool:
         if p.name == prop:
             return true
     return false
-
-func _assert(cond: bool, msg: String) -> void:
-    if not cond:
-        push_error("TEST FAIL: " + msg)
-        assert(false)

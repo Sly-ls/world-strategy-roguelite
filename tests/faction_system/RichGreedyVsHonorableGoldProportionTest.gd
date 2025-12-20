@@ -4,7 +4,6 @@ class_name RichGreedyVsHonorableGoldProportionTest
 func _ready() -> void:
     _test_rich_greedy_has_higher_gold_proportion_than_honorable()
     print("\n✅ RichGreedyVsHonorableGoldProportionTest: OK\n")
-    get_tree().quit()
 
 func _test_rich_greedy_has_higher_gold_proportion_than_honorable() -> void:
     _assert(ClassDB.class_exists("RewardEconomyUtil"), "RewardEconomyUtil must exist")
@@ -65,8 +64,3 @@ func _test_rich_greedy_has_higher_gold_proportion_than_honorable() -> void:
 
     # optional: print-ish debug in log
     print("RICH gold proportions: greedy=%.2f honorable=%.2f (n=%d)" % [p_g, p_h, n])
-
-func _assert(cond: bool, msg: String) -> void:
-    if not cond:
-        push_error("TEST FAIL: " + msg)
-        assert(false)

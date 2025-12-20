@@ -4,7 +4,6 @@ class_name PairHeatDecayOnlyTest
 func _ready() -> void:
     _test_decay_only_reduces_hostile_heat_over_time()
     print("\n✅ PairHeatDecayOnlyTest: OK\n")
-    get_tree().quit()
 
 
 func _test_decay_only_reduces_hostile_heat_over_time() -> void:
@@ -41,9 +40,3 @@ func _test_decay_only_reduces_hostile_heat_over_time() -> void:
 
 func _norm(x: float, k: float) -> float:
     return 1.0 - exp(-k * max(0.0, x))
-
-
-func _assert(cond: bool, msg: String) -> void:
-    if not cond:
-        push_error("TEST FAIL: " + msg)
-        assert(false)

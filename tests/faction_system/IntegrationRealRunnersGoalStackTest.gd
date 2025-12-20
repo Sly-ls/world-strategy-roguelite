@@ -25,7 +25,6 @@ class TestArcNotebook:
 func _ready() -> void:
     _test_real_runners_goal_stack_restore()
     print("\n✅ IntegrationRealRunnersGoalStackTest: OK\n")
-    get_tree().quit()
 
 func _test_real_runners_goal_stack_restore() -> void:
     var A := &"A"
@@ -112,8 +111,3 @@ func _test_real_runners_goal_stack_restore() -> void:
 
     _assert(truce_offers >= 1, "expected >=1 TRUCE offer after day 15")
     _assert(domestic_offers >= 1, "expected >=1 DOMESTIC offer after day 15")
-
-func _assert(cond: bool, msg: String) -> void:
-    if not cond:
-        push_error("TEST FAIL: " + msg)
-        assert(false)

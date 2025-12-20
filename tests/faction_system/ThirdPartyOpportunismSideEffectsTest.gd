@@ -4,7 +4,6 @@ class_name ThirdPartyOpportunismSideEffectsTest
 func _ready() -> void:
     _test_opportunism_improves_A_C_and_does_not_touch_A_B()
     print("\n✅ ThirdPartyOpportunismSideEffectsTest: OK\n")
-    get_tree().quit()
 
 
 func _test_opportunism_improves_A_C_and_does_not_touch_A_B() -> void:
@@ -119,8 +118,3 @@ func _snapshot(xy: FactionRelationScore, yx: FactionRelationScore) -> Dictionary
         "tension_mean": 0.5 * (xy.tension + yx.tension),
         "griev_mean": 0.5 * (xy.grievance + yx.grievance),
     }
-
-func _assert(cond: bool, msg: String) -> void:
-    if not cond:
-        push_error("TEST FAIL: " + msg)
-        assert(false)

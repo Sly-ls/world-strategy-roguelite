@@ -62,7 +62,6 @@ class PlannerSim:
 func _ready() -> void:
     _test_20_days_war_pressure_stops_raids_after_day15_and_spawns_truce_domestic()
     print("\n✅ IntegrationWarPressureStopsRaidsTest: OK\n")
-    get_tree().quit()
 
 
 func _test_20_days_war_pressure_stops_raids_after_day15_and_spawns_truce_domestic() -> void:
@@ -140,9 +139,3 @@ func _test_20_days_war_pressure_stops_raids_after_day15_and_spawns_truce_domesti
 
     # D) Bonus : pression bien élevée
     _assert(float(dom.pressure()) > 0.7, "pressure should end above 0.7 (got %.3f)" % float(dom.pressure()))
-
-
-func _assert(cond: bool, msg: String) -> void:
-    if not cond:
-        push_error("TEST FAIL: " + msg)
-        assert(false)

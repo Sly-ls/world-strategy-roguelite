@@ -27,7 +27,6 @@ func _ready() -> void:
 
     run(days_to_simulate)
     print("\n✅ Arc simulation test: OK\n")
-    get_tree().quit()
 
 
 # Appelable depuis ailleurs (le nombre de jours est le param)
@@ -410,8 +409,3 @@ func _mean(arr: Array[float]) -> float:
     for v in arr:
         s += v
     return s / float(arr.size())
-
-func _assert(cond: bool, msg: String) -> void:
-    if not cond:
-        push_error("TEST FAIL: " + msg)
-        assert(false)

@@ -4,7 +4,6 @@ class_name ThirdPartyMediationConvergenceTest
 func _ready() -> void:
     _test_repeated_mediation_converges()
     print("\n✅ ThirdPartyMediationConvergenceTest: OK\n")
-    get_tree().quit()
 
 func _test_repeated_mediation_converges() -> void:
     var rng := RandomNumberGenerator.new()
@@ -103,9 +102,3 @@ func _test_repeated_mediation_converges() -> void:
         _assert(final_tension <= 25.0, "ALLIANCE implies low tension (<=25)")
         _assert(final_trust >= 55.0, "ALLIANCE implies trust >=55")
         _assert(final_rel >= 35.0, "ALLIANCE implies relation >=35")
-
-
-func _assert(cond: bool, msg: String) -> void:
-    if not cond:
-        push_error("TEST FAIL: " + msg)
-        assert(false)

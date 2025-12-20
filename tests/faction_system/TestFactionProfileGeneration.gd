@@ -15,7 +15,6 @@ func _ready() -> void:
     _run_mode(FactionProfile.GEN_DRAMATIC)
 
     print("\n✅ FactionProfile generation tests: OK\n")
-    get_tree().quit()
 
 
 func _run_mode(mode: StringName) -> void:
@@ -211,9 +210,3 @@ func _to_json_dict(p: FactionProfile) -> Dictionary:
         per[String(k)] = float(p.personality[k])
 
     return {"axis_affinity": axis, "personality": per}
-
-
-func _assert(cond: bool, msg: String) -> void:
-    if not cond:
-        push_error("TEST FAIL: " + msg)
-        assert(false)

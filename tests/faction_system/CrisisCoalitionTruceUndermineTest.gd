@@ -119,7 +119,6 @@ class TestCoalitionManager:
 func _ready() -> void:
     _test_crisis_coalition_truce_then_undermine_creates_suspicion()
     print("\n✅ CrisisCoalitionTruceUndermineTest: OK\n")
-    get_tree().quit()
 
 
 func _test_crisis_coalition_truce_then_undermine_creates_suspicion() -> void:
@@ -233,9 +232,3 @@ func _pair_key(a: StringName, b: StringName) -> StringName:
     var sa := String(a)
     var sb := String(b)
     return StringName( (sa + "|" + sb) if (sa <= sb) else (sb + "|" + sa))
-
-
-func _assert(cond: bool, msg: String) -> void:
-    if not cond:
-        push_error("TEST FAIL: " + msg)
-        assert(false)

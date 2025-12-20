@@ -418,7 +418,7 @@ func _decide_member_stance(
 # ------------------------------------------------------------
 # _spawn_joint_op_offer(c, day, profiles, relations, world)
 # ------------------------------------------------------------
-func _spawn_joint_op_offer(c: CoalitionBlock, day: int, profiles: Dictionary, relations: Dictionary, world: Dictionary):
+func _spawn_joint_op_offer(c: CoalitionBlock, day: int, profiles: Dictionary, relations: Dictionary, world: Dictionary) -> QuestInstance:
     var tier := 2
     if c.kind == &"CRISIS":
         tier = 3
@@ -446,7 +446,7 @@ func _spawn_joint_op_offer(c: CoalitionBlock, day: int, profiles: Dictionary, re
 # ------------------------------------------------------------
 # _spawn_pledge_offer(c, day, profiles, relations, world)
 # ------------------------------------------------------------
-func _spawn_pledge_offer(c: CoalitionBlock, day: int, profiles: Dictionary, relations: Dictionary, world: Dictionary):
+func _spawn_pledge_offer(c: CoalitionBlock, day: int, profiles: Dictionary, relations: Dictionary, world: Dictionary) -> QuestInstance:
     var t := _build_template_fallback(StringName("coalition_pledge_%s" % String(c.id)), 1, 3)
     t.title = "Pledge to %s Coalition" % String(c.goal)
     t.description = "Commit to coalition %s" % String(c.id)
@@ -612,14 +612,14 @@ func _pick_best_leader(members: Array[StringName], target: StringName, profiles:
 
 # -------------------- template builder (fallback) --------------------
 
-func _build_template_fallback(id: StringName, tier: int, expires_in_days: int):
+func _build_template_fallback(id: StringName, tier: int, expires_in_days: int) -> QuestTemplate:
     var t := QuestTemplate.new()
     t.id = id
     t.title = String(id)
     t.description = "Coalition offer: %s" % String(id)
-    t.category = &"COALITION"
+    t.category = QuestTypes.QuestCategory.COALITION
     t.tier = tier
-    t.objective_type = &"GENERIC"
+    t.objective_type = QuestTypes.ObjectiveType.GENERIC
     t.objective_target = &""
     t.objective_count = 1
     t.expires_in_days = expires_in_days

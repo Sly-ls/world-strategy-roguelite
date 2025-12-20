@@ -36,7 +36,6 @@ class TestArcNotebook:
 func _ready() -> void:
     _test_20_days_war_support_drops_and_spawns_truce_and_domestic()
     print("\n✅ DomesticPressureOffers20DaysTest: OK\n")
-    get_tree().quit()
 
 
 func _test_20_days_war_support_drops_and_spawns_truce_and_domestic() -> void:
@@ -87,9 +86,3 @@ func _test_20_days_war_support_drops_and_spawns_truce_and_domestic() -> void:
 
     _assert(dom_count >= 1, "pool should contain domestic offers")
     _assert(truce_count >= 1, "pool should contain truce offers")
-
-
-func _assert(cond: bool, msg: String) -> void:
-    if not cond:
-        push_error("TEST FAIL: " + msg)
-        assert(false)

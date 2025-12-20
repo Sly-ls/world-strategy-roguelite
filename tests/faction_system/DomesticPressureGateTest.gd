@@ -16,7 +16,6 @@ func _can_afford_action(action: StringName, base_cost: int, ctx: Dictionary) -> 
 func _ready() -> void:
     _test_pressure_gate_forces_truce_and_inflates_offensive_cost()
     print("\n✅ DomesticPressureGateTest: OK\n")
-    get_tree().quit()
 
 
 func _test_pressure_gate_forces_truce_and_inflates_offensive_cost() -> void:
@@ -53,9 +52,3 @@ func _test_pressure_gate_forces_truce_and_inflates_offensive_cost() -> void:
 
     # non-offensive action should remain affordable
     _assert(_can_afford_action(&"arc.truce_talks", 4, ctx), "non-offensive action should remain affordable")
-
-
-func _assert(cond: bool, msg: String) -> void:
-    if not cond:
-        push_error("TEST FAIL: " + msg)
-        assert(false)

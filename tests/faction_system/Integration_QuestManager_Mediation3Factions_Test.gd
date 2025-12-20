@@ -27,7 +27,6 @@ class TestRelationScore:
 func _ready() -> void:
     _test_resolve_quest_mediation_3f_roll_forced_logs_and_deltas()
     print("\n✅ Integration_QuestManager_Mediation3Factions_Test: OK\n")
-    get_tree().quit()
 
 
 func _test_resolve_quest_mediation_3f_roll_forced_logs_and_deltas() -> void:
@@ -179,9 +178,3 @@ func _find_first_root_node(names: Array) -> Node:
         if node != null:
             return node
     return null
-
-
-func _assert(cond: bool, msg: String) -> void:
-    if not cond:
-        push_error("TEST FAIL: " + msg)
-        assert(false)

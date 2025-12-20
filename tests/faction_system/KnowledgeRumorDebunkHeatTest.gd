@@ -4,7 +4,6 @@ class_name KnowledgeRumorDebunkHeatTest
 func _ready() -> void:
     _test_two_rumors_then_debunk_reduces_heat_below_threshold()
     print("\n✅ KnowledgeRumorDebunkHeatTest: OK\n")
-    get_tree().quit()
 
 
 func _test_two_rumors_then_debunk_reduces_heat_below_threshold() -> void:
@@ -93,9 +92,3 @@ func _test_two_rumors_then_debunk_reduces_heat_below_threshold() -> void:
     _assert(heat_after_debunk < INCIDENT_THRESHOLD, "debunk should drop heat below incident threshold (heat=%.1f)" % heat_after_debunk)
 
     # Donc : ArcManager/compute_arc_event_chance, basé sur perceived_heat, ne déclenche plus “naturellement” l’escalade.
-
-
-func _assert(cond: bool, msg: String) -> void:
-    if not cond:
-        push_error("TEST FAIL: " + msg)
-        assert(false)

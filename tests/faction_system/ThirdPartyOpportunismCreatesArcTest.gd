@@ -4,7 +4,6 @@ class_name ThirdPartyOpportunismCreatesArcTest
 func _ready() -> void:
     _test_opportunism_creates_new_arc_between_C_and_victim()
     print("\n✅ ThirdPartyOpportunismCreatesArcTest: OK\n")
-    get_tree().quit()
 
 
 func _test_opportunism_creates_new_arc_between_C_and_victim() -> void:
@@ -123,9 +122,3 @@ func _test_opportunism_creates_new_arc_between_C_and_victim() -> void:
     # _assert(arc_cb.state == &"RIVALRY" or arc_cb.state == &"CONFLICT" or arc_cb.state == &"WAR",
     #   "expected RIVALRY/CONFLICT/WAR for C<->B, got %s" % [String(arc_cb.state)]
     # )
-
-
-func _assert(cond: bool, msg: String) -> void:
-    if not cond:
-        push_error("TEST FAIL: " + msg)
-        assert(false)

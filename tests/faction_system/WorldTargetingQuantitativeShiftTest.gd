@@ -9,7 +9,6 @@ func _ready() -> void:
     _test_enemy_score_decreases_for_B_between_day10_and_day30()
 
     print("\n✅ WorldTargetingQuantitativeShiftTest: OK\n")
-    get_tree().quit()
 
 
 func _test_enemy_score_decreases_for_B_between_day10_and_day30() -> void:
@@ -109,9 +108,3 @@ func _score_for_id(rank: Array, id: StringName):
         if StringName(item.get("id", &"")) == id:
             return item.get("score", null)
     return null
-
-
-func _assert(cond: bool, msg: String) -> void:
-    if not cond:
-        push_error("TEST FAIL: " + msg)
-        assert(false)

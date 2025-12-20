@@ -9,7 +9,6 @@ func _ready() -> void:
     _test_priority_targets_shift_with_heat_inversion()
 
     print("\n✅ WorldTargetingHeatTest: OK\n")
-    get_tree().quit()
 
 
 func _test_priority_targets_shift_with_heat_inversion() -> void:
@@ -89,9 +88,3 @@ func _test_priority_targets_shift_with_heat_inversion() -> void:
     # (Optionnel debug) : vérifier qu'on a bien enregistré des attempts (juste sanity)
     # print(res30["enemy_rank"])
     # print(res30["ally_rank"])
-
-
-func _assert(cond: bool, msg: String) -> void:
-    if not cond:
-        push_error("TEST FAIL: " + msg)
-        assert(false)

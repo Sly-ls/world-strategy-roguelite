@@ -31,7 +31,6 @@ func _ready() -> void:
     rng.seed = 888888
     run(days_to_simulate)
     print("\n✅ Arc simulation (logged + escalation index): OK\n")
-    get_tree().quit()
 
 
 func run(days: int) -> void:
@@ -505,8 +504,3 @@ func _mean(arr: Array[float]) -> float:
     for v in arr:
         s += v
     return s / float(arr.size())
-
-func _assert(cond: bool, msg: String) -> void:
-    if not cond:
-        push_error("TEST FAIL: " + msg)
-        assert(false)

@@ -17,7 +17,6 @@ class TestInst:
 func _ready() -> void:
     _test_mediation_failure_increases_tension_and_decreases_trust_to_mediator()
     print("\n✅ MediationFailureConsequencesTest: OK\n")
-    get_tree().quit()
 
 func _test_mediation_failure_increases_tension_and_decreases_trust_to_mediator() -> void:
     var A := &"A"
@@ -76,8 +75,3 @@ func _test_mediation_failure_increases_tension_and_decreases_trust_to_mediator()
 
     # optional extra: B also distrusts mediator
     _assert(relations[B][C].trust < 50, "trust(B→C) should also decrease after failed mediation (after=%d)" % relations[B][C].trust)
-
-func _assert(cond: bool, msg: String) -> void:
-    if not cond:
-        push_error("TEST FAIL: " + msg)
-        assert(false)

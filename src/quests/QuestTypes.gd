@@ -67,6 +67,7 @@ enum ObjectiveType {
     COLLECT_RESOURCES,
     REACH_LOCATION,
     DEFEAT_ENEMIES,
+    COALITION,
     GENERIC
     
 }

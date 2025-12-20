@@ -4,7 +4,6 @@ class_name TributeNonPaymentSpawnsCollectOfferTest
 func _ready() -> void:
     _test_non_payment_spawns_collect_offer_then_payment_succeeds()
     print("\n✅ TributeNonPaymentSpawnsCollectOfferTest: OK\n")
-    get_tree().quit()
 
 
 func _test_non_payment_spawns_collect_offer_then_payment_succeeds() -> void:
@@ -117,9 +116,3 @@ func _test_non_payment_spawns_collect_offer_then_payment_succeeds() -> void:
 
     # weeks left decremented
     _assert(int(arc.war_terms["tribute_weeks_left"]) == weeks_before - 1, "weeks_left should decrement on successful payment")
-
-
-func _assert(cond: bool, msg: String) -> void:
-    if not cond:
-        push_error("TEST FAIL: " + msg)
-        assert(false)

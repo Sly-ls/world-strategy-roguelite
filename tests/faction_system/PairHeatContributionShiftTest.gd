@@ -4,7 +4,6 @@ class_name PairHeatContributionShiftTest
 func _ready() -> void:
     _test_heat_norms_shift_between_day10_and_day30()
     print("\n✅ PairHeatContributionShiftTest: OK\n")
-    get_tree().quit()
 
 
 func _test_heat_norms_shift_between_day10_and_day30() -> void:
@@ -54,9 +53,3 @@ func _test_heat_norms_shift_between_day10_and_day30() -> void:
 func _norm(x: float, k: float) -> float:
     # 1 - exp(-k*x) => soft cap vers 1
     return 1.0 - exp(-k * max(0.0, x))
-
-
-func _assert(cond: bool, msg: String) -> void:
-    if not cond:
-        push_error("TEST FAIL: " + msg)
-        assert(false)

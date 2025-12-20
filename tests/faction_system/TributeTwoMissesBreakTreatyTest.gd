@@ -4,7 +4,6 @@ class_name TributeTwoMissesBreakTreatyTest
 func _ready() -> void:
     _test_two_non_payments_break_treaty_and_escalate_state()
     print("\n✅ TributeTwoMissesBreakTreatyTest: OK\n")
-    get_tree().quit()
 
 
 func _test_two_non_payments_break_treaty_and_escalate_state() -> void:
@@ -97,9 +96,3 @@ func _test_two_non_payments_break_treaty_and_escalate_state() -> void:
     )
 
     _assert(arc.lock_until_day >= 14, "lock_until_day should be applied after treaty break")
-
-
-func _assert(cond: bool, msg: String) -> void:
-    if not cond:
-        push_error("TEST FAIL: " + msg)
-        assert(false)

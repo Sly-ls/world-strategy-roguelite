@@ -4,7 +4,6 @@ class_name RichGoldVarianceByPersonalityTest
 func _ready() -> void:
     _test_rich_gold_variance_depends_on_personality_but_stays_bounded()
     print("\n✅ RichGoldVarianceByPersonalityTest: OK\n")
-    get_tree().quit()
 
 func _test_rich_gold_variance_depends_on_personality_but_stays_bounded() -> void:
     _assert(ClassDB.class_exists("RewardEconomyUtil"), "RewardEconomyUtil must exist")
@@ -74,9 +73,3 @@ func _std(xs: Array[float], mean: float) -> float:
         var d := x - mean
         acc += d * d
     return sqrt(acc / float(xs.size() - 1))
-
-
-func _assert(cond: bool, msg: String) -> void:
-    if not cond:
-        push_error("TEST FAIL: " + msg)
-        assert(false)

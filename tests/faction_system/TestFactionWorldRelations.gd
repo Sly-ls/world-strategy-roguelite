@@ -53,7 +53,6 @@ func _ready() -> void:
     _validate_world_relations(faction_profiles, world_rel)
 
     print("\n✅ World relations initialization tests: OK\n")
-    get_tree().quit()
 
 
 # -------------------------
@@ -262,9 +261,3 @@ func _pearson(x: Array[float], y: Array[float]) -> float:
     if dx <= 0.000001 or dy <= 0.000001:
         return 0.0
     return num / sqrt(dx * dy)
-
-
-func _assert(cond: bool, msg: String) -> void:
-    if not cond:
-        push_error("TEST FAIL: " + msg)
-        assert(false)

@@ -4,7 +4,6 @@ class_name PoorNonGoldValueCoherenceTest
 func _ready() -> void:
     _test_poor_non_gold_value_scales_with_tier_but_is_bounded()
     print("\n✅ PoorNonGoldValueCoherenceTest: OK\n")
-    get_tree().quit()
 
 func _test_poor_non_gold_value_scales_with_tier_but_is_bounded() -> void:
     _assert(ClassDB.class_exists("RewardEconomyUtil"), "RewardEconomyUtil must exist")
@@ -87,9 +86,3 @@ func _value_proxy(bundle: Dictionary) -> float:
         v += 60.0
 
     return v
-
-
-func _assert(cond: bool, msg: String) -> void:
-    if not cond:
-        push_error("TEST FAIL: " + msg)
-        assert(false)

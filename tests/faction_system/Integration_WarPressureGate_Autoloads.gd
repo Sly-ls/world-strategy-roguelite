@@ -12,7 +12,6 @@ class DomesticState:
 func _ready() -> void:
     _test_world_loop_uses_real_autoloads()
     print("\n✅ Integration_WarPressureGate_Autoloads: OK\n")
-    get_tree().quit()
 
 func _test_world_loop_uses_real_autoloads() -> void:
     var runner = get_node_or_null("/root/FactionGoalManagerRunner")
@@ -147,8 +146,3 @@ func _restore_goal_state(runner: Node, faction_id: StringName, prev: Variant) ->
             runner.goals_by_faction.erase(faction_id)
         return
     _set_goal_state(runner, faction_id, prev)
-
-func _assert(cond: bool, msg: String) -> void:
-    if not cond:
-        push_error("TEST FAIL: " + msg)
-        assert(false)

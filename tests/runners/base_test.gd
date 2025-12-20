@@ -9,17 +9,21 @@ signal done(ok: bool, details: String)
 var finished: bool = false
 var result_ok: bool = false
 var result_details: String = ""
-
+var count_error = 0
 func pass_test(details: String = "") -> void:
     _mark_result(true, details)
-    # Signal en deferred (optionnel, utile si tu veux continuer à l’utiliser)
-    call_deferred("_emit_done")
+    _end_test
 
 func fail_test(details: String) -> void:
     push_error(details)
     _mark_result(false, details)
-    call_deferred("_emit_done")
+    _end_test()
 
+func _end_test() -> void:
+    count_error = 0
+    print("test_end")
+    call_deferred("_emit_done")
+    
 func _mark_result(ok: bool, details: String) -> void:
     if finished:
         return
@@ -37,6 +41,13 @@ func assert_true(cond: bool, message: String = "assert_true failed") -> void:
     if not cond:
         fail_test(message)
 
+
+func _assert(cond: bool, msg: String) -> void:
+    if not cond:
+        fail_test("TEST FAIL: " + msg)
+        count_error += 1
+        #assert(false)
+        
 func enable_test(enable:bool):
     if !enable:
         pass_test("skip")

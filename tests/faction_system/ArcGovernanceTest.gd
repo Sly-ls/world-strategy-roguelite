@@ -13,7 +13,6 @@ func _ready() -> void:
     _test_fallback_action_tier_with_stub()
 
     print("\n✅ ArcGovernanceTest: OK\n")
-    get_tree().quit()
 
 
 # -------------------------
@@ -179,12 +178,3 @@ func _fallback_chain_for(action: StringName) -> Array[StringName]:
             return [ArcDecisionUtil.ARC_ULTIMATUM, ArcDecisionUtil.ARC_RAID, ArcDecisionUtil.ARC_IGNORE]
         _:
             return [action, ArcDecisionUtil.ARC_RAID, ArcDecisionUtil.ARC_IGNORE]
-
-
-# -------------------------
-# Assert helper
-# -------------------------
-func _assert(cond: bool, msg: String) -> void:
-    if not cond:
-        push_error("TEST FAIL: " + msg)
-        assert(false)

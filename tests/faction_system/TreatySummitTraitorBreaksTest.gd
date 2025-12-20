@@ -4,7 +4,6 @@ class_name TreatySummitTraitorBreaksTest
 func _ready() -> void:
     _test_traitor_summit_breaks_treaty()
     print("\n✅ TreatySummitTraitorBreaksTest: OK\n")
-    get_tree().quit()
 
 func _test_traitor_summit_breaks_treaty() -> void:
     var rng := RandomNumberGenerator.new()
@@ -60,9 +59,3 @@ func _test_traitor_summit_breaks_treaty() -> void:
 
     # Lock should be applied (post-treaty cooldown)
     _assert(arc.lock_until_day >= 11, "lock_until_day should be set after treaty break")
-
-
-func _assert(cond: bool, msg: String) -> void:
-    if not cond:
-        push_error("TEST FAIL: " + msg)
-        assert(false)

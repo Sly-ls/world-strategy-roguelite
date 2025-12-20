@@ -11,7 +11,6 @@ class DomesticState:
 func _ready() -> void:
     _test_real_autoload_loop_with_goal_stack_and_offers()
     print("\n✅ Integration_WarPressureGate_Autoloads_QuestPool: OK\n")
-    get_tree().quit()
 
 func _test_real_autoload_loop_with_goal_stack_and_offers() -> void:
     var runner = get_node_or_null("/root/FactionGoalManagerRunner")
@@ -117,9 +116,3 @@ func _test_real_autoload_loop_with_goal_stack_and_offers() -> void:
     # ---------------- RESTORE ----------------
     runner.set_goal_state(A, prev_goal)
     quest_pool._test_restore_offers(prev_offers)
-
-
-func _assert(cond: bool, msg: String) -> void:
-    if not cond:
-        push_error("TEST FAIL: " + msg)
-        assert(false)

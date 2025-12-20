@@ -11,7 +11,6 @@ class StubArcNotebook:
 func _ready() -> void:
     _test_spawn_logs_reward_style_w_gold_dw_for_greedy()
     print("\n✅ Integration_QuestOfferSimRunner_RewardStyleNotebook_Test: OK\n")
-    get_tree().quit()
 
 func _test_spawn_logs_reward_style_w_gold_dw_for_greedy() -> void:
     var sim := get_node_or_null("/root/QuestOfferSimRunner")
@@ -80,8 +79,3 @@ func _has_prop(obj: Object, prop: String) -> bool:
         if p.name == prop:
             return true
     return false
-
-func _assert(cond: bool, msg: String) -> void:
-    if not cond:
-        push_error("TEST FAIL: " + msg)
-        assert(false)

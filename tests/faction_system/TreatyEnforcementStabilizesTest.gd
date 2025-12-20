@@ -4,7 +4,6 @@ class_name TreatyEnforcementStabilizesTest
 func _ready() -> void:
     _test_violation_then_enforcement_loyal_stabilizes()
     print("\n✅ TreatyEnforcementStabilizesTest: OK\n")
-    get_tree().quit()
 
 func _test_violation_then_enforcement_loyal_stabilizes() -> void:
     var rng := RandomNumberGenerator.new()
@@ -57,9 +56,3 @@ func _test_violation_then_enforcement_loyal_stabilizes() -> void:
 
     # Sanity: tension should not be higher than right after violation (usually decreases)
     _assert(rel_ab.tension <= 100 and rel_ba.tension <= 100, "tension stays in bounds")
-
-
-func _assert(cond: bool, msg: String) -> void:
-    if not cond:
-        push_error("TEST FAIL: " + msg)
-        assert(false)

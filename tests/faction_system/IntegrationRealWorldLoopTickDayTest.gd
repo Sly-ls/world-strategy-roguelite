@@ -28,7 +28,6 @@ class TestArcNotebook:
 func _ready() -> void:
     _test_tick_day_loop_goal_stack_and_offers()
     print("\n✅ IntegrationRealWorldLoopTickDayTest: OK\n")
-    get_tree().quit()
 
 func _test_tick_day_loop_goal_stack_and_offers() -> void:
     var A := &"A"
@@ -111,8 +110,3 @@ func _test_tick_day_loop_goal_stack_and_offers() -> void:
 
     # Offers check: this depends on your QuestPool wiring; if qp_node isn't truly a pool, validate via factories separately.
     # If you wire a real QuestPool node, assert at least one domestic and one truce offer exist post day 15.
-
-func _assert(cond: bool, msg: String) -> void:
-    if not cond:
-        push_error("TEST FAIL: " + msg)
-        assert(false)

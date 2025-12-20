@@ -38,7 +38,6 @@ class PlannerSim:
 func _ready() -> void:
     _test_goal_stack_war_to_truce_7_days_then_restore_war()
     print("\n✅ IntegrationGoalStackRestoreTest: OK\n")
-    get_tree().quit()
 
 
 func _test_goal_stack_war_to_truce_7_days_then_restore_war() -> void:
@@ -114,9 +113,3 @@ func _test_goal_stack_war_to_truce_7_days_then_restore_war() -> void:
 
     # D) pressure should end lower
     _assert(float(dom.pressure()) < 0.62, "pressure should end below restore threshold (got %.3f)" % float(dom.pressure()))
-
-
-func _assert(cond: bool, msg: String) -> void:
-    if not cond:
-        push_error("TEST FAIL: " + msg)
-        assert(false)

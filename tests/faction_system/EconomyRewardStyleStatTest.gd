@@ -4,7 +4,6 @@ class_name EconomyRewardStyleStatTest
 func _ready() -> void:
     _test_poor_vs_rich_reward_distribution_and_opportunism_heat()
     print("\n✅ EconomyRewardStyleStatTest: OK\n")
-    get_tree().quit()
 
 func _test_poor_vs_rich_reward_distribution_and_opportunism_heat() -> void:
     _assert(ClassDB.class_exists("RewardEconomyUtil"), "RewardEconomyUtil must exist")
@@ -67,9 +66,3 @@ func _test_poor_vs_rich_reward_distribution_and_opportunism_heat() -> void:
     # sanity: heat ranges
     _assert(poor_heat_avg >= 0.0 and poor_heat_avg <= 1.0, "poor heat avg out of range")
     _assert(rich_heat_avg >= 0.0 and rich_heat_avg <= 1.0, "rich heat avg out of range")
-
-
-func _assert(cond: bool, msg: String) -> void:
-    if not cond:
-        push_error("TEST FAIL: " + msg)
-        assert(false)

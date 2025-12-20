@@ -29,7 +29,6 @@ func _ready() -> void:
 
     var results := []
     for path in tests:
-        print("Starting test : %s", path)
         var ok := await _run_one(path)
         results.append({ "path": path, "ok": ok })
         if stop_on_failure and not ok:
