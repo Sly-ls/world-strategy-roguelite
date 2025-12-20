@@ -33,8 +33,7 @@ func tick_day(
     faction_ids: Array[StringName],
     profiles: Dictionary,          # faction -> FactionProfile (must have get_personality/get_axis_affinity)
     relations: Dictionary,         # relations[A][B] -> FactionRelationScore
-    world: Dictionary,             # crisis + power data
-    quest_pool,                    # must have try_add_offer(inst)
+    world: Dictionary,            # must have try_add_offer(inst)
     arc_notebook                   # minimal cooldown + optional pair_lock
 ) -> void:
     # 0) upkeep / expire
@@ -67,16 +66,16 @@ func tick_day(
         var spawned := 0
         # Always try JOINT OP first
         var inst := _spawn_joint_op_offer(c, day, profiles, relations, world)
-        if inst != null and quest_pool != null and quest_pool.has_method("try_add_offer"):
-            if quest_pool.try_add_offer(inst):
+        if inst != null and QuestPool != null and QuestPool.has_method("try_add_offer"):
+            if QuestPool.try_add_offer(inst):
                 spawned += 1
 
         # Optional PLEDGE offer if cohesion low or crisis with mixed members (even at war)
         if spawned < MAX_OFFERS_PER_COALITION_PER_TICK:
             if c.cohesion <= 55 or c.kind == &"CRISIS":
                 var inst2 := _spawn_pledge_offer(c, day, profiles, relations, world)
-                if inst2 != null and quest_pool != null and quest_pool.has_method("try_add_offer"):
-                    if quest_pool.try_add_offer(inst2):
+                if inst2 != null and QuestPool != null and QuestPool.has_method("try_add_offer"):
+                    if QuestPool.try_add_offer(inst2):
                         spawned += 1
 
         if spawned > 0:
@@ -88,6 +87,18 @@ func tick_day(
 # ------------------------------------------------------------
 # apply_joint_op_resolution(): member stances + progress/cohesion + deltas
 # ------------------------------------------------------------
+
+func _apply_temp_truce_for_members(c: CoalitionBlock, day: int, arc_notebook, truce_days: int) -> void:
+    if arc_notebook == null or not arc_notebook.has_method("set_pair_lock"):
+        return
+    var until := day + truce_days
+    for i in range(c.member_ids.size()):
+        for j in range(i + 1, c.member_ids.size()):
+            var a := c.member_ids[i]
+            var b := c.member_ids[j]
+            var pair_key := Utils.pair_key(a, b)
+            arc_notebook.set_pair_lock(pair_key, until, &"COALITION_TRUCE")
+            
 func apply_joint_op_resolution(
     context: Dictionary,           # from QuestInstance.context
     choice: StringName,            # LOYAL/NEUTRAL/TRAITOR (player)
@@ -232,48 +243,54 @@ func _detect_hegemon(faction_ids: Array[StringName], world: Dictionary) -> Strin
 # ------------------------------------------------------------
 # _ensure_hegemon_coalition(...)
 # ------------------------------------------------------------
-func _ensure_hegemon_coalition(
-    day: int,
-    hegemon_id: StringName,
-    faction_ids: Array[StringName],
-    profiles: Dictionary,
-    relations: Dictionary,
-    world: Dictionary,
-    arc_notebook
-) -> void:
-    var ckey := StringName("HEGEMON|AGAINST_TARGET|%s" % String(hegemon_id))
-    if coalition_id_by_key.has(ckey):
-        return   # already exists
 
+func _ensure_hegemon_coalition(day: int, hegemon_id: StringName, faction_ids: Array[StringName], profiles: Dictionary, relations: Dictionary, world: Dictionary, arc_notebook) -> void:
+    var key := StringName("HEGEMON|AGAINST_TARGET|%s" % String(hegemon_id))
+    if coalition_id_by_key.has(key):
+        return
+
+    # candidates: factions not hegemon, with fear/hostility, or simply weak ones under pressure
     var candidates: Array[StringName] = []
-    for fid in faction_ids:
-        if fid == hegemon_id:
-            continue
-        var score := _anti_hegemon_join_score(fid, hegemon_id, profiles, relations, world, arc_notebook)
-        if score >= 0.35:
-            candidates.append(fid)
+    for f in faction_ids:
+        if f == hegemon_id: continue
+        var score := _anti_hegemon_join_score(f, hegemon_id, profiles, relations, world, arc_notebook)
+        if score >= 0.55:
+            candidates.append(f)
 
     if candidates.size() < COALITION_MIN_MEMBERS:
         return
 
+    # pick leader = highest score
+    var leader := candidates[0]
+    var best := -1.0
+    for f in candidates:
+        var s := _anti_hegemon_join_score(f, hegemon_id, profiles, relations, world, arc_notebook)
+        if s > best:
+            best = s
+            leader = f
+
     var c := CoalitionBlock.new()
-    c.id = StringName("heg_%s_%d" % [String(hegemon_id), day])
     c.kind = &"HEGEMON"
     c.side = &"AGAINST_TARGET"
     c.goal = &"CONTAIN"
     c.target_id = hegemon_id
+    c.leader_id = leader
     c.started_day = day
     c.expires_day = day + rng.randi_range(COALITION_MIN_LIFE_DAYS, COALITION_MAX_LIFE_DAYS)
-    c.lock_until_day = day + 3
+    c.cohesion = 55
+    c.progress = 0.0
 
-    for fid in candidates:
-        c.add_member(fid, 0.6, &"SUPPORT")
+    c.member_ids = candidates
+    for m in c.member_ids:
+        c.member_commitment[m] = clampf(_anti_hegemon_join_score(m, hegemon_id, profiles, relations, world, arc_notebook), 0.2, 0.95)
+        c.member_role[m] = &"FRONTLINE" if rng.randf() < 0.35 else &"SUPPORT"
 
-    c.leader_id = _pick_best_leader(c.member_ids, hegemon_id, profiles, relations)
-
+    c.id = StringName("coal_heg_%s_%s" % [String(hegemon_id), str(day)])
     coalitions_by_id[c.id] = c
-    coalition_id_by_key[c.key()] = c.id
+    coalition_id_by_key[key] = c.id
 
+    # Optional: “soft truce” between members to keep it playable
+    _apply_temp_truce_for_members(c, day, arc_notebook, 10)
 
 # ------------------------------------------------------------
 # _ensure_crisis_coalitions(...)
@@ -284,71 +301,75 @@ func _ensure_crisis_coalitions(
     profiles: Dictionary,
     relations: Dictionary,
     world: Dictionary,
-    arc_notebook
+    arc_notebook: ArcNotebook
 ) -> void:
+    var source: StringName = StringName(world.get("crisis_source_id", &""))   # can be empty (pure world crisis)
+    var axis: StringName = StringName(world.get("crisis_axis", &""))
     var sev := float(world.get("crisis_severity", 0.0))
-    var source: StringName = StringName(world.get("crisis_source_id", &""))
-    var crisis_axis: StringName = StringName(world.get("crisis_axis", &""))
 
-    # AGAINST crisis coalition
-    var ckey_against := StringName("CRISIS|AGAINST_TARGET|%s" % String(source))
-    if not coalition_id_by_key.has(ckey_against):
-        var stop_cands: Array[StringName] = []
-        for fid in faction_ids:
-            if fid == source:
-                continue
-            var score := _stop_crisis_join_score(fid, source, crisis_axis, sev, profiles, relations, world, arc_notebook)
-            if score >= 0.40:
-                stop_cands.append(fid)
+    # A) coalition AGAINST crisis/source (STOP_CRISIS)
+    var key_anti := StringName("CRISIS|AGAINST_TARGET|%s" % String(source))
+    if not coalition_id_by_key.has(key_anti):
+        var anti_members: Array[StringName] = []
+        for f in faction_ids:
+            # some factions prefer letting crisis grow or are friendly to source => won't join anti
+            var s := _stop_crisis_join_score(f, source, axis, sev, profiles, relations, world, arc_notebook)
+            if s >= 0.55:
+                anti_members.append(f)
 
-        if stop_cands.size() >= COALITION_MIN_MEMBERS:
+        if anti_members.size() >= COALITION_MIN_MEMBERS:
+            var leader := _pick_best_leader(anti_members, source, profiles, relations)
             var c := CoalitionBlock.new()
-            c.id = StringName("crisis_stop_%d" % day)
             c.kind = &"CRISIS"
             c.side = &"AGAINST_TARGET"
             c.goal = &"STOP_CRISIS"
             c.target_id = source
+            c.leader_id = leader
             c.started_day = day
-            c.expires_day = day + rng.randi_range(COALITION_MIN_LIFE_DAYS, COALITION_MAX_LIFE_DAYS)
-            c.lock_until_day = day + 2
-
-            for fid in stop_cands:
-                c.add_member(fid, 0.6, &"SUPPORT")
-
-            c.leader_id = _pick_best_leader(c.member_ids, source, profiles, relations)
-
+            c.expires_day = day + rng.randi_range(12, 28)
+            c.cohesion = 50
+            c.member_ids = anti_members
+            for m in c.member_ids:
+                c.member_commitment[m] = clampf(_stop_crisis_join_score(m, source, axis, sev, profiles, relations, world, arc_notebook), 0.2, 0.95)
+                c.member_role[m] = &"DIPLO" if rng.randf() < 0.25 else &"SUPPORT"
+            c.id = StringName("coal_crisis_anti_%s_%s" % [String(source), str(day)])
             coalitions_by_id[c.id] = c
-            coalition_id_by_key[c.key()] = c.id
+            coalition_id_by_key[key_anti] = c.id
+            _apply_temp_truce_for_members(c, day, arc_notebook, 12)
 
-    # WITH crisis coalition (opportunists who want to benefit)
-    var ckey_with := StringName("CRISIS|WITH_TARGET|%s" % String(source))
-    if not coalition_id_by_key.has(ckey_with):
-        var support_cands: Array[StringName] = []
-        for fid in faction_ids:
-            if fid == source:
-                continue
-            var score := _support_crisis_join_score(fid, source, crisis_axis, sev, profiles, relations, world, arc_notebook)
-            if score >= 0.45:
-                support_cands.append(fid)
+    # B) coalition WITH crisis/source (SUPPORT_CRISIS) if source exists and has allies who want crisis
+    if source == &"":
+        return
+    var key_pro := StringName("CRISIS|WITH_TARGET|%s" % String(source))
+    if coalition_id_by_key.has(key_pro):
+        return
 
-        if support_cands.size() >= 2:   # can be smaller
-            var c := CoalitionBlock.new()
-            c.id = StringName("crisis_sup_%d" % day)
-            c.kind = &"CRISIS"
-            c.side = &"WITH_TARGET"
-            c.goal = &"SUPPORT_CRISIS"
-            c.target_id = source
-            c.started_day = day
-            c.expires_day = day + rng.randi_range(COALITION_MIN_LIFE_DAYS, COALITION_MAX_LIFE_DAYS)
-            c.lock_until_day = day + 2
+    var pro_members: Array[StringName] = []
+    for f in faction_ids:
+        if f == source: continue
+        var s2 := _support_crisis_join_score(f, source, axis, sev, profiles, relations, world, arc_notebook)
+        if s2 >= 0.62:
+            pro_members.append(f)
 
-            for fid in support_cands:
-                c.add_member(fid, 0.55, &"SUPPORT")
+    # Keep pro coalition smaller: it’s a “cabal”
+    if pro_members.size() >= 2:
+        var c2 := CoalitionBlock.new()
+        c2.kind = &"CRISIS"
+        c2.side = &"WITH_TARGET"
+        c2.goal = &"SUPPORT_CRISIS"
+        c2.target_id = source
+        c2.leader_id = source
+        c2.started_day = day
+        c2.expires_day = day + rng.randi_range(10, 22)
+        c2.cohesion = 55
+        c2.member_ids = pro_members
+        for m in c2.member_ids:
+            c2.member_commitment[m] = clampf(_support_crisis_join_score(m, source, axis, sev, profiles, relations, world, arc_notebook), 0.2, 0.95)
+            c2.member_role[m] = &"STEALTH" if rng.randf() < 0.5 else &"SUPPORT"
+        c2.id = StringName("coal_crisis_pro_%s_%s" % [String(source), str(day)])
+        coalitions_by_id[c2.id] = c2
+        coalition_id_by_key[key_pro] = c2.id
 
-            c.leader_id = support_cands[0]
-
-            coalitions_by_id[c.id] = c
-            coalition_id_by_key[c.key()] = c.id
 
 
 # ------------------------------------------------------------
