@@ -37,7 +37,7 @@ class PlannerSim:
 
 func _ready() -> void:
     _test_goal_stack_war_to_truce_7_days_then_restore_war()
-    print("\n✅ IntegrationGoalStackRestoreTest: OK\n")
+    pass_test("\n✅ IntegrationGoalStackRestoreTest: OK\n")
 
 
 func _test_goal_stack_war_to_truce_7_days_then_restore_war() -> void:

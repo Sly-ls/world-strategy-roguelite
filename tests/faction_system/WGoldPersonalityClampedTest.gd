@@ -3,7 +3,7 @@ class_name WGoldPersonalityClampedTest
 
 func _ready() -> void:
     _test_w_gold_depends_on_personality_but_is_clamped_by_economy()
-    print("\n✅ WGoldPersonalityClampedTest: OK\n")
+    pass_test("\n✅ WGoldPersonalityClampedTest: OK\n")
 
 func _test_w_gold_depends_on_personality_but_is_clamped_by_economy() -> void:
     assert_true(ClassDB.class_exists("RewardEconomyUtil"), "RewardEconomyUtil must exist")

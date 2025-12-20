@@ -26,7 +26,7 @@ class TestRelationScore:
 
 func _ready() -> void:
     _test_resolve_quest_mediation_3f_roll_forced_logs_and_deltas()
-    print("\n✅ Integration_QuestManager_Mediation3Factions_Test: OK\n")
+    pass_test("\n✅ Integration_QuestManager_Mediation3Factions_Test: OK\n")
 
 
 func _test_resolve_quest_mediation_3f_roll_forced_logs_and_deltas() -> void:

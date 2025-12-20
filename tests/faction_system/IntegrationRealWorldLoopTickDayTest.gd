@@ -27,7 +27,7 @@ class TestArcNotebook:
 
 func _ready() -> void:
     _test_tick_day_loop_goal_stack_and_offers()
-    print("\n✅ IntegrationRealWorldLoopTickDayTest: OK\n")
+    pass_test("\n✅ IntegrationRealWorldLoopTickDayTest: OK\n")
 
 func _test_tick_day_loop_goal_stack_and_offers() -> void:
     var A := &"A"

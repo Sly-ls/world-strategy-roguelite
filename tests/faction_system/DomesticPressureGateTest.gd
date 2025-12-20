@@ -15,7 +15,7 @@ func _can_afford_action(action: StringName, base_cost: int, ctx: Dictionary) -> 
 
 func _ready() -> void:
     _test_pressure_gate_forces_truce_and_inflates_offensive_cost()
-    print("\n✅ DomesticPressureGateTest: OK\n")
+    pass_test("\n✅ DomesticPressureGateTest: OK\n")
 
 
 func _test_pressure_gate_forces_truce_and_inflates_offensive_cost() -> void:

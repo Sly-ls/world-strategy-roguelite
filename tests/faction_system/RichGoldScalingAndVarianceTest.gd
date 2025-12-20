@@ -3,7 +3,7 @@ class_name RichGoldScalingAndVarianceTest
 
 func _ready() -> void:
     _test_rich_gold_scales_with_tier_and_variance_is_controlled()
-    print("\n✅ RichGoldScalingAndVarianceTest: OK\n")
+    pass_test("\n✅ RichGoldScalingAndVarianceTest: OK\n")
 
 func _test_rich_gold_scales_with_tier_and_variance_is_controlled() -> void:
     _assert(ClassDB.class_exists("RewardEconomyUtil"), "RewardEconomyUtil must exist")

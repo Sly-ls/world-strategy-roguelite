@@ -8,7 +8,7 @@ func _ready() -> void:
 
     _test_enemy_score_decreases_for_B_between_day10_and_day30()
 
-    print("\n✅ WorldTargetingQuantitativeShiftTest: OK\n")
+    pass_test("\n✅ WorldTargetingQuantitativeShiftTest: OK\n")
 
 
 func _test_enemy_score_decreases_for_B_between_day10_and_day30() -> void:
@@ -49,11 +49,11 @@ func _test_enemy_score_decreases_for_B_between_day10_and_day30() -> void:
 
         # B raid A (3 fois)
         if day == 2 or day == 4 or day == 6:
-            nb.record_pair_event(b, self_id, ArcDecisionUtil.ARC_RAID, day)
+            nb.record_pair_event(day, b, self_id, ArcDecisionUtil.ARC_RAID)
 
         # B réparations (2 fois) en fin de période
         if day == 25 or day == 27:
-            nb.record_pair_event(b, self_id, ArcDecisionUtil.ARC_REPARATIONS, day)
+            nb.record_pair_event(day, b, self_id, ArcDecisionUtil.ARC_REPARATIONS)
 
     # --- Snapshot J10 (B encore en rivalité hostile) ---
     ctx.day = 10

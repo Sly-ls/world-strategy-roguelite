@@ -17,7 +17,7 @@ class TestArcNotebook:
 
 func _ready() -> void:
     _test_bundle_spawns_then_debunk_reduces_bundle()
-    print("\n✅ KnowledgeBundleSpawnAndDebunkTest: OK\n")
+    pass_test("\n✅ KnowledgeBundleSpawnAndDebunkTest: OK\n")
 
 
 func _test_bundle_spawns_then_debunk_reduces_bundle() -> void:

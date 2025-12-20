@@ -118,7 +118,7 @@ class TestCoalitionManager:
 
 func _ready() -> void:
     _test_crisis_coalition_truce_then_undermine_creates_suspicion()
-    print("\n✅ CrisisCoalitionTruceUndermineTest: OK\n")
+    pass_test("\n✅ CrisisCoalitionTruceUndermineTest: OK\n")
 
 
 func _test_crisis_coalition_truce_then_undermine_creates_suspicion() -> void:

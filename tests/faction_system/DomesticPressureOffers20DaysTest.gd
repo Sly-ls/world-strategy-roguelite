@@ -35,7 +35,7 @@ class TestArcNotebook:
 
 func _ready() -> void:
     _test_20_days_war_support_drops_and_spawns_truce_and_domestic()
-    print("\n✅ DomesticPressureOffers20DaysTest: OK\n")
+    pass_test("\n✅ DomesticPressureOffers20DaysTest: OK\n")
 
 
 func _test_20_days_war_support_drops_and_spawns_truce_and_domestic() -> void:

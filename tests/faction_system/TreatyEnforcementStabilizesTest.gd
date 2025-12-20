@@ -3,7 +3,7 @@ class_name TreatyEnforcementStabilizesTest
 
 func _ready() -> void:
     _test_violation_then_enforcement_loyal_stabilizes()
-    print("\n✅ TreatyEnforcementStabilizesTest: OK\n")
+    pass_test("\n✅ TreatyEnforcementStabilizesTest: OK\n")
 
 func _test_violation_then_enforcement_loyal_stabilizes() -> void:
     var rng := RandomNumberGenerator.new()

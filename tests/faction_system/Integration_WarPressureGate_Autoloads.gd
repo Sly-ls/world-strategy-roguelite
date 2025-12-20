@@ -11,7 +11,7 @@ class DomesticState:
 
 func _ready() -> void:
     _test_world_loop_uses_real_autoloads()
-    print("\n✅ Integration_WarPressureGate_Autoloads: OK\n")
+    pass_test("\n✅ Integration_WarPressureGate_Autoloads: OK\n")
 
 func _test_world_loop_uses_real_autoloads() -> void:
     var runner = get_node_or_null("/root/FactionGoalManagerRunner")

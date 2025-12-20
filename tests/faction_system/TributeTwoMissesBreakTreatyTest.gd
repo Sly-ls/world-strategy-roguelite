@@ -3,7 +3,7 @@ class_name TributeTwoMissesBreakTreatyTest
 
 func _ready() -> void:
     _test_two_non_payments_break_treaty_and_escalate_state()
-    print("\n✅ TributeTwoMissesBreakTreatyTest: OK\n")
+    pass_test("\n✅ TributeTwoMissesBreakTreatyTest: OK\n")
 
 
 func _test_two_non_payments_break_treaty_and_escalate_state() -> void:

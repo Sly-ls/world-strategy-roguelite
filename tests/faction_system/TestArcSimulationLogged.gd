@@ -30,7 +30,7 @@ const HOSTILE_ACTIONS := [
 func _ready() -> void:
     rng.seed = 888888
     run(days_to_simulate)
-    print("\n✅ Arc simulation (logged + escalation index): OK\n")
+    pass_test("\n✅ Arc simulation (logged + escalation index): OK\n")
 
 
 func run(days: int) -> void:

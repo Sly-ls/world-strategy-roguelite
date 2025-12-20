@@ -10,7 +10,7 @@ class DomesticState:
 
 func _ready() -> void:
     _test_real_autoload_loop_with_goal_stack_and_offers()
-    print("\n✅ Integration_WarPressureGate_Autoloads_QuestPool: OK\n")
+    pass_test("\n✅ Integration_WarPressureGate_Autoloads_QuestPool: OK\n")
 
 func _test_real_autoload_loop_with_goal_stack_and_offers() -> void:
     var runner = get_node_or_null("/root/FactionGoalManagerRunner")

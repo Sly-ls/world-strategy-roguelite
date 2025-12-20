@@ -3,7 +3,7 @@ class_name TreatySummitTraitorBreaksTest
 
 func _ready() -> void:
     _test_traitor_summit_breaks_treaty()
-    print("\n✅ TreatySummitTraitorBreaksTest: OK\n")
+    pass_test("\n✅ TreatySummitTraitorBreaksTest: OK\n")
 
 func _test_traitor_summit_breaks_treaty() -> void:
     var rng := RandomNumberGenerator.new()

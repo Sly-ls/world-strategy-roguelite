@@ -14,8 +14,7 @@ class StubArcNotebook:
 
 func _ready() -> void:
     _test_spawn_logs_reward_style_with_w_gold_dw()
-    print("\n✅ Integration_OfferFactory_RewardStyleNotebook_Test: OK\n")
-    get_tree().quit()
+    pass_test("\n✅ Integration_OfferFactory_RewardStyleNotebook_Test: OK\n")
 
 func _test_spawn_logs_reward_style_with_w_gold_dw() -> void:
     _assert(ClassDB.class_exists("RewardEconomyUtil"), "RewardEconomyUtil must exist")

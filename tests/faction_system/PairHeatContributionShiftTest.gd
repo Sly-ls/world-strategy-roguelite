@@ -3,7 +3,7 @@ class_name PairHeatContributionShiftTest
 
 func _ready() -> void:
     _test_heat_norms_shift_between_day10_and_day30()
-    print("\n✅ PairHeatContributionShiftTest: OK\n")
+    pass_test("\n✅ PairHeatContributionShiftTest: OK\n")
 
 
 func _test_heat_norms_shift_between_day10_and_day30() -> void:

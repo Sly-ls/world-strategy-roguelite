@@ -10,9 +10,12 @@ var finished: bool = false
 var result_ok: bool = false
 var result_details: String = ""
 var count_error = 0
-func pass_test(details: String = "") -> void:
-    _mark_result(true, details)
-    _end_test
+func pass_test(details: String = "Passed") -> void:
+    if count_error == 0:
+        _mark_result(true, details)
+        _end_test
+    else:
+        fail_test("TEST FAILED")
 
 func fail_test(details: String) -> void:
     push_error(details)
@@ -21,7 +24,6 @@ func fail_test(details: String) -> void:
 
 func _end_test() -> void:
     count_error = 0
-    print("test_end")
     call_deferred("_emit_done")
     
 func _mark_result(ok: bool, details: String) -> void:
@@ -40,11 +42,12 @@ func _emit_done() -> void:
 func assert_true(cond: bool, message: String = "assert_true failed") -> void:
     if not cond:
         fail_test(message)
+        count_error += 1
 
 
 func _assert(cond: bool, msg: String) -> void:
     if not cond:
-        fail_test("TEST FAIL: " + msg)
+        print("TEST FAIL: " + msg)
         count_error += 1
         #assert(false)
         

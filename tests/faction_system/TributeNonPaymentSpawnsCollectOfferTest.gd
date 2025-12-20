@@ -3,7 +3,7 @@ class_name TributeNonPaymentSpawnsCollectOfferTest
 
 func _ready() -> void:
     _test_non_payment_spawns_collect_offer_then_payment_succeeds()
-    print("\n✅ TributeNonPaymentSpawnsCollectOfferTest: OK\n")
+    pass_test("\n✅ TributeNonPaymentSpawnsCollectOfferTest: OK\n")
 
 
 func _test_non_payment_spawns_collect_offer_then_payment_succeeds() -> void:

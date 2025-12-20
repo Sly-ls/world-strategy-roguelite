@@ -3,7 +3,7 @@ class_name ThirdPartyMediationConvergenceTest
 
 func _ready() -> void:
     _test_repeated_mediation_converges()
-    print("\n✅ ThirdPartyMediationConvergenceTest: OK\n")
+    pass_test("\n✅ ThirdPartyMediationConvergenceTest: OK\n")
 
 func _test_repeated_mediation_converges() -> void:
     var rng := RandomNumberGenerator.new()

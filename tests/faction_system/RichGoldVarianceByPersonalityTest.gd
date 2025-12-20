@@ -3,7 +3,7 @@ class_name RichGoldVarianceByPersonalityTest
 
 func _ready() -> void:
     _test_rich_gold_variance_depends_on_personality_but_stays_bounded()
-    print("\n✅ RichGoldVarianceByPersonalityTest: OK\n")
+    pass_test("\n✅ RichGoldVarianceByPersonalityTest: OK\n")
 
 func _test_rich_gold_variance_depends_on_personality_but_stays_bounded() -> void:
     _assert(ClassDB.class_exists("RewardEconomyUtil"), "RewardEconomyUtil must exist")

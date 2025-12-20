@@ -24,7 +24,7 @@ class TestArcNotebook:
 
 func _ready() -> void:
     _test_real_runners_goal_stack_restore()
-    print("\n✅ IntegrationRealRunnersGoalStackTest: OK\n")
+    pass_test("\n✅ IntegrationRealRunnersGoalStackTest: OK\n")
 
 func _test_real_runners_goal_stack_restore() -> void:
     var A := &"A"

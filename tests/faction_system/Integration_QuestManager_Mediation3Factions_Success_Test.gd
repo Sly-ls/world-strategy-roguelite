@@ -22,8 +22,7 @@ class TestRelationScore:
 
 func _ready() -> void:
     _test_resolve_quest_mediation_success_logs_and_inverse_deltas()
-    print("\n✅ Integration_QuestManager_Mediation3Factions_Success_Test: OK\n")
-    get_tree().quit()
+    pass_test("\n✅ Integration_QuestManager_Mediation3Factions_Success_Test: OK\n")
 
 func _test_resolve_quest_mediation_success_logs_and_inverse_deltas() -> void:
     _assert(ClassDB.class_exists("QuestOutcomeUtil"), "QuestOutcomeUtil must exist")

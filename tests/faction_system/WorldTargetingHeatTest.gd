@@ -8,7 +8,7 @@ func _ready() -> void:
 
     _test_priority_targets_shift_with_heat_inversion()
 
-    print("\n✅ WorldTargetingHeatTest: OK\n")
+    pass_test("\n✅ WorldTargetingHeatTest: OK\n")
 
 
 func _test_priority_targets_shift_with_heat_inversion() -> void:
@@ -51,11 +51,11 @@ func _test_priority_targets_shift_with_heat_inversion() -> void:
 
         # B raids A on days 2, 4, 6
         if day == 2 or day == 4 or day == 6:
-            nb.record_pair_event(b, self_id, ArcDecisionUtil.ARC_RAID, day)
+            nb.record_pair_event(day, b, self_id, ArcDecisionUtil.ARC_RAID)
 
         # B makes reparations to A on days 25, 27
         if day == 25 or day == 27:
-            nb.record_pair_event(b, self_id, ArcDecisionUtil.ARC_REPARATIONS, day)
+            nb.record_pair_event(day, b, self_id, ArcDecisionUtil.ARC_REPARATIONS)
 
         # At day 10: B should clearly be best_enemy
         if day == 10:

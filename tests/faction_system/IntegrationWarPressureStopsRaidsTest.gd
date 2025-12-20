@@ -61,7 +61,7 @@ class PlannerSim:
 
 func _ready() -> void:
     _test_20_days_war_pressure_stops_raids_after_day15_and_spawns_truce_domestic()
-    print("\n✅ IntegrationWarPressureStopsRaidsTest: OK\n")
+    pass_test("\n✅ IntegrationWarPressureStopsRaidsTest: OK\n")
 
 
 func _test_20_days_war_pressure_stops_raids_after_day15_and_spawns_truce_domestic() -> void:

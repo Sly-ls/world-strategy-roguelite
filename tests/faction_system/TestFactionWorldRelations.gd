@@ -52,7 +52,7 @@ func _ready() -> void:
     # 4) Vérifs
     _validate_world_relations(faction_profiles, world_rel)
 
-    print("\n✅ World relations initialization tests: OK\n")
+    pass_test("\n✅ World relations initialization tests: OK\n")
 
 
 # -------------------------
