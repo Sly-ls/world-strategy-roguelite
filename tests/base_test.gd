@@ -9,13 +9,14 @@ signal done(ok: bool, details: String)
 var finished: bool = false
 var result_ok: bool = false
 var result_details: String = ""
-var count_error = 0
+var count_error :int = 0
 func pass_test(details: String = "Passed") -> void:
     if count_error == 0:
         _mark_result(true, details)
-        _end_test
+        _end_test()
     else:
-        fail_test("TEST FAILED")
+        var msg :String = "TEST FAILED | %d errors |" % count_error
+        fail_test(msg)
 
 func fail_test(details: String) -> void:
     push_error(details)

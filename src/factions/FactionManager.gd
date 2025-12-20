@@ -15,7 +15,6 @@ signal faction_status_changed(faction_id: String, old_status: String, new_status
 # ========================================
 # PROPRIÉTÉS
 # ========================================
-
 var factions: Dictionary = {}  ## id -> Faction
 
 # Relations entre factions (symétrique) - ancienne méthode simple
@@ -416,3 +415,395 @@ func print_all_factions() -> void:
     for f in get_all_factions():
         print("- %s : %d (%s)" % [f.name, f.relation_with_player, f.get_relation_status()])
     print("================\n")
+
+# -------------------------
+# Public API
+# -------------------------
+
+func generate_faction(
+    faction_id: StringName,
+    rng: RandomNumberGenerator,
+    heat: int,
+    params: Dictionary = {},
+    against_faction = null # Faction optionnelle (pour créer un antagoniste)
+):
+    heat = clampi(heat, 1, 100)
+
+    var gen_type := _gen_type_from_heat(heat, rng)
+    var antagonism_strength :float = lerp(1.0, 1.55, float(heat) / 100.0)
+
+    var profile_params := _profile_params_from_heat(heat, params)
+
+    var against_profile = null
+    if against_faction != null and against_faction.has_method("get") and against_faction.get("profile") != null:
+        against_profile = against_faction.get("profile")
+
+    var profile: FactionProfile = FactionProfile.generate_full_profile(
+        rng,
+        gen_type,
+        profile_params,
+        &"",                 # force_against_axis (optionnel)
+        against_profile,     # against_faction_profile (optionnel)
+        antagonism_strength
+    )
+
+    # Biais “heat” sur la personnalité => plus de friction/conflits quand heat monte
+    _apply_heat_bias_to_personality(profile, heat, rng)
+
+    # Crée ta faction (adapte selon ta classe Faction)
+    var f = _new_faction_object()
+    f.set("id", faction_id)
+    f.set("profile", profile)
+
+    factions[faction_id] = f
+    return f
+
+
+func generate_factions(
+    count: int,
+    heat: int,
+    seed: int = 0,
+    params: Dictionary = {}
+) -> Array:
+    heat = clampi(heat, 1, 100)
+
+    var rng := RandomNumberGenerator.new()
+    if seed != 0:
+        rng.seed = seed
+    else:
+        rng.randomize()
+
+    var created: Array = []
+
+    for i in range(count):
+        var id: StringName = StringName("f_%03d" % i)
+
+        # plus heat est haut, plus on force des antagonistes “naturels”
+        var p_ant := clampf((float(heat) - 15.0) / 85.0, 0.0, 1.0) * 0.75
+        var against = null
+        if created.size() > 0 and rng.randf() < p_ant:
+            against = created[rng.randi_range(0, created.size() - 1)]
+
+        var f = generate_faction(id, rng, heat, params, against)
+        created.append(f)
+
+    return created
+
+
+# -------------------------
+# Internal helpers
+# -------------------------
+
+func _gen_type_from_heat(heat: int, rng: RandomNumberGenerator) -> StringName:
+    # heat faible => centered ; heat moyen => normal ; heat fort => dramatic
+    var h := float(heat) / 100.0
+    if h < 0.3:
+        return FactionProfile.GEN_CENTERED
+    elif h > 0.7:
+        return FactionProfile.GEN_DRAMATIC
+
+    # zone milieu : mix (évite un monde trop homogène)
+    return FactionProfile.GEN_DRAMATIC if rng.randf() < (h - 0.33) / 0.33 else FactionProfile.GEN_NORMAL
+
+
+func _profile_params_from_heat(heat: int, user_params: Dictionary) -> Dictionary:
+    var h := float(heat) / 100.0
+
+    # cohérence plus forte quand heat monte (identités plus nettes => relations plus polarisées)
+    var coherence :float = lerp(0.55, 0.85, h)
+
+    # plus heat monte, plus on “autorise” le mode antagoniste à être marqué
+    var antagonist_blend :float = lerp(0.10, 0.28, h)
+
+    var p := {
+        "coherence_strength": coherence,
+        "antagonist_personality_blend": antagonist_blend,
+        "antagonist_force_dominant_axis": true,
+        "anti_magic_enabled": true
+    }
+
+    # allow overrides
+    for k in user_params.keys():
+        p[k] = user_params[k]
+    return p
+
+
+func _apply_heat_bias_to_personality(profile: FactionProfile, heat: int, rng: RandomNumberGenerator) -> void:
+    var h := float(heat) / 100.0
+    # petit jitter pour ne pas faire “toutes identiques”
+    var j := rng.randf_range(-0.04, 0.04)
+
+    # Heat => +aggression +vengefulness +expansionism, -diplomacy -integrationism, -risk_aversion
+    # (ça augmente friction et diminue relation dans compute_baseline_relation)
+    profile.set_personality(FactionProfile.PERS_AGGRESSION,
+        profile.get_personality(FactionProfile.PERS_AGGRESSION) + 0.22*h + j)
+    profile.set_personality(FactionProfile.PERS_VENGEFULNESS,
+        profile.get_personality(FactionProfile.PERS_VENGEFULNESS) + 0.18*h + j)
+    profile.set_personality(FactionProfile.PERS_EXPANSIONISM,
+        profile.get_personality(FactionProfile.PERS_EXPANSIONISM) + 0.16*h + j)
+
+    profile.set_personality(FactionProfile.PERS_DIPLOMACY,
+        profile.get_personality(FactionProfile.PERS_DIPLOMACY) - 0.18*h + j)
+    profile.set_personality(FactionProfile.PERS_INTEGRATIONISM,
+        profile.get_personality(FactionProfile.PERS_INTEGRATIONISM) - 0.12*h + j)
+    profile.set_personality(FactionProfile.PERS_RISK_AVERSION,
+        profile.get_personality(FactionProfile.PERS_RISK_AVERSION) - 0.10*h + j)
+
+
+func _new_faction_object():
+    # Adapte selon ta classe réelle.
+    # Si tu as class_name Faction, remplace par: return Faction.new()
+    var f := Faction.new()
+    return f
+
+# -----------------------------------------
+# API high-level : monde complet
+# -----------------------------------------
+func generate_world(count: int, heat: int, seed: int = 0, params: Dictionary = {}) -> Array:
+    var factions_generated := generate_factions(count, heat, seed, params)
+    initialize_relations_world(factions_generated, heat, seed + 1, params)
+    return factions_generated
+
+
+# -----------------------------------------
+# Relations : init globale en 1 passe
+# -----------------------------------------
+func initialize_relations_world(factions_generated: Array, heat: int, seed: int = 0, params: Dictionary = {}) -> void:
+    heat = clampi(heat, 1, 100)
+    var h := float(heat) / 100.0
+
+    var rng := RandomNumberGenerator.new()
+    if seed != 0: rng.seed = seed
+    else: rng.randomize()
+
+    # --- Paramètres relationnels dérivés de heat (plus heat => plus friction/tension)
+    var rel_params := {
+        "w_axis_similarity": lerp(80.0, 75.0, h),
+        "w_cross_conflict": lerp(50.0, 72.0, h),
+        "w_personality_bias": lerp(22.0, 30.0, h),
+
+        "friction_base": lerp(14.0, 24.0, h),
+        "friction_from_opposition": lerp(58.0, 78.0, h),
+        "friction_from_cross": lerp(50.0, 72.0, h),
+
+        "tension_cap": lerp(28.0, 55.0, h)
+    }
+    # allow overrides
+    for k in params.keys():
+        if String(k).begins_with("rel_"):
+            # ex: params["rel_tension_cap"]=45 -> rel_params["tension_cap"]=45
+            rel_params[String(k).replace("rel_", "")] = params[k]
+
+    var reciprocity := float(params.get("reciprocity", 0.70)) # 0..1
+    var noise_sigma :float = lerp(4.0, 10.0, h)                    # petit bruit sur relation
+    var enemies_k := clampi(1 + int(heat / 35), 1, 3)         # heat↑ => + d’ennemis naturels
+    var allies_k := clampi(2 - int(heat / 70), 1, 2)          # heat↑ => - d’alliés naturels
+
+    # --- 1) Build matrix A->B brute
+    var ids: Array[StringName] = []
+    for f in factions_generated:
+        var id: StringName = f.get("id")
+        ids.append(id)
+
+    # store[A][B] = relation score object/dict
+    var store := {}
+    for a in ids:
+        store[a] = {}
+
+    for a in ids:
+        var fa = factions.get(a, null)
+        if fa == null: fa = _find_faction_in_array(factions_generated, a)
+        var pa: FactionProfile = fa.get("profile")
+
+        for b in ids:
+            if a == b: continue
+            var fb = factions.get(b, null)
+            if fb == null: fb = _find_faction_in_array(factions_generated, b)
+            var pb: FactionProfile = fb.get("profile")
+
+            var init := FactionProfile.compute_baseline_relation(pa, pb, rel_params)
+            # relation noise (symétrique, borné)
+            var r := int(init["relation"]) + int(round(rng.randfn(0.0, noise_sigma)))
+            init["relation"] = clampi(r, -100, 100)
+
+            store[a][b] = _make_relation_score(b, init)
+
+    # --- 2) Center outgoing mean per faction (moyenne ~ 0)
+    _center_outgoing_means(store, ids, 1.0)
+
+    # --- 3) Add a few “natural enemies/allies” per faction (polarisation contrôlée)
+    _apply_natural_extremes(store, ids, enemies_k, allies_k, heat, rng)
+
+    # --- 4) Re-center lightly to keep global coherence after extremes
+    _center_outgoing_means(store, ids, 0.70)
+
+    # --- 5) Apply “light reciprocity” (A->B and B->A converge ~70% sans être identiques)
+    _apply_reciprocity(store, ids, reciprocity, rng)
+
+    # --- 6) Commit to factions (store per faction)
+    for a in ids:
+        var fa = factions.get(a, null)
+        if fa == null: fa = _find_faction_in_array(factions_generated, a)
+        _set_relations_dict_on_faction(fa, store[a])
+
+
+# -----------------------------------------
+# Helpers (non invasifs)
+# -----------------------------------------
+func _find_faction_in_array(factions: Array, id: StringName):
+    for f in factions:
+        if f.get("id") == id:
+            return f
+    return null
+
+func _set_relations_dict_on_faction(faction_obj, rel_dict: Dictionary) -> void:
+    # essaie plusieurs noms de champ possibles
+    if _has_prop(faction_obj, "relations_by_faction_id"):
+        faction_obj.set("relations_by_faction_id", rel_dict)
+    elif _has_prop(faction_obj, "relations"):
+        faction_obj.set("relations", rel_dict)
+    else:
+        # fallback: on l'attache quand même
+        faction_obj.set("relations_by_faction_id", rel_dict)
+
+func _has_prop(obj: Object, prop: String) -> bool:
+    for p in obj.get_property_list():
+        if p.name == prop:
+            return true
+    return false
+
+func _make_relation_score(other_id: StringName, init: Dictionary):
+    # init keys: relation(int), friction(float), trust(int), tension(float)
+    if ClassDB.class_exists("FactionRelationScore"):
+        var rs = ClassDB.instantiate("FactionRelationScore")
+        # set common fields if present
+        if _has_prop(rs, "other_faction_id"): rs.set("other_faction_id", other_id)
+        if _has_prop(rs, "relation"): rs.set("relation", int(init["relation"]))
+        if _has_prop(rs, "trust"): rs.set("trust", int(init["trust"]))
+        if _has_prop(rs, "tension"): rs.set("tension", float(init["tension"]))
+        if _has_prop(rs, "friction"): rs.set("friction", float(init["friction"]))
+        if _has_prop(rs, "grievance"): rs.set("grievance", 0.0)
+        if _has_prop(rs, "weariness"): rs.set("weariness", 0.0)
+        if rs.has_method("clamp_all"):
+            rs.call("clamp_all")
+        return rs
+
+    # fallback dict
+    return {
+        "other_faction_id": other_id,
+        "relation": int(init["relation"]),
+        "trust": int(init["trust"]),
+        "tension": float(init["tension"]),
+        "friction": float(init["friction"]),
+        "grievance": 0.0,
+        "weariness": 0.0
+    }
+
+func _get_rel_value(rel, key: String, default_val):
+    if rel is Dictionary:
+        return rel.get(key, default_val)
+    return rel.get(key, default_val)
+
+func _set_rel_value(rel, key: String, value) -> void:
+    if rel is Dictionary:
+        rel[key] = value
+    else:
+        rel.set(key, value)
+
+func _center_outgoing_means(store: Dictionary, ids: Array[StringName], strength: float) -> void:
+    for a in ids:
+        var sum := 0.0
+        var cnt := 0
+        for b in ids:
+            if a == b: continue
+            var rel = store[a][b]
+            sum += float(_get_rel_value(rel, "relation", 0))
+            cnt += 1
+        if cnt <= 0: continue
+        var mean := sum / float(cnt)
+
+        for b in ids:
+            if a == b: continue
+            var rel = store[a][b]
+            var r := float(_get_rel_value(rel, "relation", 0))
+            r = r - mean * strength
+            _set_rel_value(rel, "relation", clampi(int(round(r)), -100, 100))
+
+func _apply_natural_extremes(store: Dictionary, ids: Array[StringName], enemies_k: int, allies_k: int, heat: int, rng: RandomNumberGenerator) -> void:
+    var h := float(heat) / 100.0
+    var enemy_delta := int(round(lerp(10.0, 22.0, h)))
+    var ally_delta := int(round(lerp(8.0, 18.0, h)))
+
+    for a in ids:
+        # rank others by current relation
+        var others: Array = []
+        for b in ids:
+            if a == b: continue
+            var rel = store[a][b]
+            others.append({"b": b, "r": int(_get_rel_value(rel, "relation", 0))})
+
+        others.sort_custom(func(x, y): return int(x["r"]) < int(y["r"])) # ascending
+
+        # enemies: lowest relations
+        for i in range(min(enemies_k, others.size())):
+            var b: StringName = others[i]["b"]
+            var rel = store[a][b]
+            var r := int(_get_rel_value(rel, "relation", 0)) - enemy_delta - rng.randi_range(0, 4)
+            _set_rel_value(rel, "relation", clampi(r, -100, 100))
+            # tension a bit up too
+            var t :float = float(_get_rel_value(rel, "tension", 0.0)) + lerp(2.0, 6.0, h)
+            _set_rel_value(rel, "tension", t)
+
+        # allies: highest relations
+        for j in range(min(allies_k, others.size())):
+            var idx := others.size() - 1 - j
+            var b2: StringName = others[idx]["b"]
+            var rel2 = store[a][b2]
+            var r2 := int(_get_rel_value(rel2, "relation", 0)) + ally_delta + rng.randi_range(0, 3)
+            _set_rel_value(rel2, "relation", clampi(r2, -100, 100))
+            # tension a bit down
+            var t2 :float = float(_get_rel_value(rel2, "tension", 0.0)) - lerp(1.0, 4.0, h)
+            _set_rel_value(rel2, "tension", max(0.0, t2))
+
+func _apply_reciprocity(store: Dictionary, ids: Array[StringName], r: float, rng: RandomNumberGenerator) -> void:
+    r = clampf(r, 0.0, 1.0)
+    for i in range(ids.size()):
+        for j in range(i + 1, ids.size()):
+            var a := ids[i]
+            var b := ids[j]
+
+            var ab = store[a][b]
+            var ba = store[b][a]
+
+            # relation
+            var rab := float(_get_rel_value(ab, "relation", 0))
+            var rba := float(_get_rel_value(ba, "relation", 0))
+            var m := (rab + rba) / 2.0
+            rab = lerp(rab, m, r)
+            rba = lerp(rba, m, r)
+
+            # tiny asym jitter so they’re not identical
+            var jitter := rng.randf_range(-2.0, 2.0) * (1.0 - r)
+            rab += jitter
+            rba -= jitter
+
+            _set_rel_value(ab, "relation", clampi(int(round(rab)), -100, 100))
+            _set_rel_value(ba, "relation", clampi(int(round(rba)), -100, 100))
+
+            # trust (same approach)
+            var tab := float(_get_rel_value(ab, "trust", 0))
+            var tba := float(_get_rel_value(ba, "trust", 0))
+            var mt := (tab + tba) / 2.0
+            tab = lerp(tab, mt, r)
+            tba = lerp(tba, mt, r)
+            _set_rel_value(ab, "trust", clampi(int(round(tab)), -100, 100))
+            _set_rel_value(ba, "trust", clampi(int(round(tba)), -100, 100))
+
+            # tension (float)
+            var ten_ab := float(_get_rel_value(ab, "tension", 0.0))
+            var ten_ba := float(_get_rel_value(ba, "tension", 0.0))
+            var mt2 := (ten_ab + ten_ba) / 2.0
+            ten_ab = lerp(ten_ab, mt2, r)
+            ten_ba = lerp(ten_ba, mt2, r)
+            _set_rel_value(ab, "tension", max(0.0, ten_ab))
+            _set_rel_value(ba, "tension", max(0.0, ten_ba))
