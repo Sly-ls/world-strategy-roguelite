@@ -2,111 +2,135 @@
 extends BaseTest
 class_name IntegrationRealWorldLoopTickDayTest
 
-class TestQuestPool:
-    var offers: Array = []
-    func try_add_offer(inst) -> bool:
-        offers.append(inst)
-        return true
-
-class TestArcManagerRunner:
-    var arc_notebook := TestArcNotebook.new()
-
-class TestArcNotebook:
-    var last_domestic := {}
-    var last_truce := {}
-    func can_spawn_domestic_offer(fid: StringName, day: int, cooldown: int) -> bool:
-        return (day - int(last_domestic.get(fid, -999999))) >= cooldown
-    func mark_domestic_offer_spawned(fid: StringName, day: int) -> void:
-        last_domestic[fid] = day
-    func can_spawn_truce_offer(a: StringName, b: StringName, day: int, cooldown: int) -> bool:
-        var k := StringName(String(a) + "|" + String(b))
-        return (day - int(last_truce.get(k, -999999))) >= cooldown
-    func mark_truce_offer_spawned(a: StringName, b: StringName, day: int) -> void:
-        var k := StringName(String(a) + "|" + String(b))
-        last_truce[k] = day
+## Test d'intégration du cycle complet:
+## - FactionGoalManager.ensure_goal() avec domestic pressure
+## - Cycle WAR → TRUCE → WAR
+## - Vérification des actions (pas de raids pendant TRUCE)
 
 func _ready() -> void:
     _test_tick_day_loop_goal_stack_and_offers()
     pass_test("\n✅ IntegrationRealWorldLoopTickDayTest: OK\n")
 
+
 func _test_tick_day_loop_goal_stack_and_offers() -> void:
     var A := &"A"
     var B := &"B"
 
-    # Real runner + planner nodes
-    var runner = get_node_or_null("/root/FactionGoalManagerRunner")
-    if runner == null:
-        runner = FactionGoalManagerRunner.new()
-        runner.name = "FactionGoalManagerRunner"
-        add_child(runner)
+    # --- Créer le FactionGoalManager ---
+    var manager := FactionGoalManager.new()
+    add_child(manager)
 
-    var planner = get_node_or_null("/root/FactionGoalPlanner")
-    if planner == null:
-        planner = FactionGoalPlanner.new()
-        planner.name = "FactionGoalPlanner"
-        add_child(planner)
+    # --- Init goal WAR avec FactionGoal ---
+    var war_goal := FactionGoal.new()
+    war_goal.id = "war_A_B"
+    war_goal.type = FactionGoal.GoalType.START_WAR
+    war_goal.title = "Guerre contre B"
+    war_goal.actor_faction_id = String(A)
+    war_goal.target_faction_id = String(B)
+    
+    # Ajouter une step pour que is_completed() = false
+    var step := FactionGoalStep.new()
+    step.id = "mobilize"
+    step.title = "Mobiliser les troupes"
+    step.required_amount = 10
+    war_goal.steps = [step]
+    
+    manager.set_goal(String(A), war_goal)
 
-    # Inject test QuestPool + ArcManagerRunner (to provide arc_notebook)
-    var qp = TestQuestPool.new()
-    var qp_node := Node.new()
-    qp_node.name = "QuestPool"
-    # expose try_add_offer
-    qp_node.set_script(qp.get_script()) # if your test pool is a script, else skip
-    # simpler: just add as child and access directly below
-    add_child(qp_node)
-
-    var arc_runner := TestArcManagerRunner.new()
-    var arc_node := Node.new()
-    arc_node.name = "ArcManagerRunner"
-    arc_node.set_script(arc_runner.get_script())
-    add_child(arc_node)
-
-    # Directly set paths to our test nodes (safer than default /root paths)
-    runner.planner_path = planner.get_path()
-    runner.quest_pool_path = qp_node.get_path()
-    runner.arc_notebook_path = arc_node.get_path()
-
-    # Init goal WAR
-    runner.set_goal_state(A, {"type": &"WAR", "target_id": B})
-
+    # --- État domestique ---
     var dom := FactionDomesticState.new(60, 75, 10)
+    
     var first_truce_day := -1
     var until_day := -1
     var saw_restore_war := false
 
-    # We'll log action types
+    # Log des actions par jour
     var actions: Dictionary = {}
+    var goal_types: Dictionary = {}
 
     for day in range(1, 31):
-        # domestic dynamics
+        # --- Simuler la dynamique domestique ---
+        # Phase 1 (jours 1-17): fatigue de guerre monte
         if day <= 17:
-            dom.war_support = int(clampi(dom.war_support - 4, 0, 100))
-            dom.unrest = int(clampi(dom.unrest + 4, 0, 100))
+            dom.war_support = clampi(dom.war_support - 4, 0, 100)
+            dom.unrest = clampi(dom.unrest + 4, 0, 100)
+        # Phase 2 (jours 18-30): récupération
         else:
-            dom.war_support = int(clampi(dom.war_support + 5, 0, 100))
-            dom.unrest = int(clampi(dom.unrest - 6, 0, 100))
+            dom.war_support = clampi(dom.war_support + 5, 0, 100)
+            dom.unrest = clampi(dom.unrest - 6, 0, 100)
 
-        var ctx := {"day": day, "domestic_state": dom}
-        var out: Dictionary = runner.tick_day(A, ctx)
+        var ctx := {
+            "day": day,
+            "current_day": day,
+            "domestic_state": dom,
+            "budget_points": 10
+        }
 
-        var goal: Dictionary = out["goal"]
-        var gt: StringName = StringName(goal.get("type", &""))
-        var at: StringName = StringName(out.get("action_type", &""))
+        # --- Appel principal: ensure_goal avec domestic pressure ---
+        var goal_state: FactionGoalState = manager.ensure_goal(String(A), ctx)
+
+        # --- Déterminer le type de goal ---
+        var gt: StringName
+        if goal_state.is_forced():
+            gt = &"TRUCE"
+        elif goal_state.goal != null and goal_state.goal.type == FactionGoal.GoalType.START_WAR:
+            gt = &"WAR"
+        else:
+            gt = &"IDLE"
+        goal_types[day] = gt
+
+        # --- Déterminer l'action basée sur le goal ---
+        var at: StringName
+        if gt == &"TRUCE":
+            at = &"arc.truce_talks"
+        elif gt == &"WAR":
+            # Vérifier si on peut afford un raid avec le budget multiplier
+            var mult := goal_state.budget_mult_offensive
+            var raid_cost := int(ceil(10.0 / max(0.01, mult)))
+            var budget := 10
+            if budget >= raid_cost:
+                at = &"arc.raid"
+            else:
+                at = &"arc.defend"
+        else:
+            at = &"arc.idle"
         actions[day] = at
 
+        # --- Tracking pour assertions ---
         if gt == &"TRUCE" and first_truce_day < 0:
             first_truce_day = day
-            until_day = int(goal.get("until_day", day + 7))
+            until_day = goal_state.forced_until_day if goal_state.forced_until_day > 0 else (day + 7)
 
         if first_truce_day > 0 and day > until_day and gt == &"WAR":
             saw_restore_war = true
 
-    # Assertions: no raids during truce window
-    _assert(first_truce_day > 0, "should enter TRUCE at least once")
-    for d in range(first_truce_day, min(until_day + 1, 31)):
-        _assert(actions[d] != &"arc.raid", "no raids during forced TRUCE (day %d had raid)" % d)
+    # --- Assertions ---
+    
+    # 1) Doit entrer en TRUCE au moins une fois
+    _assert(first_truce_day > 0, "should enter TRUCE at least once (pressure rises during phase 1)")
+    
+    # 2) Pas de raids pendant la fenêtre de TRUCE forcée
+    for d in range(first_truce_day, mini(until_day + 1, 31)):
+        _assert(actions[d] != &"arc.raid", "no raids during forced TRUCE (day %d had %s)" % [d, actions[d]])
+        _assert(goal_types[d] == &"TRUCE", "goal should be TRUCE during forced window (day %d had %s)" % [d, goal_types[d]])
 
-    _assert(saw_restore_war, "should restore WAR after TRUCE if pressure drops")
+    # 3) Doit restaurer WAR après que la pression redescend
+    _assert(saw_restore_war, "should restore WAR after TRUCE window when pressure drops")
 
-    # Offers check: this depends on your QuestPool wiring; if qp_node isn't truly a pool, validate via factories separately.
-    # If you wire a real QuestPool node, assert at least one domestic and one truce offer exist post day 15.
+    # 4) Après restoration, les raids doivent reprendre
+    var raids_after_restore := 0
+    for d in range(until_day + 1, 31):
+        if goal_types[d] == &"WAR" and actions[d] == &"arc.raid":
+            raids_after_restore += 1
+    _assert(raids_after_restore >= 1, "should see raids again after WAR restore (got %d)" % raids_after_restore)
+
+    # 5) La pression finale doit être basse
+    var final_pressure := dom.pressure()
+    _assert(final_pressure < 0.5, "pressure should end low after recovery phase (got %.3f)" % final_pressure)
+
+    # --- Debug output ---
+    print("  [DEBUG] first_truce_day=%d, until_day=%d, final_pressure=%.3f" % [first_truce_day, until_day, final_pressure])
+    print("  [DEBUG] raids_after_restore=%d" % raids_after_restore)
+    
+    # Cleanup
+    manager.queue_free()

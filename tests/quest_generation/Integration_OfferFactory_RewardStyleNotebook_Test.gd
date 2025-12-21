@@ -1,20 +1,11 @@
+# tests/Integration_OfferFactory_RewardStyleNotebook_Test.gd
 extends BaseTest
 class_name Integration_OfferFactory_RewardStyleNotebook_Test
-
-class StubArcNotebook:
-    extends RefCounted
-    var pair_events: Array = []
-
-    func record_pair_event(day: int, a: StringName, b: StringName, action: StringName, choice: StringName, meta: Dictionary) -> void:
-        pair_events.append({
-            "day": day, "a": a, "b": b,
-            "action": action, "choice": choice,
-            "meta": meta
-        })
 
 func _ready() -> void:
     _test_spawn_logs_reward_style_with_w_gold_dw()
     pass_test("\n✅ Integration_OfferFactory_RewardStyleNotebook_Test: OK\n")
+
 
 func _test_spawn_logs_reward_style_with_w_gold_dw() -> void:
     _assert(ClassDB.class_exists("RewardEconomyUtil"), "RewardEconomyUtil must exist")
@@ -25,12 +16,11 @@ func _test_spawn_logs_reward_style_with_w_gold_dw() -> void:
 
     # Patch notebook
     var prev_notebook = arc_mgr.get("arc_notebook")
-    var notebook := StubArcNotebook.new()
+    var notebook := ArcNotebook.new()
     arc_mgr.set("arc_notebook", notebook)
 
     # Find a factory that can spawn offers
-    var factory := _find_root_node_with_method(["spawn_offer_for_pair", "spawn_offer_for_pair_from_params"])
-    _assert(factory != null, "No OfferFactory found in /root with spawn_offer_for_pair* method")
+    _assert(ArcOfferFactory != null, "No OfferFactory found in /root with spawn_offer_for_pair* method")
 
     # Prepare deterministic inputs
     var rng := RandomNumberGenerator.new()
@@ -42,35 +32,67 @@ func _test_spawn_logs_reward_style_with_w_gold_dw() -> void:
     var tier := 3
     var action_type := &"arc.truce_talks"
 
+    # --- Préparer tous les arguments requis ---
+    
+    # 1. arc_id et arc_state
+    var arc_id := &"test_arc_001"
+    var arc_state := ArcState.new()
+    arc_state.arc_id = arc_id
+    arc_state.giver_id = giver
+    arc_state.antagonist_id = antagonist
+    
+    # 2. FactionRelationScore entre giver et antagonist
+    var rel_ab := FactionRelationScore.new(antagonist)
+    rel_ab.relation = -30
+    rel_ab.trust = 20
+    rel_ab.tension = 50
+    
+    # 3. Faction profiles (Dictionary: faction_id -> FactionProfile)
+    var prof_greedy := FactionProfile.new()
+    prof_greedy.personality[FactionProfile.PERS_AGGRESSION] = 0.95
+    prof_greedy.personality[FactionProfile.PERS_RISK_AVERSION] = 0.15
+    prof_greedy.personality[FactionProfile.PERS_DIPLOMACY] = 0.30
+    
+    var prof_target := FactionProfile.new()
+    prof_target.personality[FactionProfile.PERS_DIPLOMACY] = 0.60
+    
+    var faction_profiles := {
+        giver: prof_greedy,
+        antagonist: prof_target
+    }
+    
+    # 4. Faction economies (Dictionary: faction_id -> economy data)
     var econ_rich := {"wealth_level": &"RICH", "liquidity": 0.90, "prestige": 0.80}
-    var param_greedy : = {"personality": {FactionProfile.PERS_GREED: 0.95, FactionProfile.PERS_OPPORTUNISM: 0.85, FactionProfile.PERS_DISCIPLINE: 0.30, FactionProfile.PERS_HONOR: 0.25}}
+    var econ_target := {"wealth_level": &"MEDIUM", "liquidity": 0.50, "prestige": 0.40}
+    
+    var faction_economies := {
+        giver: econ_rich,
+        antagonist: econ_target
+    }
+    
+    # 5. Budget manager
+    var budget_mgr := ArcOfferBudgetManager.new()
 
-    # Spawn (vraie méthode)
-    var spawned = null
+    # --- Appel avec tous les arguments ---
+    var spawned: Array[QuestInstance] = ArcOfferFactory.spawn_offers_for_pair(
+        arc_id,
+        arc_state,
+        giver,
+        antagonist,
+        action_type,
+        rel_ab,
+        faction_profiles,
+        faction_economies,
+        budget_mgr,
+        rng,
+        day,
+        tier,
+        {}  # params optionnel
+    )
 
-    # Option A (recommandé): méthode “test-friendly”
-    if factory.has_method("spawn_offer_for_pair_from_params"):
-        spawned = factory.call("spawn_offer_for_pair_from_params", {
-            "giver_faction_id": giver,
-            "antagonist_faction_id": antagonist,
-            "arc_action_type": action_type,
-            "tier": tier,
-            "day": day,
-            "econ_override": econ_rich,
-            "profile_override": param_greedy,
-            "rng": rng
-        })
-    else:
-        # Option B: spawn_offer_for_pair(...) – on passe les args “classiques”
-        # 👉 Si ta signature diffère, adapte les paramètres ici une fois (le test reste utile).
-        spawned = factory.call("spawn_offer_for_pair",
-            giver, antagonist, action_type, tier, day,
-            econ_rich, param_greedy, rng
-        )
-
-    # On ne force pas l’assert sur spawned si ta factory push direct dans QuestPool,
-    # mais ça aide si tu retournes l’instance.
-    # _assert(spawned != null, "spawn_offer_for_pair should return a QuestInstance (or at least not null)")
+    # On ne force pas l'assert sur spawned si ta factory push direct dans QuestPool,
+    # mais ça aide si tu retournes l'instance.
+    # _assert(not spawned.is_empty(), "spawn_offers_for_pair should return QuestInstances")
 
     # Assert: ArcNotebook event exists with w_gold_dw > 0
     var found := false
@@ -85,8 +107,6 @@ func _test_spawn_logs_reward_style_with_w_gold_dw() -> void:
             _assert(dw > 0.0, "expected w_gold_dw > 0 for greedy profile (got %.4f)" % dw)
 
             # Bonus: verify it matches RewardEconomyUtil.compute_reward_style(...)
-            var prof_greedy:FactionProfile = FactionProfile.new()
-            prof_greedy.apply_personality_template(param_greedy)
             var style := RewardEconomyUtil.compute_reward_style(econ_rich, tier, prof_greedy)
             _assert(abs(float(style.w_gold_dw) - dw) < 0.0001, "w_gold_dw mismatch vs compute_reward_style")
             found = true
@@ -107,6 +127,7 @@ func _find_root_node_with_method(methods: Array) -> Node:
             if child != null and child.has_method(m):
                 return child
     return null
+
 
 func _has_prop(obj: Object, prop: String) -> bool:
     for p in obj.get_property_list():
