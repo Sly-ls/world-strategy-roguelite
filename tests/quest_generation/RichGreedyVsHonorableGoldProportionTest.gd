@@ -13,8 +13,8 @@ func _test_rich_greedy_has_higher_gold_proportion_than_honorable() -> void:
     var action := &"arc.truce_talks"
     var n := 200
 
-    var param_greedy := {"personality": {&"greed": 0.95, &"opportunism": 0.85, &"discipline": 0.30, &"honor": 0.25}}
-    var param_honorable := {"personality": {&"greed": 0.10, &"opportunism": 0.20, &"discipline": 0.85, &"honor": 0.90}}
+    var param_greedy := {"personality": {FactionProfile.PERS_GREED: 0.95, FactionProfile.PERS_OPPORTUNISM: 0.85, FactionProfile.PERS_DISCIPLINE: 0.30, FactionProfile.PERS_HONOR: 0.25}}
+    var param_honorable := {"personality": {FactionProfile.PERS_GREED: 0.10, FactionProfile.PERS_OPPORTUNISM: 0.20, FactionProfile.PERS_DISCIPLINE: 0.85, FactionProfile.PERS_HONOR: 0.90}}
 
     var prof_greedy :FactionProfile = FactionProfile.new()
     prof_greedy.apply_personality_template(param_greedy)

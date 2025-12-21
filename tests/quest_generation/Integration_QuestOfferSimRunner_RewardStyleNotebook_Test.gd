@@ -36,7 +36,7 @@ func _test_spawn_logs_reward_style_w_gold_dw_for_greedy() -> void:
 
     # Overrides injectés uniquement pour le test (évite de dépendre de ton FactionManager)
     var econ_override := {"wealth_level": &"RICH", "liquidity": 0.90, "prestige": 0.80}
-    var profile_override := {"personality": {&"greed": 0.95, &"opportunism": 0.85, &"honor": 0.20, &"discipline": 0.30}}
+    var profile_override := {"personality": {FactionProfile.PERS_GREED: 0.95, FactionProfile.PERS_OPPORTUNISM: 0.85,FactionProfile.PERS_HONOR: 0.20, FactionProfile.PERS_DISCIPLINE: 0.30}}
 
     # Appel "vraie méthode spawn" via une entrée stable.
     _assert(sim.has_method("spawn_offer_for_pair_from_params"),

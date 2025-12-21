@@ -387,9 +387,9 @@ func _decide_member_stance(
     crisis_source: StringName
 ) -> StringName:
     var p = profiles.get(m, null)
-    var diplomacy := _p(p, &"diplomacy", 0.5)
-    var honor := _p(p, &"honor", 0.5)
-    var opportunism := _p(p, &"opportunism", 0.5)
+    var diplomacy :float = p.get_personality(FactionProfile.PERS_DIPLOMACY, 0.5)
+    var honor :float = p.get_personality(FactionProfile.PERS_HONOR, 0.5)
+    var opportunism :float = p.get_personality(FactionProfile.PERS_OPPORTUNISM, 0.5)
 
     var commit := float(c.member_commitment.get(m, 0.6))
 
@@ -564,9 +564,10 @@ func _anti_hegemon_join_score(f: StringName, hegemon: StringName, profiles: Dict
     # join if fear/hostility or recent losses or ideology clash; also if weak
     var rel := _rel(relations, f, hegemon) / 100.0
     var p = profiles.get(f, null)
-    var diplomacy := _p(p, &"diplomacy", 0.5)
-    var opportunism := _p(p, &"opportunism", 0.5)
-    var honor := _p(p, &"honor", 0.5)
+    
+    var diplomacy :float = p.get_personality(FactionProfile.PERS_DIPLOMACY, 0.5)
+    var opportunism :float = p.get_personality(FactionProfile.PERS_OPPORTUNISM, 0.5)
+    var honor :float = p.get_personality(FactionProfile.PERS_HONOR, 0.5)
 
     var power_map: Dictionary = world.get("power_by_faction", {})
     var my_power := float(power_map.get(f, 0.0))
@@ -586,9 +587,9 @@ func _anti_hegemon_join_score(f: StringName, hegemon: StringName, profiles: Dict
 func _stop_crisis_join_score(f: StringName, source: StringName, crisis_axis: StringName, sev: float, profiles: Dictionary, relations: Dictionary, world: Dictionary, arc_notebook) -> float:
     # join anti-crisis if altruism/honor/diplomacy, dislikes source, or crisis threatens them
     var p = profiles.get(f, null)
-    var honor := _p(p, &"honor", 0.5)
-    var diplomacy := _p(p, &"diplomacy", 0.5)
-    var opportunism := _p(p, &"opportunism", 0.5)
+    var diplomacy :float = p.get_personality(FactionProfile.PERS_DIPLOMACY, 0.5)
+    var opportunism :float = p.get_personality(FactionProfile.PERS_OPPORTUNISM, 0.5)
+    var honor :float = p.get_personality(FactionProfile.PERS_HONOR, 0.5)
 
     var rel_to_source := 0.0 if  (source == &"") else _rel(relations, f, source) / 100.0
     var axis_aff := 0.0
@@ -604,9 +605,9 @@ func _stop_crisis_join_score(f: StringName, source: StringName, crisis_axis: Str
 
 func _support_crisis_join_score(f: StringName, source: StringName, crisis_axis: StringName, sev: float, profiles: Dictionary, relations: Dictionary, world: Dictionary, arc_notebook) -> float:
     # join pro-crisis if opportunistic, aligned with axis, friendly to source
-    var p = profiles.get(f, null)
-    var opportunism := _p(p, &"opportunism", 0.5)
-    var honor := _p(p, &"honor", 0.5)
+    var p :FactionProfile = profiles.get(f, null)
+    var opportunism :float = p.get_personality(FactionProfile.PERS_OPPORTUNISM, 0.5)
+    var honor :float = p.get_personality(FactionProfile.PERS_HONOR, 0.5)
     var rel_to_source := _rel(relations, f, source) / 100.0
 
     var axis_aff := 0.0
@@ -622,8 +623,8 @@ func _pick_best_leader(members: Array[StringName], target: StringName, profiles:
     var bestv := -1.0
     for f in members:
         var p = profiles.get(f, null)
-        var diplomacy := _p(p, &"diplomacy", 0.5)
-        var honor := _p(p, &"honor", 0.5)
+        var diplomacy :float = p.get_personality(FactionProfile.PERS_DIPLOMACY, 0.5)
+        var honor :float = p.get_personality(FactionProfile.PERS_HONOR, 0.5)
         var rel := _rel(relations, f, target) / 100.0
         var v := 0.40*diplomacy + 0.25*honor + 0.35*clampf(-rel, 0.0, 1.0)
         if v > bestv:
@@ -669,12 +670,3 @@ func _apply_rel(relations: Dictionary, a: StringName, b: StringName, field: Stri
         "tension":    r.tension = int(clampi(r.tension + delta, 0, 100))
         "grievance":  r.grievance = int(clampi(r.grievance + delta, 0, 100))
         "weariness":  r.weariness = int(clampi(r.weariness + delta, 0, 100))
-
-func _p(profile, key: StringName, default_val: float) -> float:
-    if profile == null:
-        return default_val
-    if profile.has_method("get_personality"):
-        return float(profile.get_personality(key, default_val))
-    if profile is Dictionary:
-        return float(profile.get("personality", {}).get(key, default_val))
-    return default_val

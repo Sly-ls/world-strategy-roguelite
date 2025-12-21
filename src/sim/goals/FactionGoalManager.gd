@@ -4,6 +4,27 @@ class_name FactionGoalManager
 # faction_id -> FactionGoalState
 var active_goals: Dictionary = {}
 
+func ensure_goal(faction_id: StringName, ctx: Dictionary = {}) -> Dictionary:
+    var goal := get_goal_state(faction_id)
+    if goal.is_empty():
+        goal = {"type": &"IDLE"} # remplace par ton défaut
+
+    # --- HOOK DOMESTIC PRESSURE (non invasif) ---
+    var dom = ctx.get("domestic_state", null)
+    if dom != null:
+        # 1) restore (si TRUCE forcée passée et pressure basse)
+        goal = DomesticPolicyGate.maybe_restore_suspended_goal(goal, ctx, dom)
+
+        # 2) force TRUCE + budget_mult_offensive
+        goal = DomesticPolicyGate.apply(faction_id, goal, ctx, dom, {
+            "pressure_threshold": 0.7,
+            "force_days": 7,
+            "min_offensive_budget_mult": 0.25
+        })
+
+    set_goal_state(faction_id, goal)
+    return goal
+    
 func ensure_goal(faction_id: String) -> FactionGoalState:
     if not active_goals.has(faction_id) or active_goals[faction_id].goal.is_completed():
         var g := FactionGoalFactory.create_goal(faction_id)
@@ -33,3 +54,6 @@ func complete_goal(faction_id: String) -> void:
 
     # On force un nouveau goal au prochain tick
     active_goals.erase(faction_id)
+    
+func set_goal_state(faction_id: StringName, goal: Dictionary) -> void:
+    active_goals[faction_id] = goal

@@ -43,7 +43,7 @@ func _test_spawn_logs_reward_style_with_w_gold_dw() -> void:
     var action_type := &"arc.truce_talks"
 
     var econ_rich := {"wealth_level": &"RICH", "liquidity": 0.90, "prestige": 0.80}
-    var param_greedy : = {"personality": {&"greed": 0.95, &"opportunism": 0.85, &"discipline": 0.30, &"honor": 0.25}}
+    var param_greedy : = {"personality": {FactionProfile.PERS_GREED: 0.95, FactionProfile.PERS_OPPORTUNISM: 0.85, FactionProfile.PERS_DISCIPLINE: 0.30, FactionProfile.PERS_HONOR: 0.25}}
 
     # Spawn (vraie méthode)
     var spawned = null

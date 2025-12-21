@@ -34,11 +34,13 @@ static func compute_reward_style(econ: Dictionary, tier: int, profile :FactionPr
 static func _w_gold_personality_delta(profile) -> float:
     # Greedy/mercantile/opportunist -> w_gold ↑
     # Honor/discipline/idealist -> w_gold ↓ (plus de faveurs/traités)
-    var greed := _p(profile, &"greed", 0.5)                 # si tu n’as pas ce trait, laisse 0.5
-    var opp := _p(profile, &"opportunism", 0.5)
-    var dis := _p(profile, &"discipline", 0.5)
-    var hon := _p(profile, &"honor", 0.5)
-
+    if profile == null:
+        return 0.0
+    var greed :float = profile.get_personality(FactionProfile.PERS_GREED, 0.5)
+    var opp :float = profile.get_personality(FactionProfile.PERS_OPPORTUNISM, 0.5)
+    var dis :float = profile.get_personality(FactionProfile.PERS_DISCIPLINE, 0.5)
+    var hon :float = profile.get_personality(FactionProfile.PERS_HONOR, 0.5)
+    
     # “greed” est dominant, sinon opportunism fait le job
     var raw := 0.60*(greed - 0.5) + 0.35*(opp - 0.5) - 0.25*(dis - 0.5) - 0.20*(hon - 0.5)
 
@@ -109,12 +111,14 @@ static func is_non_gold(bundle: Dictionary) -> bool:
 # ✅ Variance par personnalité
 # -----------------------
 static func _gold_variance_amp(profile) -> float:
+    if profile == null:
+        return 0.108
     # mapping: greedy/chaotic => opp/aggr ↑ ; bureaucratic => discipline/honor ↑
     # profile attendu: FactionProfile ou Dictionary {"personality":{...}} ou dict direct
-    var opp := _p(profile, &"opportunism", 0.5)
-    var agr := _p(profile, &"aggression", 0.5)
-    var dis := _p(profile, &"discipline", 0.5)
-    var hon := _p(profile, &"honor", 0.5)
+    var agr :float = profile.get_personality(FactionProfile.PERS_AGGRESSION, 0.5)
+    var opp :float = profile.get_personality(FactionProfile.PERS_OPPORTUNISM, 0.5)
+    var dis :float = profile.get_personality(FactionProfile.PERS_DISCIPLINE, 0.5)
+    var hon :float = profile.get_personality(FactionProfile.PERS_HONOR, 0.5)
 
     # volatility 0..1 (bornée)
     var vol := 0.20 + 0.45*opp + 0.25*agr - 0.55*dis - 0.20*hon
@@ -122,15 +126,3 @@ static func _gold_variance_amp(profile) -> float:
 
     # amplitude finale bornée => garde l'inflation contrôlée + tests verts
     return lerp(0.04, 0.22, vol)
-
-
-static func _p(profile, key: StringName, default_val: float) -> float:
-    if profile == null:
-        return default_val
-    if profile.has_method("get_personality"):
-        return float(profile.get_personality(key, default_val))
-    if profile is Dictionary:
-        if profile.has("personality"):
-            return float(profile["personality"].get(key, default_val))
-        return float(profile.get(key, default_val))
-    return default_val

@@ -13,8 +13,8 @@ func _test_w_gold_depends_on_personality_but_is_clamped_by_economy() -> void:
     var econ_poor := {"wealth_level": &"POOR", "liquidity": 0.20, "prestige": 0.40}
     var econ_rich := {"wealth_level": &"RICH", "liquidity": 0.90, "prestige": 0.80}
 
-    var param_greedy := {"personality": {&"greed": 0.95, &"opportunism": 0.85, &"discipline": 0.30, &"honor": 0.25}}
-    var param_honorable := {"personality": {&"greed": 0.15, &"opportunism": 0.20, &"discipline": 0.85, &"honor": 0.85}}
+    var param_greedy := {"personality": {FactionProfile.PERS_GREED: 0.95, FactionProfile.PERS_OPPORTUNISM: 0.85, FactionProfile.PERS_DISCIPLINE: 0.30, FactionProfile.PERS_HONOR: 0.25}}
+    var param_honorable := {"personality": {FactionProfile.PERS_GREED: 0.15, FactionProfile.PERS_OPPORTUNISM: 0.20, FactionProfile.PERS_DISCIPLINE: 0.85, FactionProfile.PERS_HONOR: 0.85}}
 
     var prof_greedy :FactionProfile = FactionProfile.new()
     prof_greedy.apply_personality_template(param_greedy)

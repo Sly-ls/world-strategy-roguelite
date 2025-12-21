@@ -92,13 +92,21 @@ const AXIS_CORRUPTION: StringName = &"axis.corruption"
 const ALL_AXES: Array[StringName] = [
     AXIS_TECH, AXIS_MAGIC, AXIS_NATURE, AXIS_DIVINE, AXIS_CORRUPTION
 ]
-
 const PERS_AGGRESSION: StringName = &"pers.aggression"
 const PERS_VENGEFULNESS: StringName = &"pers.vengefulness"
 const PERS_DIPLOMACY: StringName = &"pers.diplomacy"
 const PERS_RISK_AVERSION: StringName = &"pers.risk_aversion"
 const PERS_EXPANSIONISM: StringName = &"pers.expansionism"
 const PERS_INTEGRATIONISM: StringName = &"pers.integrationism"
+ 
+#const PERS_RISK_AVERSION: StringName = &"diplomacy"
+const PERS_CUNNING: StringName = &"cunning"
+const PERS_GREED: StringName = &"greed"
+const PERS_OPPORTUNISM: StringName = &"opportunism"
+const PERS_HONOR: StringName = &"honor"
+const PERS_BELLIGERENCE: StringName = &"belligerence"
+const PERS_FEAR: StringName = &"fear"
+const PERS_DISCIPLINE: StringName = &"discipline"
 
 const ALL_PERSONALITY_KEYS: Array[StringName] = [
     PERS_AGGRESSION,
@@ -106,7 +114,14 @@ const ALL_PERSONALITY_KEYS: Array[StringName] = [
     PERS_DIPLOMACY,
     PERS_RISK_AVERSION,
     PERS_EXPANSIONISM,
-    PERS_INTEGRATIONISM
+    PERS_INTEGRATIONISM,
+    PERS_HONOR,
+    PERS_BELLIGERENCE,
+    PERS_FEAR,
+    PERS_OPPORTUNISM,
+    PERS_GREED,
+    PERS_DISCIPLINE,
+    PERS_CUNNING,
 ]
 
 # --- Generation constraints ---
@@ -155,7 +170,7 @@ func _init() -> void:
     for k in ALL_PERSONALITY_KEYS:
         personality[k] = 0.5
 
-static func from_profile_and_axis(prof: Dictionary[StringName, float], axis: Dictionary[StringName, int]) -> FactionProfile:
+static func from_profile_and_axis(prof: Dictionary[StringName, float], axis: Dictionary[StringName, int] = {}) -> FactionProfile:
     var profile = FactionProfile.new()
     for key in prof.keys():
         profile.personality[key] = float(prof[key])

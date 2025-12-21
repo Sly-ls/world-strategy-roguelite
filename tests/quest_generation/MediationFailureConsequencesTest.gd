@@ -56,7 +56,11 @@ func _test_mediation_failure_increases_tension_and_decreases_trust_to_mediator()
     }
 
     # mediator profile: mediocre diplomacy => low success chance
-    var mediator_profile := {"personality": {&"diplomacy": 0.2, &"honor": 0.4, &"discipline": 0.4, &"opportunism": 0.6, &"aggression": 0.4}}
+    var mediator_profile := {"personality": {FactionProfile.PERS_DIPLOMACY: 0.2, 
+    FactionProfile.PERS_HONOR: 0.4, 
+    FactionProfile.PERS_DISCIPLINE: 0.4, 
+    FactionProfile.PERS_OPPORTUNISM: 0.6, 
+    FactionProfile.PERS_AGGRESSION: 0.4}}
 
     # opposition: high heat between A and B
     var opposition := {"tension_mean": 85, "grievance_mean": 70, "friction": 0.3, "resistance": 0.7}

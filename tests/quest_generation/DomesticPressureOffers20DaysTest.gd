@@ -49,7 +49,9 @@ func _test_20_days_war_support_drops_and_spawns_truce_and_domestic() -> void:
 
     # simulate "20 days of war" via war_days_rolling_30 counter + tick_domestic
     var relations := {A: {B: FactionRelationScore.new()}} # minimal (not used by tick in this test)
-    var profile := {"personality": {&"diplomacy": 0.3, &"honor": 0.5, &"belligerence": 0.7, &"fear": 0.6}}
+    
+    var profile_init :Dictionary[StringName, float] = {FactionProfile.PERS_DIPLOMACY: 0.3, FactionProfile.PERS_HONOR: 0.5, FactionProfile.PERS_BELLIGERENCE: 0.7,FactionProfile.PERS_FEAR: 0.6}
+    var profile :FactionProfile = FactionProfile.from_profile_and_axis(profile_init)
     var world := {"crisis_active": false}
 
     var saw_domestic := false

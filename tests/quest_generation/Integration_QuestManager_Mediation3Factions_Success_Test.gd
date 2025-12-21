@@ -88,7 +88,7 @@ func _test_resolve_quest_mediation_success_logs_and_inverse_deltas() -> void:
     template.id = &"tp.mediation"
     template.title = "Mediation"
     template.description = "Test mediation SUCCESS"
-    template.category = &"ARC"
+    template.category = QuestTypes.QuestCategory.ARC
     template.tier = 2
     template.expires_in_days = 7
 

@@ -102,7 +102,7 @@ func _test_resolve_quest_mediation_3f_roll_forced_logs_and_deltas() -> void:
     template.id = &"tp.mediation"
     template.title = "Mediation"
     template.description = "Test mediation 3 factions"
-    template.category = &"ARC"
+    template.category = QuestTypes.QuestCategory.ARC
     template.tier = 3
     template.expires_in_days = 7
 

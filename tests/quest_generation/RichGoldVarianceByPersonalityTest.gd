@@ -14,9 +14,9 @@ func _test_rich_gold_variance_depends_on_personality_but_stays_bounded() -> void
     var n := 220
 
     # “greedy/chaotic” => variance ↑
-    var prof_chaos := {"personality": {&"opportunism": 0.90, &"aggression": 0.80, &"discipline": 0.20, &"honor": 0.20}}
+    var prof_chaos := {"personality": {FactionProfile.PERS_OPPORTUNISM: 0.90, FactionProfile.PERS_AGGRESSION: 0.80, FactionProfile.PERS_DISCIPLINE: 0.20, FactionProfile.PERS_HONOR: 0.20}}
     # “bureaucratic” => variance ↓
-    var prof_bureau := {"personality": {&"opportunism": 0.20, &"aggression": 0.20, &"discipline": 0.90, &"honor": 0.70}}
+    var prof_bureau := {"personality": {FactionProfile.PERS_OPPORTUNISM: 0.20, FactionProfile.PERS_AGGRESSION: 0.20, FactionProfile.PERS_DISCIPLINE: 0.90, FactionProfile.PERS_HONOR: 0.70}}
 
     var s_chaos := _gold_stats_positive_only(econ_rich, tier, action, n, 77111, prof_chaos)
     var s_buro  := _gold_stats_positive_only(econ_rich, tier, action, n, 77112, prof_bureau)

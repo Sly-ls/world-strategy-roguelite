@@ -6,17 +6,18 @@ static func tick_domestic(
     day: int,
     faction_id: StringName,
     dom: FactionDomesticState,
-    profile,                        # FactionProfile (optionnel)
+    profile: FactionProfile,                        # FactionProfile (optionnel)
     economy,                        # FactionEconomy (optionnel)
     arc_notebook,                   # pour compter jours de guerre / pertes proxy
     relations: Dictionary,          # relations[faction][other] -> FactionRelationScore
     world: Dictionary               # tags / crisis flags
 ) -> void:
     # ---- inputs/proxies ----
-    var diplo := _p(profile, &"diplomacy", 0.5)
-    var honor := _p(profile, &"honor", 0.5)
-    var bell := _p(profile, &"belligerence", 0.5)
-    var fear := _p(profile, &"fear", 0.5)
+    
+    var diplo :float = profile.get_personality(FactionProfile.PERS_DIPLOMACY, 0.5)
+    var bell :float = profile.get_personality(FactionProfile.PERS_BELLIGERENCE, 0.5)
+    var honor :float = profile.get_personality(FactionProfile.PERS_HONOR, 0.5)
+    var fear :float = profile.get_personality(FactionProfile.PERS_FEAR, 0.5)
 
     var gold :int = (economy.gold if economy != null and economy.has_method("get") == false else (economy.gold if economy != null else 0))
     var poor :bool = (gold < 80) # TODO proxy simple (à remplacer par income/expenses si tu as)
@@ -59,13 +60,3 @@ static func tick_domestic(
     # stabilité suit l’unrest
     var stab_delta := -int(round(0.6*unrest_rise)) + int(round(0.25*diplo*2.0))
     dom.stability = int(clampi(dom.stability + stab_delta, 0, 100))
-
-
-static func _p(profile, key: StringName, default_val: float) -> float:
-    if profile == null:
-        return default_val
-    if profile.has_method("get_personality"):
-        return float(profile.get_personality(key, default_val))
-    if profile is Dictionary:
-        return float(profile.get("personality", {}).get(key, default_val))
-    return default_val

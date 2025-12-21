@@ -24,20 +24,22 @@ func _test_crisis_coalition_truce_then_undermine_creates_suspicion() -> void:
     # Profiles - utiliser les vraies constantes FactionProfile.AXIS_CORRUPTION
     var profiles := {
         A: FactionProfile.from_profile_and_axis(
-            {&"honor": 0.8, &"diplomacy": 0.7, &"opportunism": 0.2, &"fear": 0.3},
+            {FactionProfile.PERS_HONOR: 0.8, FactionProfile.PERS_DIPLOMACY: 0.7, FactionProfile.PERS_OPPORTUNISM: 0.2, FactionProfile.PERS_FEAR: 0.3},
             {FactionProfile.AXIS_CORRUPTION: -80}
         ),
-        # B: can join STOP_CRISIS (honor/diplomacy decent), but stance will undermine due opportunism/fear + corruption affinity
+        # B: doit avoir un score >= 0.55 pour joindre, mais UNDERMINE ensuite
+        # On baisse opportunism pour le join score, mais garde fear élevé pour undermine
+        # axis_resist doit être > 0, donc on met corruption légèrement négatif
         B: FactionProfile.from_profile_and_axis(
-            {&"honor": 0.75, &"diplomacy": 0.75, &"opportunism": 0.9, &"fear": 0.9},
-            {FactionProfile.AXIS_CORRUPTION: 85}
+            {FactionProfile.PERS_HONOR: 0.75, FactionProfile.PERS_DIPLOMACY: 0.80, FactionProfile.PERS_OPPORTUNISM: 0.5, FactionProfile.PERS_FEAR: 0.9},
+            {FactionProfile.AXIS_CORRUPTION: -10}  # légèrement anti-corruption pour axis_resist > 0
         ),
         D: FactionProfile.from_profile_and_axis(
-            {&"honor": 0.7, &"diplomacy": 0.65, &"opportunism": 0.35, &"fear": 0.35},
+            {FactionProfile.PERS_HONOR: 0.7, FactionProfile.PERS_DIPLOMACY: 0.65, FactionProfile.PERS_OPPORTUNISM: 0.35, FactionProfile.PERS_FEAR: 0.35},
             {FactionProfile.AXIS_CORRUPTION: -40}
         ),
         C: FactionProfile.from_profile_and_axis(
-            {&"honor": 0.3, &"diplomacy": 0.2, &"opportunism": 0.7, &"fear": 0.4},
+            {FactionProfile.PERS_HONOR: 0.3, FactionProfile.PERS_DIPLOMACY: 0.2, FactionProfile.PERS_OPPORTUNISM: 0.7, FactionProfile.PERS_FEAR: 0.4},
             {FactionProfile.AXIS_CORRUPTION: 90}
         ),
     }
@@ -67,7 +69,7 @@ func _test_crisis_coalition_truce_then_undermine_creates_suspicion() -> void:
         "crisis_severity": 0.90,  # Très élevé pour garantir formation
         "crisis_axis": FactionProfile.AXIS_CORRUPTION,  # &"axis.corruption"
         "crisis_source_id": C,
-        "power_by_faction": {A: 40.0, B: 38.0, C: 60.0, D: 70.0},
+        "power_by_faction": {A: 40.0, B: 38.0, C: 50.0, D: 22.0},
         "hegemon_index_by_faction": {}
     }
     var notebook := ArcNotebook.new()
@@ -152,7 +154,7 @@ func _test_crisis_coalition_truce_then_undermine_creates_suspicion() -> void:
 
     mgr.apply_joint_op_resolution(joint_ctx, &"LOYAL", 16, profiles, relations, world, notebook)
 
-    print("  [DEBUG] Cohesion: before=%d after=%d" % [cohesion_before, coal.cohesion])
+   # print("  [DEBUG] Cohesion: before=%d after=%d" % [cohesion_before, coal.cohesion])
 
     # Note: cohesion might increase or decrease depending on stances
     # The key test is that COALITION_BETRAYAL events are recorded when UNDERMINE happens
@@ -160,10 +162,10 @@ func _test_crisis_coalition_truce_then_undermine_creates_suspicion() -> void:
     if notebook.has_method("count_events_by_action"):
         betrayals_after = notebook.count_events_by_action(&"COALITION_BETRAYAL")
 
-    print("  [DEBUG] Betrayals: before=%d after=%d" % [betrayals_before, betrayals_after])
+   # print("  [DEBUG] Betrayals: before=%d after=%d" % [betrayals_before, betrayals_after])
 
     # If B undermines (due to high opportunism + corruption affinity), there should be a betrayal event
     # But this depends on the RNG in _decide_member_stance
     # For a deterministic test, we'd need to override _decide_member_stance or seed the RNG
     
-    print("  ✓ Resolution applied, cohesion=%d, betrayals=%d" % [coal.cohesion, betrayals_after])
+   # print("  ✓ Resolution applied, cohesion=%d, betrayals=%d" % [coal.cohesion, betrayals_after])

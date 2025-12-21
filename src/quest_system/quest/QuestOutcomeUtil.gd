@@ -21,7 +21,7 @@ static func compute_outcome_success(inst, actor_profile, opposition: Dictionary,
 
     # --- opposition resistance (optional) ---
     var opp := float(opposition.get("resistance", 0.5))               # 0..1
-    var opp_participants := opposition.get("participants", null)
+    var opp_participants :Dictionary = opposition.get("participants", null)
     if opp_participants is Dictionary:
         opp = clampf(0.5 + 0.35 * float(opp_participants.size() - 1), 0.5, 0.95)
 
@@ -78,13 +78,12 @@ static func _compute_actor_skill(actor_profile, ctx: Dictionary, action_type: St
         prof = actor_profile[actor_id]
 
     # choose key weights by action
-    var dip := _p(prof, &"diplomacy", 0.5)
-    var hon := _p(prof, &"honor", 0.5)
-    var cun := _p(prof, &"cunning", 0.5)
-    var opp := _p(prof, &"opportunism", 0.5)
-    var agr := _p(prof, &"aggression", 0.5)
-    var dis := _p(prof, &"discipline", 0.5)
-
+    var cun :float = prof.get_personality(FactionProfile.PERS_CUNNING, 0.5)
+    var dip :float = prof.get_personality(FactionProfile.PERS_DIPLOMACY, 0.5)
+    var agr :float = prof.get_personality(FactionProfile.PERS_AGGRESSION, 0.5)
+    var opp :float = prof.get_personality(FactionProfile.PERS_OPPORTUNISM, 0.5)
+    var dis :float = prof.get_personality(FactionProfile.PERS_DISCIPLINE, 0.5)
+    var hon :float = prof.get_personality(FactionProfile.PERS_HONOR, 0.5)
     match action_type:
         &"tp.mediation", &"arc.truce_talks":
             # bon médiateur = dip/honor/discipline, mauvais = opportunism/aggression

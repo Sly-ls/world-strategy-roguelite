@@ -340,10 +340,10 @@ static func decide_state_on_tribute_default(
     var pw: FactionProfile = profiles.get(winner_id, null)
     var pl: FactionProfile = profiles.get(loser_id, null)
 
-    var bell := pw.get_personality(&"belligerence", 0.5) if pw else 0.5
-    var diplo := pw.get_personality(&"diplomacy", 0.5) if pw else 0.5
-    var expa := pw.get_personality(&"expansionism", 0.5) if pw else 0.5
-    var honor := pw.get_personality(&"honor", 0.5) if pw else 0.5
+    var bell := pw.get_personality(FactionProfile.PERS_BELLIGERENCE, 0.5) if pw else 0.5
+    var diplo := pw.get_personality(FactionProfile.PERS_DIPLOMACY, 0.5) if pw else 0.5
+    var expa := pw.get_personality(FactionProfile.PERS_EXPANSIONISM, 0.5) if pw else 0.5
+    var honor := pw.get_personality(FactionProfile.PERS_HONOR, 0.5) if pw else 0.5
 
     # axes : divergence moyenne (0..1)
     var axis_div := 0.0

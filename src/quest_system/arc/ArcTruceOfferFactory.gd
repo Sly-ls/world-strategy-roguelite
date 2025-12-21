@@ -20,7 +20,7 @@ static func spawn_truce_offer_if_needed(
             return null
 
     var template := DomesticOfferFactory._build_template_fallback(&"arc.truce_talks", 2, 6)
-    template.category = &"ARC"
+    template.category = QuestTypes.QuestCategory.ARC
 
     var ctx := {
         "is_arc_offer": true,
@@ -32,7 +32,7 @@ static func spawn_truce_offer_if_needed(
     }
 
     var inst := QuestInstance.new(template, ctx)
-    inst.status = "AVAILABLE"
+    inst.status = QuestTypes.QuestStatus.AVAILABLE
     inst.started_on_day = day
     inst.expires_on_day = day + 6
 
