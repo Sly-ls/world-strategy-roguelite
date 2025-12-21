@@ -670,7 +670,7 @@ func _generate_objectives_for_poi(poi_type: TilesEnums.CellType, count: int) -> 
                 obj2.title = "Aider les habitants"
                 obj2.description = "Accomplissez une tâche pour la communauté"
                 obj2.objective_type = QuestTypes.ObjectiveType.DELIVER_RESOURCES
-                obj2.target_count = Rng.rng.randi_range(20, 50)
+                obj2.count = Rng.rng.randi_range(20, 50)
                 obj2.required_objectives = ["talk_mayor"]
                 objectives.append(obj2)
             
@@ -912,7 +912,7 @@ func _generate_objectives_for_poi_fixed(poi_type: TilesEnums.CellType, count: in
                 obj2.title = "Vaincre les gardiens"
                 obj2.description = "Éliminez les créatures qui protègent les ruines"
                 obj2.objective_type = QuestTypes.ObjectiveType.DEFEAT_ENEMIES
-                obj2.target_count = Rng.rng.randi_range(3, 7)
+                obj2.count = Rng.rng.randi_range(3, 7)
                 obj2.required_objectives = ["explore"]
                 objectives.append(obj2)
             
@@ -924,7 +924,7 @@ func _generate_objectives_for_poi_fixed(poi_type: TilesEnums.CellType, count: in
                 obj3.description = "Trouvez et récupérez le trésor"
                 obj3.objective_type = QuestTypes.ObjectiveType.COLLECT_RESOURCES
                 obj3.target = "artifact"
-                obj3.target_count = 1
+                obj3.count = 1
                 obj3.required_objectives = ["clear_enemies"]
                 objectives.append(obj3)
         
@@ -945,7 +945,7 @@ func _generate_objectives_for_poi_fixed(poi_type: TilesEnums.CellType, count: in
                 obj2.title = "Aider les habitants"
                 obj2.description = "Accomplissez une tâche pour la communauté"
                 obj2.objective_type = QuestTypes.ObjectiveType.COLLECT_RESOURCES
-                obj2.target_count = Rng.rng.randi_range(20, 50)
+                obj2.count = Rng.rng.randi_range(20, 50)
                 obj2.required_objectives = ["talk_mayor"]
                 objectives.append(obj2)
             
