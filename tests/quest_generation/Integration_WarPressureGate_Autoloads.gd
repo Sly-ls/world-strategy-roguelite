@@ -68,7 +68,7 @@ func _test_world_loop_uses_real_autoloads() -> void:
         if world != null and world.has_variable("current_day"):
             world.current_day = day
 
-        var out: Dictionary = runner.tick_day(A, {"day": day, "domestic_state": dom})
+        var out: Dictionary = runner.(A, {"day": day, "domestic_state": dom})
         var goal: Dictionary = out.get("goal", {})
         var gt: StringName = StringName(goal.get("type", &""))
         var at: StringName = StringName(out.get("action_type", &"arc.idle"))

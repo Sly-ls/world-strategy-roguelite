@@ -145,6 +145,9 @@ var axis_affinity: Dictionary[StringName, int] = {}
 # 0..1
 var personality: Dictionary[StringName, float] = {}
 
+
+ 
+# ---- CONSTRUCTOR ----   
 func _init() -> void:
     # Defaults (optional): set everything to 0 / 0.5 if you want stable lookups
     for a in ALL_AXES:
@@ -152,6 +155,13 @@ func _init() -> void:
     for k in ALL_PERSONALITY_KEYS:
         personality[k] = 0.5
 
+static func from_profile_and_axis(prof: Dictionary[StringName, float], axis: Dictionary[StringName, int]) -> FactionProfile:
+    var profile = FactionProfile.new()
+    for key in prof.keys():
+        profile.personality[key] = float(prof[key])
+    for key in axis.keys():
+        profile.axis_affinity[key] = int(axis[key])
+    return profile
 # ---- Axis helpers ----
 func set_axis_affinity(axis: StringName, value: int) -> void:
     axis_affinity[axis] = clampi(value, AXIS_MIN, AXIS_MAX)

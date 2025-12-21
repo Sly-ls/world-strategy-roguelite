@@ -1,6 +1,6 @@
 extends RefCounted
 
-class_name UtilsClass
+class_name Utils
 
 static func pair_key(a: String, b: String) -> String:
     if a <= b:

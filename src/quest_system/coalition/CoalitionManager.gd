@@ -456,7 +456,8 @@ func _spawn_joint_op_offer(c: CoalitionBlock, day: int, profiles: Dictionary, re
         "coalition_kind": c.kind,
         "coalition_goal": c.goal,
         "coalition_target": c.target_id,
-        "tier": tier
+        "tier": tier,
+        "joint_op_type": &"JOINT_MILITARY"
     }
 
     var inst := QuestInstance.new(t, ctx)

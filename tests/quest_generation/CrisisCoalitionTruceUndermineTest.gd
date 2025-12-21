@@ -18,36 +18,6 @@ class TestFactionProfile:
         return int(axis_affinity.get(axis, default_val))
 
 
-class TestQuestPool:
-    var offers: Array = []
-    func try_add_offer(inst) -> bool:
-        offers.append(inst)
-        return true
-
-
-class TestArcNotebook:
-    var pair_locks: Dictionary = {} # pair_key -> {"until": int, "reason": StringName}
-    var pair_events: Array = []
-
-    func set_pair_lock(pair_key: StringName, until_day: int, reason: StringName) -> void:
-        pair_locks[pair_key] = {"until": until_day, "reason": reason}
-
-    func can_spawn_coalition_offer(_coalition_id: StringName, _day: int, _cooldown: int) -> bool:
-        return true
-    func mark_coalition_offer_spawned(_coalition_id: StringName, _day: int) -> void:
-        pass
-
-    func record_pair_event(day: int, a: StringName, b: StringName, action: StringName, _choice: StringName, _meta: Dictionary) -> void:
-        pair_events.append({"day": day, "a": a, "b": b, "action": action})
-
-    func count_events(action: StringName) -> int:
-        var n := 0
-        for e in pair_events:
-            if StringName(e.get("action", &"")) == action:
-                n += 1
-        return n
-
-
 # -------- Deterministic stance manager (argmax) --------
 class TestCoalitionManager:
     extends CoalitionManager
@@ -122,7 +92,7 @@ func _ready() -> void:
 
 
 func _test_crisis_coalition_truce_then_undermine_creates_suspicion() -> void:
-    var mgr := TestCoalitionManager.new()
+    var mgr := CoalitionManager.new()
 
     var A := &"A"  # enemy of B, but will SUPPORT coalition
     var B := &"B"  # opportunist + corruption affinity => UNDERMINE
@@ -133,22 +103,22 @@ func _test_crisis_coalition_truce_then_undermine_creates_suspicion() -> void:
 
     # Profiles
     var profiles := {
-        A: TestFactionProfile.new(
+        A: FactionProfile.from_profile_and_axis(
             {&"honor": 0.8, &"diplomacy": 0.6, &"opportunism": 0.2, &"fear": 0.3},
-            {&"CORRUPTION": -80}
+            {FactionProfile.AXIS_CORRUPTION: -80}
         ),
         # B: can join STOP_CRISIS (honor/diplomacy decent), but stance will undermine due opportunism/fear + corruption affinity
-        B: TestFactionProfile.new(
+        B: FactionProfile.from_profile_and_axis(
             {&"honor": 0.75, &"diplomacy": 0.7, &"opportunism": 0.9, &"fear": 0.9},
-            {&"CORRUPTION": 85}
+            {FactionProfile.AXIS_CORRUPTION: 85}
         ),
-        D: TestFactionProfile.new(
+        D: FactionProfile.from_profile_and_axis(
             {&"honor": 0.65, &"diplomacy": 0.55, &"opportunism": 0.35, &"fear": 0.35},
-            {&"CORRUPTION": -40}
+            {FactionProfile.AXIS_CORRUPTION: -40}
         ),
-        C: TestFactionProfile.new(
+        C: FactionProfile.from_profile_and_axis(
             {&"honor": 0.3, &"diplomacy": 0.2, &"opportunism": 0.7, &"fear": 0.4},
-            {&"CORRUPTION": 90}
+            {FactionProfile.AXIS_CORRUPTION: 90}
         ),
     }
 
@@ -176,18 +146,16 @@ func _test_crisis_coalition_truce_then_undermine_creates_suspicion() -> void:
     # World crisis
     var world := {
         "crisis_active": true,
-        "crisis_severity": 0.85,
-        "crisis_axis": &"CORRUPTION",
+        "crisis_severity": 0.90,
+        "crisis_axis": FactionProfile.AXIS_CORRUPTION,
         "crisis_source_id": C,
-        "power_by_faction": {A: 40.0, B: 38.0, C: 50.0, D: 22.0},
+        "power_by_faction": {A: 40.0, B: 38.0, C: 60.0, D: 70.0},
         "hegemon_index_by_faction": {} # not needed
     }
-
-    var pool := TestQuestPool.new()
-    var notebook := TestArcNotebook.new()
+    var notebook := ArcNotebook.new()
 
     # Day 10: tick => should form STOP_CRISIS coalition and set truce locks
-    mgr.tick_day(10, faction_ids, profiles, relations, world, pool, notebook)
+    mgr.tick_day(10, faction_ids, profiles, relations, world, notebook)
 
     # Find the created STOP_CRISIS coalition
     var coal:CoalitionBlock = null
@@ -203,13 +171,13 @@ func _test_crisis_coalition_truce_then_undermine_creates_suspicion() -> void:
     # Verify pair lock truce between members (A|B in particular)
     var pair_key_ab := Utils.pair_key(A, B)
     _assert(notebook.pair_locks.has(pair_key_ab), "expected pair lock for A|B to exist (temporary coalition truce)")
-    var lock :Dictionary = notebook.pair_locks[pair_key_ab]
+    var lock :Dictionary = notebook.pair_locks.get("pair_key_ab")
     _assert(int(lock["until"]) >= 10 + 10, "truce lock should last ~10+ days, got until=%d" % int(lock["until"]))
     _assert(StringName(lock["reason"]) == &"COALITION_TRUCE", "lock reason should be COALITION_TRUCE")
 
     # Ensure a JOINT OP offer exists (spawned by tick_day)
     var joint_ctx: Dictionary = {}
-    for inst in pool.offers:
+    for inst in QuestPool.offers:
         if bool(inst.context.get("is_coalition", false)) and StringName(inst.context.get("coalition_id", &"")) == coal.id:
             if inst.context.has("joint_op_type"):
                 joint_ctx = inst.context
@@ -218,11 +186,11 @@ func _test_crisis_coalition_truce_then_undermine_creates_suspicion() -> void:
 
     # Apply resolution at day 11: should cause B to UNDERMINE deterministically and lower cohesion, and create suspicion event
     var cohesion_before := coal.cohesion
-    var betrayals_before := notebook.count_events(&"COALITION_BETRAYAL")
+    var betrayals_before := notebook.count_events_by_action(&"COALITION_BETRAYAL")
 
     mgr.apply_joint_op_resolution(joint_ctx, &"LOYAL", 11, profiles, relations, world, notebook)
 
     _assert(coal.cohesion < cohesion_before, "cohesion should decrease when a member undermines (before=%d after=%d)" % [cohesion_before, coal.cohesion])
 
-    var betrayals_after := notebook.count_events(&"COALITION_BETRAYAL")
+    var betrayals_after := notebook.count_events_by_action(&"COALITION_BETRAYAL")
     _assert(betrayals_after > betrayals_before, "should record COALITION_BETRAYAL suspicion event after undermine")
