@@ -13,17 +13,16 @@ func _ready() -> void:
     pass_test("\n✅ Integration_QuestOfferSimRunner_RewardStyleNotebook_Test: OK\n")
 
 func _test_spawn_logs_reward_style_w_gold_dw_for_greedy() -> void:
-    var sim := get_node_or_null("/root/QuestOfferSimRunner")
-    _assert(sim != null, "Missing /root/QuestOfferSimRunner autoload")
+    _assert(QuestOfferSimRunner != null, "Missing /root/QuestOfferSimRunner autoload")
 
-    var arc_mgr := get_node_or_null("/root/ArcManagerRunner")
-    _assert(arc_mgr != null, "Missing /root/ArcManagerRunner autoload")
-    _assert(_has_prop(arc_mgr, "arc_notebook"), "ArcManagerRunner must expose var arc_notebook")
+    _assert(QuestManager != null, "Missing /root QuestManagerRunner (or QuestManager)")
+    _assert(ArcManagerRunner != null, "Missing /root/ArcManagerRunner")
+    _assert(FactionManager != null, "Missing /root/FactionManager")
 
-    # Patch notebook (capture logs)
-    var prev_notebook = arc_mgr.get("arc_notebook")
-    var notebook := StubArcNotebook.new()
-    arc_mgr.set("arc_notebook", notebook)
+    # --- snapshot & patch ArcNotebook ---
+    var prev_notebook: ArcNotebook = ArcManagerRunner.arc_notebook
+    var notebook: ArcNotebook = ArcNotebook.new()
+    ArcManagerRunner.arc_notebook = notebook
 
     var rng := RandomNumberGenerator.new()
     rng.seed = 424242
@@ -39,9 +38,7 @@ func _test_spawn_logs_reward_style_w_gold_dw_for_greedy() -> void:
     var profile_override := {"personality": {FactionProfile.PERS_GREED: 0.95, FactionProfile.PERS_OPPORTUNISM: 0.85,FactionProfile.PERS_HONOR: 0.20, FactionProfile.PERS_DISCIPLINE: 0.30}}
 
     # Appel "vraie méthode spawn" via une entrée stable.
-    _assert(sim.has_method("spawn_offer_for_pair_from_params"),
-        "QuestOfferSimRunner must expose spawn_offer_for_pair_from_params(p: Dictionary). See micro-patch below.")
-    var offer = sim.call("spawn_offer_for_pair_from_params", {
+    var offer = QuestOfferSimRunner.spawn_offer_for_pair_from_params(
         "giver_faction_id": giver,
         "antagonist_faction_id": target,
         "arc_action_type": arc_action_type,
@@ -50,7 +47,7 @@ func _test_spawn_logs_reward_style_w_gold_dw_for_greedy() -> void:
         "rng": rng,
         "econ_override": econ_override,
         "profile_override": profile_override
-    })
+    )
 
     # (Optionnel) si tu retournes la QuestInstance
     # _assert(offer != null, "spawn_offer_for_pair_from_params should return the spawned QuestInstance")
@@ -72,7 +69,7 @@ func _test_spawn_logs_reward_style_w_gold_dw_for_greedy() -> void:
     _assert(found, "Expected ArcNotebook record_pair_event(action=offer.reward_style)")
 
     # Restore
-    arc_mgr.set("arc_notebook", prev_notebook)
+    ArcManagerRunner.arc_notebook = prev_notebook
 
 func _has_prop(obj: Object, prop: String) -> bool:
     for p in obj.get_property_list():

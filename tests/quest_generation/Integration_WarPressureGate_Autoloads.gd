@@ -14,8 +14,7 @@ func _ready() -> void:
     pass_test("\n✅ Integration_WarPressureGate_Autoloads: OK\n")
 
 func _test_world_loop_uses_real_autoloads() -> void:
-    var runner = get_node_or_null("/root/FactionGoalManagerRunner")
-    _assert(runner != null, "Missing autoload /root/FactionGoalManagerRunner")
+    _assert(FactionGoalManagerRunner != null, "Missing autoload /root/FactionGoalManagerRunner")
 
     # Offer sink réel (celui qui a try_add_offer)
     var offer_sink: Node = null
@@ -42,8 +41,8 @@ func _test_world_loop_uses_real_autoloads() -> void:
     _clear_offers(offer_sink)
 
     # Goal state A (on snapshot ce qu’on peut)
-    snap["goal_prev"] = _snapshot_goal_state(runner, A)
-    _set_goal_state(runner, A, {"type": &"WAR", "target_id": B})
+    snap["goal_prev"] = _snapshot_goal_state(FactionGoalManagerRunner, A)
+    _set_goal_state(FactionGoalManagerRunner, A, {"type": &"WAR", "target_id": B})
 
     # --- Simulation ---
     var dom := DomesticState.new()
@@ -68,9 +67,9 @@ func _test_world_loop_uses_real_autoloads() -> void:
         if world != null and world.has_variable("current_day"):
             world.current_day = day
 
-        var out: Dictionary = runner.(A, {"day": day, "domestic_state": dom})
-        var goal: Dictionary = out.get("goal", {})
-        var gt: StringName = StringName(goal.get("type", &""))
+        var out: FactionGoalState = FactionGoalManagerRunner.ensure_goal(A, {"day": day, "domestic_state": dom})
+        var goal: FactionGoal = out.goal
+        var gt: FactionGoal.GoalType = goal.type
         var at: StringName = StringName(out.get("action_type", &"arc.idle"))
 
         # détecter entrée en TRUCE
@@ -98,7 +97,7 @@ func _test_world_loop_uses_real_autoloads() -> void:
     _assert(offers_after.size() >= 1, "Expected at least 1 offer spawned during loop")
 
     # --- RESTORE ---
-    _restore_goal_state(runner, A, snap["goal_prev"])
+    _restore_goal_state(FactionGoalManagerRunner, A, snap["goal_prev"])
     _restore_offers(offer_sink, snap["offers_prev"])
     if world != null and snap.has("prev_day"):
         world.current_day = snap["prev_day"]

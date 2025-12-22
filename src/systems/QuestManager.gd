@@ -291,6 +291,10 @@ func resolve_quest(runtime_id: String, choice: String) -> void:
             str(inst.context.get("giver_faction_id", "")),
             str(inst.context.get("antagonist_faction_id", "")),
         ])
+    
+    # --- Enregistrer l'événement dans ArcNotebook ---
+    _record_quest_outcome_event(inst, choice)
+    
     active_quests.erase(runtime_id)
     quest_completed.emit(inst)
     if ArcManagerRunner != null and ArcManagerRunner.has_method("on_quest_resolved"):
@@ -299,6 +303,59 @@ func resolve_quest(runtime_id: String, choice: String) -> void:
     quest_resolved.emit(inst, choice)
 
 
+func _record_quest_outcome_event(inst: QuestInstance, choice: String) -> void:
+    """Enregistre l'événement de résolution dans ArcNotebook (pair ou triplet)"""
+    if ArcManagerRunner == null or ArcManagerRunner.arc_notebook == null:
+        return
+    
+    var ctx: Dictionary = inst.context
+    var action: StringName = StringName(ctx.get("tp_action", ctx.get("arc_action_type", &"")))
+    var day: int = int(ctx.get("day", 0))
+    
+    var giver: StringName = StringName(ctx.get("giver_faction_id", &""))
+    var antagonist: StringName = StringName(ctx.get("antagonist_faction_id", &""))
+    var third_party: StringName = StringName(ctx.get("third_party_id", &""))
+    
+    # Déterminer le résultat (SUCCESS/FAILURE)
+    var chance: float = float(ctx.get("last_success_chance", 0.5))
+    var roll: float = float(ctx.get("last_roll", ctx.get("roll", 0.5)))
+    var outcome: StringName = &"SUCCESS" if roll < chance else &"FAILURE"
+    
+    # Si status déjà défini dans inst
+    if inst.status == QuestTypes.QuestStatus.COMPLETED:
+        outcome = &"SUCCESS"
+    elif inst.status == QuestTypes.QuestStatus.FAILED:
+        outcome = &"FAILURE"
+    
+    var meta := {
+        "outcome": outcome,
+        "chance": chance,
+        "roll": roll,
+        "choice": choice,
+        "tier": inst.template.tier
+    }
+    
+    # Événement tripartite (médiation, intervention) si third_party présent
+    if third_party != &"" and action == &"tp.mediation":
+        ArcManagerRunner.arc_notebook.record_triplet_event(
+            day,
+            antagonist,  # A (faction en conflit)
+            third_party, # B (autre faction en conflit)
+            giver,       # C (médiateur)
+            action,
+            StringName(choice),
+            meta
+        )
+    # Événement pair standard
+    elif giver != &"" and antagonist != &"":
+        ArcManagerRunner.arc_notebook.record_pair_event(
+            day,
+            giver,
+            antagonist,
+            action,
+            StringName(choice),
+            meta
+        )
 
 
 # ========================================

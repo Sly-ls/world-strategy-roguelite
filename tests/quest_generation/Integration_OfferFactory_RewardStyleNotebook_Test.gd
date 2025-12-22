@@ -8,16 +8,14 @@ func _ready() -> void:
 
 
 func _test_spawn_logs_reward_style_with_w_gold_dw() -> void:
-    _assert(ClassDB.class_exists("RewardEconomyUtil"), "RewardEconomyUtil must exist")
-
-    var arc_mgr := get_node_or_null("/root/ArcManagerRunner")
-    _assert(arc_mgr != null, "Missing /root/ArcManagerRunner")
-    _assert(_has_prop(arc_mgr, "arc_notebook"), "ArcManagerRunner must have var arc_notebook")
+    _assert(RewardEconomyUtilRunner != null, "Missing /root/RewardEconomyUtilRunner")
+    _assert(ArcManagerRunner != null, "Missing /root/ArcManagerRunner")
+    _assert(_has_prop(ArcManagerRunner, "arc_notebook"), "ArcManagerRunner must have var arc_notebook")
 
     # Patch notebook
-    var prev_notebook = arc_mgr.get("arc_notebook")
+    var prev_notebook = ArcManagerRunner.arc_notebook
     var notebook := ArcNotebook.new()
-    arc_mgr.set("arc_notebook", notebook)
+    ArcManagerRunner.arc_notebook = notebook
 
     # Find a factory that can spawn offers
     _assert(ArcOfferFactory != null, "No OfferFactory found in /root with spawn_offer_for_pair* method")
@@ -37,9 +35,10 @@ func _test_spawn_logs_reward_style_with_w_gold_dw() -> void:
     # 1. arc_id et arc_state
     var arc_id := &"test_arc_001"
     var arc_state := ArcState.new()
-    arc_state.arc_id = arc_id
-    arc_state.giver_id = giver
-    arc_state.antagonist_id = antagonist
+    arc_state.a_id = giver
+    arc_state.b_id = antagonist
+    arc_state.state = &"HOSTILE"
+    arc_state.entered_day = day - 5
     
     # 2. FactionRelationScore entre giver et antagonist
     var rel_ab := FactionRelationScore.new(antagonist)
@@ -61,14 +60,18 @@ func _test_spawn_logs_reward_style_with_w_gold_dw() -> void:
         antagonist: prof_target
     }
     
-    # 4. Faction economies (Dictionary: faction_id -> economy data)
-    var econ_rich := {"wealth_level": &"RICH", "liquidity": 0.90, "prestige": 0.80}
-    var econ_target := {"wealth_level": &"MEDIUM", "liquidity": 0.50, "prestige": 0.40}
+    # 4. Faction economies (Dictionary: faction_id -> FactionEconomy)
+    # Créer de vrais objets FactionEconomy pour spawn_offers_for_pair
+    var econ_rich := FactionEconomy.new(100)  # wealth/treasury initial
+    var econ_target := FactionEconomy.new(50)
     
     var faction_economies := {
         giver: econ_rich,
         antagonist: econ_target
     }
+    
+    # Dictionary pour RewardEconomyUtil.compute_reward_style (attend un Dictionary, pas FactionEconomy)
+    var econ_rich_dict := {"wealth_level": &"RICH", "liquidity": 0.90, "prestige": 0.80}
     
     # 5. Budget manager
     var budget_mgr := ArcOfferBudgetManager.new()
@@ -107,7 +110,7 @@ func _test_spawn_logs_reward_style_with_w_gold_dw() -> void:
             _assert(dw > 0.0, "expected w_gold_dw > 0 for greedy profile (got %.4f)" % dw)
 
             # Bonus: verify it matches RewardEconomyUtil.compute_reward_style(...)
-            var style := RewardEconomyUtil.compute_reward_style(econ_rich, tier, prof_greedy)
+            var style := RewardEconomyUtil.compute_reward_style(econ_rich_dict, tier, prof_greedy)
             _assert(abs(float(style.w_gold_dw) - dw) < 0.0001, "w_gold_dw mismatch vs compute_reward_style")
             found = true
             break
@@ -115,7 +118,7 @@ func _test_spawn_logs_reward_style_with_w_gold_dw() -> void:
     _assert(found, "expected ArcNotebook record_pair_event with action=offer.reward_style")
 
     # Restore notebook
-    arc_mgr.set("arc_notebook", prev_notebook)
+    ArcManagerRunner.arc_notebook = prev_notebook
 
 
 # ---------------- helpers ----------------

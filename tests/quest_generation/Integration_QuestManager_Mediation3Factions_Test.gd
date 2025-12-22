@@ -1,19 +1,5 @@
 extends BaseTest
 class_name Integration_QuestManager_Mediation3Factions_Test
-
-# --- ArcNotebook stub (captures meta) ---
-class StubArcNotebook:
-    extends RefCounted
-    var pair_events: Array = []
-    var triplet_events: Array = []
-
-    func record_pair_event(day: int, a: StringName, b: StringName, action: StringName, choice: StringName, meta: Dictionary) -> void:
-        pair_events.append({"day": day, "a": a, "b": b, "action": action, "choice": choice, "meta": meta})
-
-    func record_triplet_event(day: int, a: StringName, b: StringName, c: StringName, action: StringName, choice: StringName, meta: Dictionary) -> void:
-        triplet_events.append({"day": day, "a": a, "b": b, "c": c, "action": action, "choice": choice, "meta": meta})
-
-
 # --- Fallback relation score if your real one isn't in ClassDB ---
 class TestRelationScore:
     extends RefCounted
@@ -36,66 +22,41 @@ func _test_resolve_quest_mediation_3f_roll_forced_logs_and_deltas() -> void:
     _assert(ClassDB.class_exists("QuestInstance"), "QuestInstance must exist")
     _assert(ClassDB.class_exists("QuestTemplate"), "QuestTemplate must exist")
 
-    # Find real QuestManager autoload
-    var qm: Node = _find_first_root_node(["QuestManagerRunner", "QuestManager"])
-    _assert(qm != null, "Missing /root QuestManagerRunner (or QuestManager)")
-
-    # ArcManagerRunner (to host arc_notebook)
-    var arc_mgr: Node = _find_first_root_node(["ArcManagerRunner"])
-    _assert(arc_mgr != null, "Missing /root/ArcManagerRunner (needed for ArcNotebook logging)")
-
-    # Relations runner (optional, but we need QuestManager to find relations store)
-    var rel_runner: Node = _find_first_root_node(["FactionRelationsRunner"])
-    var created_rel_runner := false
-    if rel_runner == null:
-        rel_runner = Node.new()
-        rel_runner.name = "FactionRelationsRunner"
-        # QuestManager helper earlier expects relations_by_faction variable
-        rel_runner.set("relations_by_faction", {})
-        get_tree().root.add_child(rel_runner)
-        created_rel_runner = true
+    _assert(QuestManager != null, "Missing /root QuestManagerRunner (or QuestManager)")
+    _assert(ArcManagerRunner != null, "Missing /root/ArcManagerRunner")
+    _assert(FactionManager != null, "Missing /root/FactionManager")
 
     # --- snapshot & patch ArcNotebook ---
-    var prev_arc_notebook = null
-    if arc_mgr.has_variable("arc_notebook"):
-        prev_arc_notebook = arc_mgr.arc_notebook
-    var notebook := StubArcNotebook.new()
-    arc_mgr.arc_notebook = notebook
-
-    # --- snapshot & patch relations store ---
-    var prev_rel_store = null
-    if rel_runner.has_variable("relations_by_faction"):
-        prev_rel_store = rel_runner.relations_by_faction
+    var prev_arc_notebook: ArcNotebook = ArcManagerRunner.arc_notebook
+    var notebook: ArcNotebook = ArcNotebook.new()
+    ArcManagerRunner.arc_notebook = notebook
 
     # Build relations for A,B,C
     var A := &"A"
     var B := &"B"
     var C := &"C" # mediator
 
-    var ScoreClass = FactionRelationScore if ClassDB.class_exists("FactionRelationScore") else TestRelationScore
     var store := {}
-    store[A] = {}
-    store[B] = {}
-    store[C] = {}
+    FactionManager.relation_scores[A] = {}
+    FactionManager.relation_scores[B] = {}
+    FactionManager.relation_scores[C] = {}
 
-    store[A][B] = ScoreClass.new()
-    store[B][A] = ScoreClass.new()
-    store[A][C] = ScoreClass.new()
-    store[B][C] = ScoreClass.new()
-    store[C][A] = ScoreClass.new()
-    store[C][B] = ScoreClass.new()
+    FactionManager.relation_scores[A][B] = FactionRelationScore.new()
+    FactionManager.relation_scores[B][A] = FactionRelationScore.new()
+    FactionManager.relation_scores[A][C] = FactionRelationScore.new()
+    FactionManager.relation_scores[B][C] = FactionRelationScore.new()
+    FactionManager.relation_scores[C][A] = FactionRelationScore.new()
+    FactionManager.relation_scores[C][B] = FactionRelationScore.new()
 
     # high heat A<->B + neutral trust to mediator
-    store[A][B].tension = 80
-    store[B][A].tension = 80
-    store[A][B].grievance = 70
-    store[B][A].grievance = 70
-    store[A][C].trust = 50
-    store[B][C].trust = 50
-    store[C][A].trust = 50
-    store[C][B].trust = 50
-
-    rel_runner.relations_by_faction = store
+    FactionManager.relation_scores[A][B].tension = 80
+    FactionManager.relation_scores[B][A].tension = 80
+    FactionManager.relation_scores[A][B].grievance = 70
+    FactionManager.relation_scores[B][A].grievance = 70
+    FactionManager.relation_scores[A][C].trust = 50
+    FactionManager.relation_scores[B][C].trust = 50
+    FactionManager.relation_scores[C][A].trust = 50
+    FactionManager.relation_scores[C][B].trust = 50
 
     # --- create mediation QuestInstance and register as ACTIVE ---
     var template = QuestTemplate.new()
@@ -132,24 +93,19 @@ func _test_resolve_quest_mediation_3f_roll_forced_logs_and_deltas() -> void:
     inst.expires_on_day = 17
 
     # Add to QuestManager active list via real method if possible
-    if qm.has_method("start_runtime_quest"):
-        qm.start_runtime_quest(inst)
-    else:
-        # fallback: set active_quests directly
-        _assert(qm.has_variable("active_quests"), "QuestManager must have active_quests or start_runtime_quest()")
-        qm.active_quests[inst.runtime_id] = inst
+    QuestManager.start_runtime_quest(inst)
 
     # --- capture before ---
-    var tension_before :float = store[A][B].tension
-    var trust_a_c_before :float = store[A][C].trust
+    var tension_before :float = FactionManager.relation_scores[A][B].tension
+    var trust_a_c_before :float = FactionManager.relation_scores[A][C].trust
 
     # --- act ---
     # LOYAL attempt but should fail due to roll
-    qm.resolve_quest(inst.runtime_id, &"LOYAL")
+    QuestManager.resolve_quest(inst.runtime_id, &"LOYAL")
 
     # --- assertions: deltas applied ---
-    _assert(store[A][B].tension > tension_before, "tension(A→B) should increase after failed mediation (before=%d after=%d)" % [tension_before, store[A][B].tension])
-    _assert(store[A][C].trust < trust_a_c_before, "trust(A→C) should decrease after failed mediation (before=%d after=%d)" % [trust_a_c_before, store[A][C].trust])
+    _assert(FactionManager.relation_scores[A][B].tension > tension_before, "tension(A→B) should increase after failed mediation (before=%d after=%d)" % [tension_before, FactionManager.relation_scores[A][B].tension])
+    _assert(FactionManager.relation_scores[A][C].trust < trust_a_c_before, "trust(A→C) should decrease after failed mediation (before=%d after=%d)" % [trust_a_c_before, FactionManager.relation_scores[A][C].trust])
 
     # --- assertions: ArcNotebook logged chance/roll/outcome ---
     var found := false
@@ -165,12 +121,7 @@ func _test_resolve_quest_mediation_3f_roll_forced_logs_and_deltas() -> void:
     _assert(found, "expected a triplet_event for tp.mediation in ArcNotebook")
 
     # --- restore patched state ---
-    arc_mgr.arc_notebook = prev_arc_notebook
-    if prev_rel_store != null:
-        rel_runner.relations_by_faction = prev_rel_store
-    if created_rel_runner:
-        rel_runner.queue_free()
-
+    ArcManagerRunner.arc_notebook = prev_arc_notebook
 
 func _find_first_root_node(names: Array) -> Node:
     for n in names:

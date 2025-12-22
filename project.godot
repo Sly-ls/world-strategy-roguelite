@@ -50,6 +50,7 @@ ArmyManagerRunner="*res://src/army/ArmyManager.gd"
 ArcManagerRunner="*res://src/quests/arcs/ArcManager.gd"
 DebugConstants="*res://tests/DebugConstants.gd"
 myLogger="*res://logging/logger.gd"
+RewardEconomyUtilRunner="*res://src/quest_system/quest/RewardEconomyUtil.gd"
 
 [input]
 

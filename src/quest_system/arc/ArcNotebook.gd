@@ -46,6 +46,7 @@ var refresh_attempts_by_pair: Dictionary = {}        # StringName -> int
 # Event logging (for debugging/metrics)
 # =============================================================================
 var pair_events: Array = []
+var triplet_events: Array = []  # Pour événements à 3 factions (médiation, intervention)
 
 # =============================================================================
 # Pair locks (for coalition truces, treaties, etc.)
@@ -80,6 +81,7 @@ func reset() -> void:
     last_offer_refresh_day_by_pair.clear()
     refresh_attempts_by_pair.clear()
     pair_events.clear()
+    triplet_events.clear()
     pair_locks.clear()
     pair_counters.clear()
 
@@ -229,7 +231,7 @@ func on_quest_resolution_choice(inst, choice: String) -> void:
     if inst == null:
         return
 
-    var ctx: Dictionary = inst.context if inst.has("context") else {}
+    var ctx: Dictionary = inst.context if inst.context != null else {}
     if not bool(ctx.get("is_arc_rivalry", false)):
         return
 
@@ -428,6 +430,33 @@ func record_pair_event(
             heat.friendly_ba += sev
 
 
+## Enregistre un événement tripartite (médiation, intervention, etc.)
+## a = faction A (en conflit), b = faction B (en conflit), c = médiateur/intervenant
+func record_triplet_event(
+    day: int,
+    a: StringName,
+    b: StringName,
+    c: StringName,
+    action: StringName,
+    choice: StringName = &"",
+    meta: Dictionary = {}
+) -> void:
+    triplet_events.append({
+        "day": day,
+        "a": a,
+        "b": b,
+        "c": c,
+        "action": action,
+        "choice": choice,
+        "meta": meta
+    })
+    
+    # Optionnel: mettre à jour les relations de paires impliquées
+    # get_pair(a, b).register(action, day)  # conflit principal
+    # get_pair(a, c).register(action, day)  # relation A-médiateur
+    # get_pair(b, c).register(action, day)  # relation B-médiateur
+
+
 # =============================================================================
 # Offer Refresh Cooldown
 # =============================================================================
@@ -555,3 +584,39 @@ func count_events_by_action(action: StringName) -> int:
 func get_recent_events(limit: int = 20) -> Array:
     var start :int = max(0, pair_events.size() - limit)
     return pair_events.slice(start)
+
+
+# =============================================================================
+# Query Triplet Events
+# =============================================================================
+
+## Retourne les événements tripartites impliquant une faction comme médiateur
+func get_triplet_events_for_mediator(mediator_id: StringName) -> Array:
+    var result: Array = []
+    for e in triplet_events:
+        if e.get("c", &"") == mediator_id:
+            result.append(e)
+    return result
+
+## Retourne les événements tripartites impliquant une paire en conflit
+func get_triplet_events_for_conflict_pair(a: StringName, b: StringName) -> Array:
+    var result: Array = []
+    for e in triplet_events:
+        var ea: StringName = e.get("a", &"")
+        var eb: StringName = e.get("b", &"")
+        if (ea == a and eb == b) or (ea == b and eb == a):
+            result.append(e)
+    return result
+
+## Compte les événements tripartites par action
+func count_triplet_events_by_action(action: StringName) -> int:
+    var count := 0
+    for e in triplet_events:
+        if e.get("action", &"") == action:
+            count += 1
+    return count
+
+## Retourne les derniers événements tripartites
+func get_recent_triplet_events(limit: int = 20) -> Array:
+    var start: int = max(0, triplet_events.size() - limit)
+    return triplet_events.slice(start)
