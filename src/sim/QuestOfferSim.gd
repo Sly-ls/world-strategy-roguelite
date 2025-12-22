@@ -52,7 +52,11 @@ func tick_day() -> void:
         var removed :QuestInstance = QuestPool.get_offers().pop_front()
         offer_created_day.erase(removed.runtime_id)
 
-func generate_goal_offer(actor_id: String, target_id: String, domain: String, step_id: String, tier: QuestTypes.QuestTier = QuestTypes.QuestTier.TIER_1) -> void:
+func generate_goal_offer(actor_id: String, 
+target_id: String, 
+domain: String, 
+step_id: String, 
+tier: QuestTypes.QuestTier = QuestTypes.QuestTier.TIER_1) -> void:
     if QuestGenerator == null:
         return
 

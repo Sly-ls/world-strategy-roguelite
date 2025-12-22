@@ -32,21 +32,65 @@ func _test_spawn_logs_reward_style_w_gold_dw_for_greedy() -> void:
     var day := 12
     var tier := 3
     var arc_action_type := &"arc.ultimatum"
+    
+    var arc_id := &"test_arc_001"
+    var arc_state := ArcState.new()
+    arc_state.a_id = giver
+    arc_state.b_id = target
+    arc_state.state = &"HOSTILE"
+    arc_state.entered_day = day - 5
+    
+    var rel_ab := FactionRelationScore.new(target)
+    rel_ab.relation = -30
+    rel_ab.trust = 20
+    rel_ab.tension = 50
 
+    # 3. Faction profiles (Dictionary: faction_id -> FactionProfile)
+    var prof_greedy := FactionProfile.new()
+    prof_greedy.personality[FactionProfile.PERS_AGGRESSION] = 0.95
+    prof_greedy.personality[FactionProfile.PERS_RISK_AVERSION] = 0.15
+    prof_greedy.personality[FactionProfile.PERS_DIPLOMACY] = 0.30
+    
+    var prof_target := FactionProfile.new()
+    prof_target.personality[FactionProfile.PERS_DIPLOMACY] = 0.60
+    
+    var faction_profiles := {
+        giver: prof_greedy,
+        target: prof_target
+    }
     # Overrides injectés uniquement pour le test (évite de dépendre de ton FactionManager)
     var econ_override := {"wealth_level": &"RICH", "liquidity": 0.90, "prestige": 0.80}
     var profile_override := {"personality": {FactionProfile.PERS_GREED: 0.95, FactionProfile.PERS_OPPORTUNISM: 0.85,FactionProfile.PERS_HONOR: 0.20, FactionProfile.PERS_DISCIPLINE: 0.30}}
 
-    # Appel "vraie méthode spawn" via une entrée stable.
-    var offer = QuestOfferSimRunner.spawn_offer_for_pair_from_params(
-        "giver_faction_id": giver,
-        "antagonist_faction_id": target,
-        "arc_action_type": arc_action_type,
-        "tier": tier,
-        "day": day,
-        "rng": rng,
-        "econ_override": econ_override,
-        "profile_override": profile_override
+    var econ_rich := FactionEconomy.new(100)  # wealth/treasury initial
+    var econ_target := FactionEconomy.new(50)
+    
+    var faction_economies := {
+        giver: econ_rich,
+        target: econ_target
+    }
+    
+    # Dictionary pour RewardEconomyUtil.compute_reward_style (attend un Dictionary, pas FactionEconomy)
+    var econ_rich_dict := {"wealth_level": &"RICH", "liquidity": 0.90, "prestige": 0.80}
+    
+    # 5. Budget manager
+    var budget_mgr := ArcOfferBudgetManager.new()
+    
+    # --- Appel avec tous les arguments ---
+    var spawned: Array[QuestInstance] = ArcOfferFactory.spawn_offers_for_pair(
+        arc_id,
+        arc_state,
+        giver,
+        target,
+        arc_action_type,
+        rel_ab,
+        faction_profiles,
+        faction_economies,
+        budget_mgr,
+        rng,
+        day,
+        tier,
+        {}  # params optionnel
     )
 
     # (Optionnel) si tu retournes la QuestInstance

@@ -4,6 +4,7 @@ class_name FactionManagerClass
 
 ## Gestionnaire global des factions
 ## NOUVEAU : Créé par Claude (manquait chez ChatGPT)
+## MODIFIÉ : Relations maintenant stockées dans Faction.relations
 
 # ========================================
 # SIGNAUX
@@ -17,22 +18,8 @@ signal faction_status_changed(faction_id: String, old_status: String, new_status
 # ========================================
 var factions: Dictionary = {}  ## id -> Faction
 
-# Relations entre factions (symétrique) - ancienne méthode simple
-var relations_between: Dictionary = {} # key "a|b" -> int
-
-# Relations avancées entre factions (directionnelles) : faction_id -> { other_id -> FactionRelationScore }
-var relation_scores: Dictionary = {}
-
 # RNG pour génération reproductible
 var _profile_rng: RandomNumberGenerator = RandomNumberGenerator.new()
-
-func set_relation_between(a: String, b: String, value: int) -> void:
-    relations_between[Utils.pair_key(a, b)] = value
-
-func get_relation_between(a: String, b: String) -> int:
-    if a == "" or b == "" or a == b:
-        return 0
-    return int(relations_between.get(Utils.pair_key(a, b), 0))
 
 # ========================================
 # LIFECYCLE
@@ -42,100 +29,170 @@ func _ready() -> void:
     _profile_rng.seed = 42  # Seed fixe pour reproductibilité
     _init_default_factions()
     _init_relation_scores()
-    set_relation_between("humans", "orcs", -80)
-    set_relation_between("humans", "bandits", -60)
-    set_relation_between("elves", "orcs", -40)
-    set_relation_between("elves", "bandits", -30)
-    set_relation_between("humans", "elves", 10)
     print("✓ FactionManager initialisé avec %d factions" % factions.size())
 
-# ========================================
-# INITIALISATION
-# ========================================
 
 func _init_default_factions() -> void:
-    """Crée les factions de base du jeu avec leurs profils"""
-    
-    # Royaume Humain - tendance Tech/Divine
+	"""Initialise les factions par défaut"""
+    # Factions humaines
     var humans := register_faction(
-        "humans",
-        "Royaume Humain",
-        "Un royaume humain organisé et ambitieux.",
-        0,
-        5,
-        Faction.FactionType.NEUTRAL
+        "humans", "Royaume des Hommes",
+        "Le plus grand royaume humain",
+        8, Faction.FactionType.FRIENDLY
     )
-    humans.profile = _generate_profile_with_bias({
-        FactionProfile.AXIS_TECH: 40,
-        FactionProfile.AXIS_DIVINE: 20,
-        FactionProfile.AXIS_NATURE: -30
-    })
+    humans.profile = _create_human_profile()
     
-    # Elfes de la Forêt - tendance Nature/Magie
     var elves := register_faction(
-        "elves",
-        "Elfes de la Forêt",
-        "Gardiens ancestraux de la grande forêt.",
-        -10,
-        4,
-        Faction.FactionType.NEUTRAL
+        "elves", "Conclave Elfique",
+        "Les anciens gardiens de la forêt",
+        6, Faction.FactionType.MAGICAL
     )
-    elves.profile = _generate_profile_with_bias({
-        FactionProfile.AXIS_NATURE: 60,
-        FactionProfile.AXIS_MAGIC: 40,
-        FactionProfile.AXIS_TECH: -50
-    })
+    elves.profile = _create_elf_profile()
     
-    # Tribus Orques - tendance Corruption/pas de Divine
+    # Factions hostiles
     var orcs := register_faction(
-        "orcs",
-        "Tribus Orques",
-        "Guerriers féroces cherchant à bâtir leur empire.",
-        -30,
-        6,
-        Faction.FactionType.HOSTILE
+        "orcs", "Horde Orc",
+        "Une coalition de tribus guerrières",
+        7, Faction.FactionType.HOSTILE
     )
-    orcs.profile = _generate_profile_with_bias({
-        FactionProfile.AXIS_CORRUPTION: 50,
-        FactionProfile.AXIS_DIVINE: -40,
-        FactionProfile.AXIS_NATURE: -20
-    })
+    orcs.profile = _create_orc_profile()
     
-    # Bandits - tendance Corruption légère, pragmatique
     var bandits := register_faction(
-        "bandits",
-        "Bandits des Routes",
-        "Pillards et hors-la-loi sans scrupules.",
-        -50,
-        2,
-        Faction.FactionType.HOSTILE
+        "bandits", "Confrérie des Ombres",
+        "Un réseau de brigands et de voleurs",
+        4, Faction.FactionType.HOSTILE
     )
-    bandits.profile = _generate_profile_with_bias({
-        FactionProfile.AXIS_CORRUPTION: 30,
-        FactionProfile.AXIS_DIVINE: -60,
-        FactionProfile.AXIS_TECH: 10
-    })
-
-func _generate_profile_with_bias(axis_hints: Dictionary) -> FactionProfile:
-    """Génère un profil en appliquant des biais sur les axes"""
-    var profile := FactionProfile.generate_full_profile(_profile_rng, FactionProfile.GEN_NORMAL)
+    bandits.profile = _create_bandit_profile()
     
-    # Appliquer les biais
-    for axis in axis_hints.keys():
-        var current: int = profile.get_axis_affinity(axis)
-        var bias: int = axis_hints[axis]
-        # Blend: 70% bias + 30% généré
-        var blended: int = int(float(bias) * 0.7 + float(current) * 0.3)
-        profile.set_axis_affinity(axis, blended)
+    # Factions neutres
+    var merchants := register_faction(
+        "merchants", "Guilde des Marchands",
+        "Une puissante guilde commerciale",
+        5, Faction.FactionType.TRADER
+    )
+    merchants.profile = _create_merchant_profile()
+
+
+func _create_human_profile() -> FactionProfile:
+    var profile := FactionProfile.new()
+    
+    # Humans: balanced, slight tech/divine lean
+    profile.set_axis_affinity(FactionProfile.AXIS_TECH, 60)
+    profile.set_axis_affinity(FactionProfile.AXIS_MAGIC, 30)
+    profile.set_axis_affinity(FactionProfile.AXIS_NATURE, 40)
+    profile.set_axis_affinity(FactionProfile.AXIS_DIVINE, 55)
+    profile.set_axis_affinity(FactionProfile.AXIS_CORRUPTION, 10)
+    
+    # Personality: diplomatic, honorable
+    profile.set_personality(FactionProfile.PERS_AGGRESSION, 0.4)
+    profile.set_personality(FactionProfile.PERS_VENGEFULNESS, 0.5)
+    profile.set_personality(FactionProfile.PERS_DIPLOMACY, 0.7)
+    profile.set_personality(FactionProfile.PERS_RISK_AVERSION, 0.5)
+    profile.set_personality(FactionProfile.PERS_EXPANSIONISM, 0.6)
+    profile.set_personality(FactionProfile.PERS_INTEGRATIONISM, 0.6)
+    profile.set_personality(FactionProfile.PERS_HONOR, 0.7)
+    profile.set_personality(FactionProfile.PERS_CUNNING, 0.4)
     
     return profile
 
+
+func _create_elf_profile() -> FactionProfile:
+    var profile := FactionProfile.new()
+    
+    # Elves: magic/nature focused
+    profile.set_axis_affinity(FactionProfile.AXIS_TECH, 20)
+    profile.set_axis_affinity(FactionProfile.AXIS_MAGIC, 80)
+    profile.set_axis_affinity(FactionProfile.AXIS_NATURE, 85)
+    profile.set_axis_affinity(FactionProfile.AXIS_DIVINE, 50)
+    profile.set_axis_affinity(FactionProfile.AXIS_CORRUPTION, 5)
+    
+    # Personality: isolationist, honorable
+    profile.set_personality(FactionProfile.PERS_AGGRESSION, 0.2)
+    profile.set_personality(FactionProfile.PERS_VENGEFULNESS, 0.6)
+    profile.set_personality(FactionProfile.PERS_DIPLOMACY, 0.5)
+    profile.set_personality(FactionProfile.PERS_RISK_AVERSION, 0.7)
+    profile.set_personality(FactionProfile.PERS_EXPANSIONISM, 0.2)
+    profile.set_personality(FactionProfile.PERS_INTEGRATIONISM, 0.3)
+    profile.set_personality(FactionProfile.PERS_HONOR, 0.8)
+    profile.set_personality(FactionProfile.PERS_CUNNING, 0.5)
+    
+    return profile
+
+
+func _create_orc_profile() -> FactionProfile:
+    var profile := FactionProfile.new()
+    
+    # Orcs: aggressive, tech-averse
+    profile.set_axis_affinity(FactionProfile.AXIS_TECH, 25)
+    profile.set_axis_affinity(FactionProfile.AXIS_MAGIC, 30)
+    profile.set_axis_affinity(FactionProfile.AXIS_NATURE, 50)
+    profile.set_axis_affinity(FactionProfile.AXIS_DIVINE, 35)
+    profile.set_axis_affinity(FactionProfile.AXIS_CORRUPTION, 40)
+    
+    # Personality: aggressive, expansionist
+    profile.set_personality(FactionProfile.PERS_AGGRESSION, 0.85)
+    profile.set_personality(FactionProfile.PERS_VENGEFULNESS, 0.8)
+    profile.set_personality(FactionProfile.PERS_DIPLOMACY, 0.2)
+    profile.set_personality(FactionProfile.PERS_RISK_AVERSION, 0.2)
+    profile.set_personality(FactionProfile.PERS_EXPANSIONISM, 0.9)
+    profile.set_personality(FactionProfile.PERS_INTEGRATIONISM, 0.1)
+    profile.set_personality(FactionProfile.PERS_HONOR, 0.4)
+    profile.set_personality(FactionProfile.PERS_CUNNING, 0.3)
+    
+    return profile
+
+
+func _create_bandit_profile() -> FactionProfile:
+    var profile := FactionProfile.new()
+    
+    # Bandits: opportunistic
+    profile.set_axis_affinity(FactionProfile.AXIS_TECH, 40)
+    profile.set_axis_affinity(FactionProfile.AXIS_MAGIC, 20)
+    profile.set_axis_affinity(FactionProfile.AXIS_NATURE, 30)
+    profile.set_axis_affinity(FactionProfile.AXIS_DIVINE, 10)
+    profile.set_axis_affinity(FactionProfile.AXIS_CORRUPTION, 60)
+    
+    # Personality: cunning, dishonorable
+    profile.set_personality(FactionProfile.PERS_AGGRESSION, 0.6)
+    profile.set_personality(FactionProfile.PERS_VENGEFULNESS, 0.4)
+    profile.set_personality(FactionProfile.PERS_DIPLOMACY, 0.3)
+    profile.set_personality(FactionProfile.PERS_RISK_AVERSION, 0.4)
+    profile.set_personality(FactionProfile.PERS_EXPANSIONISM, 0.5)
+    profile.set_personality(FactionProfile.PERS_INTEGRATIONISM, 0.2)
+    profile.set_personality(FactionProfile.PERS_HONOR, 0.1)
+    profile.set_personality(FactionProfile.PERS_CUNNING, 0.9)
+    
+    return profile
+
+
+func _create_merchant_profile() -> FactionProfile:
+    var profile := FactionProfile.new()
+    
+    # Merchants: pragmatic, diplomatic
+    profile.set_axis_affinity(FactionProfile.AXIS_TECH, 70)
+    profile.set_axis_affinity(FactionProfile.AXIS_MAGIC, 40)
+    profile.set_axis_affinity(FactionProfile.AXIS_NATURE, 30)
+    profile.set_axis_affinity(FactionProfile.AXIS_DIVINE, 35)
+    profile.set_axis_affinity(FactionProfile.AXIS_CORRUPTION, 25)
+    
+    # Personality: diplomatic, opportunistic
+    profile.set_personality(FactionProfile.PERS_AGGRESSION, 0.2)
+    profile.set_personality(FactionProfile.PERS_VENGEFULNESS, 0.3)
+    profile.set_personality(FactionProfile.PERS_DIPLOMACY, 0.85)
+    profile.set_personality(FactionProfile.PERS_RISK_AVERSION, 0.6)
+    profile.set_personality(FactionProfile.PERS_EXPANSIONISM, 0.7)
+    profile.set_personality(FactionProfile.PERS_INTEGRATIONISM, 0.8)
+    profile.set_personality(FactionProfile.PERS_HONOR, 0.5)
+    profile.set_personality(FactionProfile.PERS_CUNNING, 0.7)
+    
+    return profile
+
+
 func _init_relation_scores() -> void:
-    """Initialise les FactionRelationScore entre toutes les factions basé sur leurs profils"""
+	"""Initialise les FactionRelationScore entre toutes les factions basé sur leurs profils"""
     var faction_ids := factions.keys()
     
     for from_id in faction_ids:
-        relation_scores[from_id] = {}
         var from_faction: Faction = factions[from_id]
         
         for to_id in faction_ids:
@@ -158,7 +215,8 @@ func _init_relation_scores() -> void:
                 score.weariness = 0
                 score.clamp_all()
             
-            relation_scores[from_id][to_id] = score
+            # Stocker dans la faction (pas dans FactionManager)
+            from_faction.relations[to_id] = score
     
     print("✓ Relations inter-factions initialisées")
 
@@ -170,29 +228,31 @@ func register_faction(
     p_id: String,
     p_name: String,
     p_description: String,
-    p_relation: int,
     p_power: int,
     p_type: Faction.FactionType
 ) -> Faction:
-    """Enregistre une nouvelle faction"""
+	"""Enregistre une nouvelle faction"""
     
     var f := Faction.new()
     f.id = p_id
     f.name = p_name
     f.description = p_description
-    f.relation_with_player = p_relation
+    # TODO: relation_with_player migré avec factions mineures/armées libres
+    #f.relation_with_player = p_relation
     f.power_level = p_power
     f.faction_type = p_type
     
     factions[p_id] = f
     return f
 
+
 func get_faction(faction_id: String) -> Faction:
-    """Récupère une faction par son ID"""
+	"""Récupère une faction par son ID"""
     return factions.get(faction_id, null)
 
+
 func has_faction(faction_id: String) -> bool:
-    """Vérifie si une faction existe"""
+	"""Vérifie si une faction existe"""
     return factions.has(faction_id)
 
 # ========================================
@@ -200,7 +260,7 @@ func has_faction(faction_id: String) -> bool:
 # ========================================
 
 func get_faction_profile(faction_id) -> FactionProfile:
-    """Récupère le profil d'une faction (ou en génère un par défaut)"""
+	"""Récupère le profil d'une faction (ou en génère un par défaut)"""
     var id_str := str(faction_id)
     var f := get_faction(id_str)
     if f != null and f.profile != null:
@@ -211,8 +271,9 @@ func get_faction_profile(faction_id) -> FactionProfile:
     rng.seed = hash(id_str)
     return FactionProfile.generate_full_profile(rng, FactionProfile.GEN_NORMAL)
 
+
 func get_faction_profiles() -> Dictionary:
-    """Retourne un dictionnaire faction_id -> FactionProfile pour toutes les factions"""
+	"""Retourne un dictionnaire faction_id -> FactionProfile pour toutes les factions"""
     var profiles: Dictionary = {}  # StringName -> FactionProfile
     for faction_id in factions.keys():
         var f: Faction = factions[faction_id]
@@ -222,137 +283,165 @@ func get_faction_profiles() -> Dictionary:
 
 # ========================================
 # RELATION SCORES (pour système d'arcs)
+# Méthodes d'accès centralisées - délèguent à Faction.relations
 # ========================================
 
 func get_relation_score(from_id, to_id) -> FactionRelationScore:
-    """Récupère le FactionRelationScore de from_id vers to_id"""
+	"""Récupère le FactionRelationScore de from_id vers to_id"""
     var from_str := str(from_id)
     var to_str := str(to_id)
     
-    if relation_scores.has(from_str) and relation_scores[from_str].has(to_str):
-        return relation_scores[from_str][to_str]
+    var from_faction := get_faction(from_str)
+    if from_faction == null:
+        # Créer un score neutre si la faction n'existe pas
+        return FactionRelationScore.new(StringName(to_str))
     
-    # Fallback: créer un nouveau score neutre
+    # Récupérer depuis Faction.relations
+    if from_faction.relations.has(to_str):
+        return from_faction.relations[to_str]
+    
+    # Lazy loading: créer un nouveau score neutre si n'existe pas
     var score := FactionRelationScore.new(StringName(to_str))
-    
-    # Initialiser avec le cache si dispo
-    if not relation_scores.has(from_str):
-        relation_scores[from_str] = {}
-    relation_scores[from_str][to_str] = score
-    
+    from_faction.relations[to_str] = score
     return score
 
+
 func get_relation_scores() -> Dictionary:
-    """Retourne le dictionnaire complet des relations"""
-    return relation_scores
+	"""Retourne le dictionnaire complet des relations (format: from_id -> { to_id -> FactionRelationScore })"""
+    var result: Dictionary = {}
+    for faction_id in factions.keys():
+        var f: Faction = factions[faction_id]
+        result[faction_id] = f.relations.duplicate()
+    return result
+
 
 func get_all_relation_scores_for(faction_id: String) -> Dictionary:
-    """Retourne toutes les relations d'une faction vers les autres"""
-    if relation_scores.has(faction_id):
-        return relation_scores[faction_id]
+	"""Retourne toutes les relations d'une faction vers les autres"""
+    var f := get_faction(faction_id)
+    if f != null:
+        return f.relations
     return {}
+
+
+func set_relation_score(from_id, to_id, score: FactionRelationScore) -> void:
+	"""Définit le FactionRelationScore de from_id vers to_id"""
+    var from_str := str(from_id)
+    var to_str := str(to_id)
+    
+    var from_faction := get_faction(from_str)
+    if from_faction != null:
+        from_faction.relations[to_str] = score
 
 # ========================================
 # RELATIONS (avec le joueur)
+# TODO: doit être migré avec les factions mineures et les armées libres
 # ========================================
 
-func adjust_relation(faction_id: String, delta: int) -> void:
-    """Ajuste la relation avec une faction"""
-    var f := get_faction(faction_id)
-    if f == null:
-        print("FactionManager: faction '%s' introuvable" % faction_id)
-        return
-    
-    var old_value := f.relation_with_player
-    var old_status := f.get_relation_status()
-    
-    f.adjust_relation(delta)
-    
-    var new_value := f.relation_with_player
-    var new_status := f.get_relation_status()
-    
-    # Signaux
-    faction_relation_changed.emit(faction_id, old_value, new_value)
-    
-    if old_status != new_status:
-        faction_status_changed.emit(faction_id, old_status, new_status)
-    
-    # Log
-    var sign := "+" if delta >= 0 else ""
-    print("→ Relation avec %s : %s%d (total: %d - %s)" % [
-        f.name,
-        sign,
-        delta,
-        f.relation_with_player,
-        f.get_relation_status()
-    ])
+#func adjust_relation(faction_id: String, delta: int) -> void:
+#	"""Ajuste la relation avec une faction"""
+#	var f := get_faction(faction_id)
+#	if f == null:
+#		print("FactionManager: faction '%s' introuvable" % faction_id)
+#		return
+#	
+#	var old_value := f.relation_with_player
+#	var old_status := f.get_relation_status()
+#	
+#	f.adjust_relation(delta)
+#	
+#	var new_value := f.relation_with_player
+#	var new_status := f.get_relation_status()
+#	
+#	# Signaux
+#	faction_relation_changed.emit(faction_id, old_value, new_value)
+#	
+#	if old_status != new_status:
+#		faction_status_changed.emit(faction_id, old_status, new_status)
+#	
+#	# Log
+#	var sign := "+" if delta >= 0 else ""
+#	print("→ Relation avec %s : %s%d (total: %d - %s)" % [
+#		f.name,
+#		sign,
+#		delta,
+#		f.relation_with_player,
+#		f.get_relation_status()
+#	])
 
-func get_relation(faction_id: String) -> int:
-    """Obtient la relation avec une faction"""
-    var f := get_faction(faction_id)
-    return f.relation_with_player if f else 0
 
-func get_relation_status(faction_id: String) -> String:
-    """Obtient le statut de relation avec une faction"""
-    var f := get_faction(faction_id)
-    return f.get_relation_status() if f else "Inconnu"
+#func get_relation(faction_id: String) -> int:
+#	"""Obtient la relation avec une faction"""
+#	var f := get_faction(faction_id)
+#	return f.relation_with_player if f else 0
+
+
+#func get_relation_status(faction_id: String) -> String:
+#	"""Obtient le statut de relation avec une faction"""
+#	var f := get_faction(faction_id)
+#	return f.get_relation_status() if f else "Inconnu"
 
 # ========================================
 # QUERIES
 # ========================================
 
 func get_all_factions() -> Array[Faction]:
-    """Retourne toutes les factions"""
+	"""Retourne toutes les factions"""
     var result: Array[Faction] = []
     for f in factions.values():
         result.append(f)
     return result
 
+
 func get_all_faction_ids() -> Array[String]:
-    """Retourne tous les IDs de faction"""
+	"""Retourne tous les IDs de faction"""
     var result: Array[String] = []
     for id in factions.keys():
         result.append(id)
     return result
 
-func get_allies() -> Array[Faction]:
-    """Retourne les factions alliées"""
-    var result: Array[Faction] = []
-    for f in factions.values():
-        if f.is_ally():
-            result.append(f)
-    return result
 
-func get_enemies() -> Array[Faction]:
-    """Retourne les factions ennemies"""
-    var result: Array[Faction] = []
-    for f in factions.values():
-        if f.is_enemy():
-            result.append(f)
-    return result
+# TODO: get_allies, get_enemies, get_neutral - doit être migré avec factions mineures/armées libres
+#func get_allies() -> Array[Faction]:
+#	"""Retourne les factions alliées"""
+#	var result: Array[Faction] = []
+#	for f in factions.values():
+#		if f.is_ally():
+#			result.append(f)
+#	return result
 
-func get_neutral() -> Array[Faction]:
-    """Retourne les factions neutres"""
-    var result: Array[Faction] = []
-    for f in factions.values():
-        if f.is_neutral():
-            result.append(f)
-    return result
+
+#func get_enemies() -> Array[Faction]:
+#	"""Retourne les factions ennemies"""
+#	var result: Array[Faction] = []
+#	for f in factions.values():
+#		if f.is_enemy():
+#			result.append(f)
+#	return result
+
+
+#func get_neutral() -> Array[Faction]:
+#	"""Retourne les factions neutres"""
+#	var result: Array[Faction] = []
+#	for f in factions.values():
+#		if f.is_neutral():
+#			result.append(f)
+#	return result
 
 # ========================================
 # PERSISTANCE
 # ========================================
 
 func save_state() -> Dictionary:
-    """Sauvegarde l'état de toutes les factions"""
+	"""Sauvegarde l'état de toutes les factions"""
     var data := {}
     for id in factions:
         var f: Faction = factions[id]
         data[id] = f.save_state()
     return data
 
+
 func load_state(data: Dictionary) -> void:
-    """Charge l'état de toutes les factions"""
+	"""Charge l'état de toutes les factions"""
     for id in data:
         if factions.has(id):
             var f: Faction = factions[id]
@@ -363,25 +452,22 @@ func load_state(data: Dictionary) -> void:
 # ========================================
 # DEBUG
 # ========================================
-func print_relations_between() -> void:
-    print("\n=== RELATIONS INTER-FACTIONS ===")
-    for k in relations_between.keys():
-        print("- %s : %d" % [k, relations_between[k]])
-    print("===============================\n")
 
 func print_relation_scores() -> void:
-    """Affiche les FactionRelationScore détaillés"""
+	"""Affiche les FactionRelationScore détaillés"""
     print("\n=== RELATION SCORES DÉTAILLÉS ===")
-    for from_id in relation_scores.keys():
-        for to_id in relation_scores[from_id].keys():
-            var rs: FactionRelationScore = relation_scores[from_id][to_id]
+    for faction_id in factions.keys():
+        var f: Faction = factions[faction_id]
+        for to_id in f.relations.keys():
+            var rs: FactionRelationScore = f.relations[to_id]
             print("- %s → %s : rel=%d trust=%d tension=%d" % [
-                from_id, to_id, rs.relation, rs.trust, rs.tension
+                faction_id, to_id, rs.relation, rs.trust, rs.tension
             ])
     print("=================================\n")
 
+
 func print_faction_profiles() -> void:
-    """Affiche les profils de faction"""
+	"""Affiche les profils de faction"""
     print("\n=== FACTION PROFILES ===")
     for id in factions.keys():
         var f: Faction = factions[id]
@@ -404,12 +490,14 @@ func print_faction_profiles() -> void:
             ])
     print("========================\n")
     
-func print_all_factions() -> void:
-    """Affiche toutes les factions (debug)"""
-    print("\n=== FACTIONS ===")
-    for f in get_all_factions():
-        print("- %s : %d (%s)" % [f.name, f.relation_with_player, f.get_relation_status()])
-    print("================\n")
+
+# TODO: print_all_factions - doit être migré avec factions mineures/armées libres
+#func print_all_factions() -> void:
+#	"""Affiche toutes les factions (debug)"""
+#	print("\n=== FACTIONS ===")
+#	for f in get_all_factions():
+#		print("- %s : %d (%s)" % [f.name, f.relation_with_player, f.get_relation_status()])
+#	print("================\n")
 
 # -------------------------
 # Public API
@@ -442,7 +530,7 @@ func generate_faction(
         antagonism_strength
     )
 
-    # Biais “heat” sur la personnalité => plus de friction/conflits quand heat monte
+    # Biais "heat" sur la personnalité => plus de friction/conflits quand heat monte
     _apply_heat_bias_to_personality(profile, heat, rng)
 
     # Crée ta faction (adapte selon ta classe Faction)
@@ -473,7 +561,7 @@ func generate_factions(
     for i in range(count):
         var id: StringName = StringName("f_%03d" % i)
 
-        # plus heat est haut, plus on force des antagonistes “naturels”
+        # plus heat est haut, plus on force des antagonistes "naturels"
         var p_ant := clampf((float(heat) - 15.0) / 85.0, 0.0, 1.0) * 0.75
         var against = null
         if created.size() > 0 and rng.randf() < p_ant:
@@ -507,7 +595,7 @@ func _profile_params_from_heat(heat: int, user_params: Dictionary) -> Dictionary
     # cohérence plus forte quand heat monte (identités plus nettes => relations plus polarisées)
     var coherence :float = lerp(0.55, 0.85, h)
 
-    # plus heat monte, plus on “autorise” le mode antagoniste à être marqué
+    # plus heat monte, plus on "autorise" le mode antagoniste à être marqué
     var antagonist_blend :float = lerp(0.10, 0.28, h)
 
     var p := {
@@ -525,7 +613,7 @@ func _profile_params_from_heat(heat: int, user_params: Dictionary) -> Dictionary
 
 func _apply_heat_bias_to_personality(profile: FactionProfile, heat: int, rng: RandomNumberGenerator) -> void:
     var h := float(heat) / 100.0
-    # petit jitter pour ne pas faire “toutes identiques”
+    # petit jitter pour ne pas faire "toutes identiques"
     var j := rng.randf_range(-0.04, 0.04)
 
     # Heat => +aggression +vengefulness +expansionism, -diplomacy -integrationism, -risk_aversion
@@ -591,8 +679,8 @@ func initialize_relations_world(factions_generated: Array, heat: int, seed: int 
 
     var reciprocity := float(params.get("reciprocity", 0.70)) # 0..1
     var noise_sigma :float = lerp(4.0, 10.0, h)                    # petit bruit sur relation
-    var enemies_k := clampi(1 + int(heat / 35), 1, 3)         # heat↑ => + d’ennemis naturels
-    var allies_k := clampi(2 - int(heat / 70), 1, 2)          # heat↑ => - d’alliés naturels
+    var enemies_k := clampi(1 + int(heat / 35), 1, 3)         # heat↑ => + d'ennemis naturels
+    var allies_k := clampi(2 - int(heat / 70), 1, 2)          # heat↑ => - d'alliés naturels
 
     # --- 1) Build matrix A->B brute
     var ids: Array[StringName] = []
@@ -626,13 +714,13 @@ func initialize_relations_world(factions_generated: Array, heat: int, seed: int 
     # --- 2) Center outgoing mean per faction (moyenne ~ 0)
     _center_outgoing_means(store, ids, 1.0)
 
-    # --- 3) Add a few “natural enemies/allies” per faction (polarisation contrôlée)
+    # --- 3) Add a few "natural enemies/allies" per faction (polarisation contrôlée)
     _apply_natural_extremes(store, ids, enemies_k, allies_k, heat, rng)
 
     # --- 4) Re-center lightly to keep global coherence after extremes
     _center_outgoing_means(store, ids, 0.70)
 
-    # --- 5) Apply “light reciprocity” (A->B and B->A converge ~70% sans être identiques)
+    # --- 5) Apply "light reciprocity" (A->B and B->A converge ~70% sans être identiques)
     _apply_reciprocity(store, ids, reciprocity, rng)
 
     # --- 6) Commit to factions (store per faction)
@@ -645,27 +733,30 @@ func initialize_relations_world(factions_generated: Array, heat: int, seed: int 
 # -----------------------------------------
 # Helpers (non invasifs)
 # -----------------------------------------
-func _find_faction_in_array(factions: Array, id: StringName):
-    for f in factions:
+func _find_faction_in_array(factions_arr: Array, id: StringName):
+    for f in factions_arr:
         if f.get("id") == id:
             return f
     return null
 
+
 func _set_relations_dict_on_faction(faction_obj, rel_dict: Dictionary) -> void:
-    # essaie plusieurs noms de champ possibles
-    if _has_prop(faction_obj, "relations_by_faction_id"):
-        faction_obj.set("relations_by_faction_id", rel_dict)
+    # Utiliser directement Faction.relations
+    if faction_obj is Faction:
+        faction_obj.relations = rel_dict
     elif _has_prop(faction_obj, "relations"):
         faction_obj.set("relations", rel_dict)
     else:
         # fallback: on l'attache quand même
-        faction_obj.set("relations_by_faction_id", rel_dict)
+        faction_obj.set("relations", rel_dict)
+
 
 func _has_prop(obj: Object, prop: String) -> bool:
     for p in obj.get_property_list():
         if p.name == prop:
             return true
     return false
+
 
 func _make_relation_score(other_id: StringName, init: Dictionary):
     # init keys: relation(int), friction(float), trust(int), tension(float)
@@ -694,16 +785,19 @@ func _make_relation_score(other_id: StringName, init: Dictionary):
         "weariness": 0.0
     }
 
+
 func _get_rel_value(rel, key: String, default_val):
     if rel is Dictionary:
         return rel.get(key, default_val)
     return rel.get(key, default_val)
+
 
 func _set_rel_value(rel, key: String, value) -> void:
     if rel is Dictionary:
         rel[key] = value
     else:
         rel.set(key, value)
+
 
 func _center_outgoing_means(store: Dictionary, ids: Array[StringName], strength: float) -> void:
     for a in ids:
@@ -723,6 +817,7 @@ func _center_outgoing_means(store: Dictionary, ids: Array[StringName], strength:
             var r := float(_get_rel_value(rel, "relation", 0))
             r = r - mean * strength
             _set_rel_value(rel, "relation", clampi(int(round(r)), -100, 100))
+
 
 func _apply_natural_extremes(store: Dictionary, ids: Array[StringName], enemies_k: int, allies_k: int, heat: int, rng: RandomNumberGenerator) -> void:
     var h := float(heat) / 100.0
@@ -760,6 +855,7 @@ func _apply_natural_extremes(store: Dictionary, ids: Array[StringName], enemies_
             var t2 :float = float(_get_rel_value(rel2, "tension", 0.0)) - lerp(1.0, 4.0, h)
             _set_rel_value(rel2, "tension", max(0.0, t2))
 
+
 func _apply_reciprocity(store: Dictionary, ids: Array[StringName], r: float, rng: RandomNumberGenerator) -> void:
     r = clampf(r, 0.0, 1.0)
     for i in range(ids.size()):
@@ -777,7 +873,7 @@ func _apply_reciprocity(store: Dictionary, ids: Array[StringName], r: float, rng
             rab = lerp(rab, m, r)
             rba = lerp(rba, m, r)
 
-            # tiny asym jitter so they’re not identical
+            # tiny asym jitter so they're not identical
             var jitter := rng.randf_range(-2.0, 2.0) * (1.0 - r)
             rab += jitter
             rba -= jitter

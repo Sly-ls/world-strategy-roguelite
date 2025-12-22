@@ -191,9 +191,3 @@ func _test_bundle_spawns_then_debunk_reduces_bundle() -> void:
     for inst2 in offers_after:
         var kact2: StringName = StringName(inst2.context.get("knowledge_action", &""))
         _assert(kact2 != &"FORGE_EVIDENCE", "after debunk + weaker rumor, FORGE_EVIDENCE should not be spawned (heat=%.1f)" % heat_day5)
-
-
-func _assert(cond: bool, msg: String) -> void:
-    if not cond:
-        push_error("TEST FAIL: " + msg)
-        assert(false)

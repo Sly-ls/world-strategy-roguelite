@@ -56,14 +56,15 @@ func _test_mediation_failure_increases_tension_and_decreases_trust_to_mediator()
     }
 
     # mediator profile: mediocre diplomacy => low success chance
-    var mediator_profile := {"personality": {FactionProfile.PERS_DIPLOMACY: 0.2, 
+    var mediator_profile := FactionProfile.from_profile_and_axis(
+    {FactionProfile.PERS_DIPLOMACY: 0.2, 
     FactionProfile.PERS_HONOR: 0.4, 
     FactionProfile.PERS_DISCIPLINE: 0.4, 
     FactionProfile.PERS_OPPORTUNISM: 0.6, 
-    FactionProfile.PERS_AGGRESSION: 0.4}}
+    FactionProfile.PERS_AGGRESSION: 0.4})
 
     # opposition: high heat between A and B
-    var opposition := {"tension_mean": 85, "grievance_mean": 70, "friction": 0.3, "resistance": 0.7}
+    var opposition := FactionManager.get_relation(){"tension_mean": 85, "grievance_mean": 70, "friction": 0.3, "resistance": 0.7}
 
     var success := QuestOutcomeUtil.compute_outcome_success(inst, mediator_profile, opposition, 3, null)
     _assert(not success, "precondition: mediation should FAIL in this setup (chance=%.3f roll=%.3f)" % [float(inst.context.get("last_success_chance", 0.0)), float(inst.context.get("last_roll", 0.0))])

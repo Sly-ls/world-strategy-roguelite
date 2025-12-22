@@ -243,7 +243,7 @@ func get_perceived_heat(observer: StringName, other: StringName, day: int) -> fl
 
         var ev: Dictionary = events_by_id.get(StringName(b.get("event_id", eid)), {})
         var ev_day := int(ev.get("day", int(b.get("last_update_day", day))))
-        var age := max(0, day - ev_day)
+        var age :int = max(0, day - ev_day)
 
         var sev := float(ev.get("severity", 1.0))
         var decay := pow(decay_per_day, float(age))

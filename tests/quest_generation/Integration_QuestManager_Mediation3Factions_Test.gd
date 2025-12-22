@@ -1,13 +1,5 @@
 extends BaseTest
 class_name Integration_QuestManager_Mediation3Factions_Test
-# --- Fallback relation score if your real one isn't in ClassDB ---
-class TestRelationScore:
-    extends RefCounted
-    var relation: int = 0
-    var trust: int = 50
-    var tension: int = 0
-    var grievance: int = 0
-    var weariness: int = 0
 
 
 func _ready() -> void:
@@ -31,32 +23,50 @@ func _test_resolve_quest_mediation_3f_roll_forced_logs_and_deltas() -> void:
     var notebook: ArcNotebook = ArcNotebook.new()
     ArcManagerRunner.arc_notebook = notebook
 
-    # Build relations for A,B,C
+    # Build relations for A, B, C
     var A := &"A"
     var B := &"B"
-    var C := &"C" # mediator
+    var C := &"C"  # mediator
 
-    var store := {}
-    FactionManager.relation_scores[A] = {}
-    FactionManager.relation_scores[B] = {}
-    FactionManager.relation_scores[C] = {}
+    # --- Créer les factions de test ---
+    var faction_a := Faction.new()
+    faction_a.id = "A"
+    faction_a.name = "Faction A"
+    FactionManager.factions["A"] = faction_a
 
-    FactionManager.relation_scores[A][B] = FactionRelationScore.new()
-    FactionManager.relation_scores[B][A] = FactionRelationScore.new()
-    FactionManager.relation_scores[A][C] = FactionRelationScore.new()
-    FactionManager.relation_scores[B][C] = FactionRelationScore.new()
-    FactionManager.relation_scores[C][A] = FactionRelationScore.new()
-    FactionManager.relation_scores[C][B] = FactionRelationScore.new()
+    var faction_b := Faction.new()
+    faction_b.id = "B"
+    faction_b.name = "Faction B"
+    FactionManager.factions["B"] = faction_b
+
+    var faction_c := Faction.new()
+    faction_c.id = "C"
+    faction_c.name = "Faction C (Mediator)"
+    FactionManager.factions["C"] = faction_c
+
+    # --- Initialiser les relations dans Faction.relations ---
+    # A -> B, A -> C
+    faction_a.relations["B"] = FactionRelationScore.new(B)
+    faction_a.relations["C"] = FactionRelationScore.new(C)
+    
+    # B -> A, B -> C
+    faction_b.relations["A"] = FactionRelationScore.new(A)
+    faction_b.relations["C"] = FactionRelationScore.new(C)
+    
+    # C -> A, C -> B
+    faction_c.relations["A"] = FactionRelationScore.new(A)
+    faction_c.relations["B"] = FactionRelationScore.new(B)
 
     # high heat A<->B + neutral trust to mediator
-    FactionManager.relation_scores[A][B].tension = 80
-    FactionManager.relation_scores[B][A].tension = 80
-    FactionManager.relation_scores[A][B].grievance = 70
-    FactionManager.relation_scores[B][A].grievance = 70
-    FactionManager.relation_scores[A][C].trust = 50
-    FactionManager.relation_scores[B][C].trust = 50
-    FactionManager.relation_scores[C][A].trust = 50
-    FactionManager.relation_scores[C][B].trust = 50
+    faction_a.relations["B"].tension = 80
+    faction_b.relations["A"].tension = 80
+    faction_a.relations["B"].grievance = 70
+    faction_b.relations["A"].grievance = 70
+    
+    faction_a.relations["C"].trust = 50
+    faction_b.relations["C"].trust = 50
+    faction_c.relations["A"].trust = 50
+    faction_c.relations["B"].trust = 50
 
     # --- create mediation QuestInstance and register as ACTIVE ---
     var template = QuestTemplate.new()
@@ -96,16 +106,22 @@ func _test_resolve_quest_mediation_3f_roll_forced_logs_and_deltas() -> void:
     QuestManager.start_runtime_quest(inst)
 
     # --- capture before ---
-    var tension_before :float = FactionManager.relation_scores[A][B].tension
-    var trust_a_c_before :float = FactionManager.relation_scores[A][C].trust
+    var tension_before: float = faction_a.relations["B"].tension
+    var trust_a_c_before: float = faction_a.relations["C"].trust
 
     # --- act ---
     # LOYAL attempt but should fail due to roll
     QuestManager.resolve_quest(inst.runtime_id, &"LOYAL")
 
     # --- assertions: deltas applied ---
-    _assert(FactionManager.relation_scores[A][B].tension > tension_before, "tension(A→B) should increase after failed mediation (before=%d after=%d)" % [tension_before, FactionManager.relation_scores[A][B].tension])
-    _assert(FactionManager.relation_scores[A][C].trust < trust_a_c_before, "trust(A→C) should decrease after failed mediation (before=%d after=%d)" % [trust_a_c_before, FactionManager.relation_scores[A][C].trust])
+    _assert(faction_a.relations["B"].tension > tension_before, 
+        "tension(A→B) should increase after failed mediation (before=%d after=%d)" % [
+            tension_before, faction_a.relations["B"].tension
+        ])
+    _assert(faction_a.relations["C"].trust < trust_a_c_before, 
+        "trust(A→C) should decrease after failed mediation (before=%d after=%d)" % [
+            trust_a_c_before, faction_a.relations["C"].trust
+        ])
 
     # --- assertions: ArcNotebook logged chance/roll/outcome ---
     var found := false
@@ -120,8 +136,14 @@ func _test_resolve_quest_mediation_3f_roll_forced_logs_and_deltas() -> void:
             break
     _assert(found, "expected a triplet_event for tp.mediation in ArcNotebook")
 
+    # --- cleanup: remove test factions ---
+    FactionManager.factions.erase("A")
+    FactionManager.factions.erase("B")
+    FactionManager.factions.erase("C")
+    
     # --- restore patched state ---
     ArcManagerRunner.arc_notebook = prev_arc_notebook
+
 
 func _find_first_root_node(names: Array) -> Node:
     for n in names:

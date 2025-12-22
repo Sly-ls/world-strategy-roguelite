@@ -13,6 +13,7 @@ extends Node
 @export var stop_on_failure: bool = false
 @export var per_test_timeout_sec: float = 10.0
 
+var test_counter :int = 1
 func _ready() -> void:
     
     print("====================================\n")
@@ -81,7 +82,7 @@ func _discover_tests(dir_path: String) -> Array[String]:
     dir.list_dir_end()
     return out
 func _run_one(path: String) -> bool:
-    print("\n--- RUN ", path, " ---")
+    print("\n%d --- RUN %s ---" % [test_counter, path])
 
     var scr := load(path)
     if scr == null:

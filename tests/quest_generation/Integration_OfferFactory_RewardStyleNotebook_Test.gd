@@ -110,7 +110,7 @@ func _test_spawn_logs_reward_style_with_w_gold_dw() -> void:
             _assert(dw > 0.0, "expected w_gold_dw > 0 for greedy profile (got %.4f)" % dw)
 
             # Bonus: verify it matches RewardEconomyUtil.compute_reward_style(...)
-            var style := RewardEconomyUtil.compute_reward_style(econ_rich_dict, tier, prof_greedy)
+            var style := RewardEconomyUtilRunner.compute_reward_style(econ_rich_dict, tier, prof_greedy)
             _assert(abs(float(style.w_gold_dw) - dw) < 0.0001, "w_gold_dw mismatch vs compute_reward_style")
             found = true
             break

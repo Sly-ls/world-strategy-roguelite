@@ -2,7 +2,7 @@
 class_name QuestOutcomeUtil
 extends RefCounted
 
-static func compute_outcome_success(inst, actor_profile, opposition: Dictionary, tier: int, rng: RandomNumberGenerator = null) -> bool:
+static func compute_outcome_success(inst, actor_profile, opposition: FactionRelationScore, tier: int, rng: RandomNumberGenerator = null) -> bool:
     var ctx: Dictionary = inst.context if inst != null and "context" in inst else {}
     var action_type: StringName = StringName(ctx.get("arc_action_type", ctx.get("tp_action", ctx.get("quest_type", &""))))
 
@@ -67,23 +67,24 @@ static func compute_outcome_success(inst, actor_profile, opposition: Dictionary,
     return roll < p
 
 
-static func _compute_actor_skill(actor_profile, ctx: Dictionary, action_type: StringName) -> float:
+static func _compute_actor_skill(profile :FactionProfile, ctx: Dictionary, action_type: StringName) -> float:
     # actor_profile can be:
     # - a single profile (has get_personality)
     # - a Dictionary {faction_id: profile}
     # - a Dictionary {"profile": ..., "profiles": ...} (if you want later)
-    var actor_id: StringName = StringName(ctx.get("actor_faction_id", ctx.get("giver_faction_id", &"")))
-    var prof = actor_profile
-    if actor_profile is Dictionary and actor_profile.has(actor_id):
-        prof = actor_profile[actor_id]
+    # TODO JE PENSE QUE CE N4EST PLUS LE CAS, A REVOIR
+    #var actor_id: StringName = StringName(ctx.get("actor_faction_id", ctx.get("giver_faction_id", &"")))
+    #var prof = actor_profile
+    #if actor_profile is Dictionary and actor_profile.has(actor_id):
+    #    prof = actor_profile[actor_id]
 
     # choose key weights by action
-    var cun :float = prof.get_personality(FactionProfile.PERS_CUNNING, 0.5)
-    var dip :float = prof.get_personality(FactionProfile.PERS_DIPLOMACY, 0.5)
-    var agr :float = prof.get_personality(FactionProfile.PERS_AGGRESSION, 0.5)
-    var opp :float = prof.get_personality(FactionProfile.PERS_OPPORTUNISM, 0.5)
-    var dis :float = prof.get_personality(FactionProfile.PERS_DISCIPLINE, 0.5)
-    var hon :float = prof.get_personality(FactionProfile.PERS_HONOR, 0.5)
+    var cun :float = profile.get_personality(FactionProfile.PERS_CUNNING, 0.5)
+    var dip :float = profile.get_personality(FactionProfile.PERS_DIPLOMACY, 0.5)
+    var agr :float = profile.get_personality(FactionProfile.PERS_AGGRESSION, 0.5)
+    var opp :float = profile.get_personality(FactionProfile.PERS_OPPORTUNISM, 0.5)
+    var dis :float = profile.get_personality(FactionProfile.PERS_DISCIPLINE, 0.5)
+    var hon :float = profile.get_personality(FactionProfile.PERS_HONOR, 0.5)
     match action_type:
         &"tp.mediation", &"arc.truce_talks":
             # bon médiateur = dip/honor/discipline, mauvais = opportunism/aggression

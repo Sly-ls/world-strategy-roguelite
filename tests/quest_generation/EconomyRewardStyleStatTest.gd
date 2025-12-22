@@ -6,8 +6,7 @@ func _ready() -> void:
     pass_test("\n✅ EconomyRewardStyleStatTest: OK\n")
 
 func _test_poor_vs_rich_reward_distribution_and_opportunism_heat() -> void:
-    _assert(ClassDB.class_exists("RewardEconomyUtil"), "RewardEconomyUtil must exist")
-
+    _assert(RewardEconomyUtilRunner != null, "RewardEconomyUtil must exist")
     var rng := RandomNumberGenerator.new()
     rng.seed = 13371337 # déterministe
 
