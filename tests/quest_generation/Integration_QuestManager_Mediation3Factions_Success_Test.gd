@@ -23,34 +23,43 @@ func _test_resolve_quest_mediation_success_logs_and_inverse_deltas() -> void:
     ArcManagerRunner.arc_notebook = notebook
 
     # --- backup existing relation_scores ---
-    var prev_relation_scores: Dictionary = FactionManager.relation_scores.duplicate(true)
+    var prev_relation_scores: Dictionary = FactionManager.get_all_relations().duplicate(true)
 
     var A := &"A"
     var B := &"B"
     var C := &"C"  # mediator
 
     # --- setup test relations in FactionManager.relation_scores ---
-    # Structure: relation_scores[from_id][to_id] = FactionRelationScore
-    FactionManager.relation_scores[A] = {}
-    FactionManager.relation_scores[B] = {}
-    FactionManager.relation_scores[C] = {}
-
-    FactionManager.relation_scores[A][B] = FactionRelationScore.new(B)
-    FactionManager.relation_scores[B][A] = FactionRelationScore.new(A)
-    FactionManager.relation_scores[A][C] = FactionRelationScore.new(C)
-    FactionManager.relation_scores[B][C] = FactionRelationScore.new(C)
-    FactionManager.relation_scores[C][A] = FactionRelationScore.new(A)
-    FactionManager.relation_scores[C][B] = FactionRelationScore.new(B)
+    # Structure: relation_scores[from_id][to_id, FactionRelationScore
+    FactionManager.set_relation(A, B, FactionRelationScore.new(B))
+    FactionManager.set_relation(B, A, FactionRelationScore.new(A))
+    FactionManager.set_relation(A, C, FactionRelationScore.new(C))
+    FactionManager.set_relation(B, C, FactionRelationScore.new(C))
+    FactionManager.set_relation(C, A, FactionRelationScore.new(A))
+    FactionManager.set_relation(C, B, FactionRelationScore.new(B))
 
     # baseline: conflict moderate, mediator trust neutral
-    FactionManager.relation_scores[A][B].tension = 45
-    FactionManager.relation_scores[B][A].tension = 45
-    FactionManager.relation_scores[A][B].grievance = 25
-    FactionManager.relation_scores[B][A].grievance = 25
-    FactionManager.relation_scores[A][C].trust = 50
-    FactionManager.relation_scores[B][C].trust = 50
-    FactionManager.relation_scores[C][A].trust = 50
-    FactionManager.relation_scores[C][B].trust = 50
+    var relation_to_change : FactionRelationScore = FactionManager.get_relation_score(A,B)
+    relation_to_change.tension = 45
+    relation_to_change.grievance = 25
+    FactionManager.set_relation(A,B, relation_to_change)
+    relation_to_change = FactionManager.get_relation_score(B, A)
+    relation_to_change.tension = 45
+    relation_to_change.grievance = 25
+    FactionManager.set_relation(B, A, relation_to_change)
+    relation_to_change = FactionManager.get_relation_score(A, C)
+    relation_to_change.grievance = 25
+    relation_to_change.trust = 50
+    FactionManager.set_relation(A, C, relation_to_change)
+    relation_to_change = FactionManager.get_relation_score(B, C)
+    relation_to_change.trust = 50
+    FactionManager.set_relation(B, C, relation_to_change)
+    relation_to_change = FactionManager.get_relation_score(C, A)
+    relation_to_change.trust = 50
+    FactionManager.set_relation(C, A, relation_to_change)
+    relation_to_change = FactionManager.get_relation_score(C, B)
+    relation_to_change.trust = 50
+    FactionManager.set_relation(C, B, relation_to_change)
 
     # --- quest instance mediation 3 factions ---
     var template = QuestTemplate.new()

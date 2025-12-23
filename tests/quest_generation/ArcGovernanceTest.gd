@@ -85,9 +85,12 @@ func _test_tick_day_for_pair_stability_counters() -> void:
     var ba := FactionRelationScore.new()
 
     # Low tension + high trust
-    ab.tension = 10; ba.tension = 12
-    ab.relation = 40; ba.relation = 38
-    ab.trust = 60; ba.trust = 58
+    ab.set_score(FactionRelationScore.REL_TENSION, 10); 
+    ba.set_score(FactionRelationScore.REL_TENSION, 12); 
+    ab.set_score(FactionRelationScore.REL_RELATION, 40); 
+    ba.set_score(FactionRelationScore.REL_RELATION, 38); 
+    ab.set_score(FactionRelationScore.REL_TRUST, 60); 
+    ba.set_score(FactionRelationScore.REL_TRUST, 58); 
 
     for i in range(7):
         ArcStateMachine.tick_day_for_pair(arc_state, ab, ba)
@@ -96,7 +99,8 @@ func _test_tick_day_for_pair_stability_counters() -> void:
     _assert(arc_state.stable_high_trust_days == 7, "stable_high_trust_days should count up")
 
     # Break condition
-    ab.tension = 60; ba.tension = 60
+    ab.set_score(FactionRelationScore.REL_TRUST, 60); 
+    ba.set_score(FactionRelationScore.REL_TRUST, 60); 
     ArcStateMachine.tick_day_for_pair(arc_state, ab, ba)
     _assert(arc_state.stable_low_tension_days == 0, "stable_low_tension_days should reset when tension high")
 

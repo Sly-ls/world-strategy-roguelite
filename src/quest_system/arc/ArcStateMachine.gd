@@ -64,9 +64,9 @@ static func tick_day_for_pair(arc_state: ArcState, rel_ab: FactionRelationScore,
     var rel_good := 35.0
     var trust_good := 55.0
 
-    var tension_mean := 0.5 * (rel_ab.tension + rel_ba.tension)
-    var rel_mean := 0.5 * (float(rel_ab.relation) + float(rel_ba.relation))
-    var trust_mean := 0.5 * (float(rel_ab.trust) + float(rel_ba.trust))
+    var tension_mean := 0.5 * (rel_ab.get_score(FactionRelationScore.REL_TENSION) + rel_ba.get_score(FactionRelationScore.REL_TENSION))
+    var rel_mean := 0.5 * (float(rel_ab.get_score(FactionRelationScore.REL_RELATION)) + float(rel_ba.get_score(FactionRelationScore.REL_RELATION)))
+    var trust_mean := 0.5 * (float(rel_ab.get_score(FactionRelationScore.REL_TRUST)) + float(rel_ba.get_score(FactionRelationScore.REL_TRUST)))
 
     arc_state.stable_low_tension_days = arc_state.stable_low_tension_days + 1 if tension_mean <= t_low else 0
     arc_state.stable_high_trust_days = arc_state.stable_high_trust_days + 1 if (trust_mean >= trust_good and rel_mean >= rel_good) else 0
@@ -320,10 +320,10 @@ static func decide_state_on_tribute_default(
     var w2l: FactionRelationScore = relations[winner_id][loser_id]
     var l2w: FactionRelationScore = relations[loser_id][winner_id]
 
-    var tension := 0.5 * (w2l.tension + l2w.tension) / 100.0
-    var griev := 0.5 * (w2l.grievance + l2w.grievance) / 100.0
-    var wear := 0.5 * (w2l.weariness + l2w.weariness) / 100.0
-    var rel := 0.5 * (w2l.relation + l2w.relation) / 100.0
+    var tension := 0.5 * (w2l.get_score(FactionRelationScore.REL_TENSION) + l2w.get_score(FactionRelationScore.REL_TENSION)) / 100.0
+    var griev := 0.5 * (w2l.get_score(FactionRelationScore.REL_GRIEVANCE) + l2w.get_score(FactionRelationScore.REL_GRIEVANCE)) / 100.0
+    var wear := 0.5 * (w2l.get_score(FactionRelationScore.REL_WEARINESS) + l2w.get_score(FactionRelationScore.REL_WEARINESS)) / 100.0
+    var rel := 0.5 * (w2l.get_score(FactionRelationScore.REL_RELATION) + l2w.get_score(FactionRelationScore.REL_RELATION)) / 100.0
 
     # heat (hostile récent)
     var h := notebook.get_pair_heat(winner_id, loser_id, day, 0.93)

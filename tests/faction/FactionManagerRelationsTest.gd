@@ -45,23 +45,23 @@ func _test_pair_key_symmetry() -> void:
 
 func _test_set_get_relation_between() -> void:
     # Sauvegarder l'état actuel
-    var old_val := FactionManager.get_relation_between("humans", "orcs")
+    var old_val := FactionManager.get_relation("humans", "orcs")
     
     # Modifier
     FactionManager.set_relation_between("humans", "orcs", -99)
-    var new_val := FactionManager.get_relation_between("humans", "orcs")
+    var new_val := FactionManager.get_relation("humans", "orcs").trust
     _assert(new_val == -99, "get_relation_between doit retourner la valeur set, got %d" % new_val)
     
     # Vérifier symétrie
-    var reverse_val := FactionManager.get_relation_between("orcs", "humans")
+    var reverse_val := FactionManager.get_relation("orcs", "humans").trust
     _assert(reverse_val == -99, "relation doit être symétrique, got %d" % reverse_val)
     
     # Cas edge: même faction
-    var self_val := FactionManager.get_relation_between("humans", "humans")
+    var self_val := FactionManager.get_relation("humans", "humans").trust
     _assert(self_val == 0, "relation avec soi-même doit être 0, got %d" % self_val)
     
     # Cas edge: faction vide
-    var empty_val := FactionManager.get_relation_between("", "humans")
+    var empty_val := FactionManager.get_relation("", "humans").trust
     _assert(empty_val == 0, "relation avec faction vide doit être 0, got %d" % empty_val)
     
     # Restaurer
@@ -75,7 +75,7 @@ func _test_set_get_relation_between() -> void:
 # =============================================================================
 
 func _test_get_relation_score() -> void:
-    var score := FactionManager.get_relation_score("humans", "orcs")
+    var score := FactionManager.get_relation("humans", "orcs")
     
     _assert(score != null, "get_relation_score ne doit pas retourner null")
     _assert(score is FactionRelationScore, "doit retourner un FactionRelationScore")
@@ -95,7 +95,7 @@ func _test_get_relation_score() -> void:
 # =============================================================================
 
 func _test_adjust_relation() -> void:
-    var faction := FactionManager.get_faction("humans")
+    var faction :Faction= FactionManager.get_faction("humans")
     if faction == null:
         print("  ⚠ faction 'humans' introuvable, test ignoré")
         return

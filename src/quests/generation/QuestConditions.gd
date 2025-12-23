@@ -109,14 +109,15 @@ static func _check_distance_to_poi(condition: Dictionary) -> bool:
 static func _check_faction_relation_range(condition: Dictionary) -> bool:
     """Vérifie que la relation avec une faction est dans une fourchette"""
     var faction_id: String = condition.get("faction_id", "")
+    var target_id: String = condition.get("target_id", "")
     var min_relation: int = condition.get("min_relation", -100)
     var max_relation: int = condition.get("max_relation", 100)
     
     if not FactionManager.has_faction(faction_id):
         return false
     
-    var relation := FactionManager.get_relation(faction_id)
-    return relation >= min_relation and relation <= max_relation
+    var relation := FactionManager.get_relation(target_id, faction_id)
+    return relation.trust >= min_relation and relation.trust <= max_relation
 
 static func _check_player_has_tags_any(condition: Dictionary) -> bool:
     """Vérifie que le joueur a au moins un des tags"""

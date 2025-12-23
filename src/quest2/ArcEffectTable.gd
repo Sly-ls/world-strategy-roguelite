@@ -48,129 +48,129 @@ static func cooldown_days_for(action: StringName, rng: RandomNumberGenerator) ->
 const EFFECTS: Dictionary = {
     ARC_IGNORE: {
         CHOICE_LOYAL: {
-            "ab": {"d_relation":  0,  "d_trust":  0,  "d_grievance": -3.0, "d_tension": -5.0, "d_weariness": -2.0},
-            "ba": {"d_relation":  0,  "d_trust":  0,  "d_grievance": -2.0, "d_tension": -4.0, "d_weariness": -2.0},
+            "ab": {FactionRelationScore.REL_RELATION:  0,  FactionRelationScore.REL_TRUST:  0,  FactionRelationScore.REL_GRIEVANCE: -3.0, FactionRelationScore.REL_TENSION: -5.0, FactionRelationScore.REL_WEARINESS: -2.0},
+            "ba": {FactionRelationScore.REL_RELATION:  0,  FactionRelationScore.REL_TRUST:  0,  FactionRelationScore.REL_GRIEVANCE: -2.0, FactionRelationScore.REL_TENSION: -4.0, FactionRelationScore.REL_WEARINESS: -2.0},
         },
         CHOICE_NEUTRAL: {
-            "ab": {"d_relation":  0,  "d_trust":  0,  "d_grievance": -1.0, "d_tension": -2.0, "d_weariness": -1.0},
-            "ba": {"d_relation":  0,  "d_trust":  0,  "d_grievance": -1.0, "d_tension": -2.0, "d_weariness": -1.0},
+            "ab": {FactionRelationScore.REL_RELATION:  0,  FactionRelationScore.REL_TRUST:  0,  FactionRelationScore.REL_GRIEVANCE: -1.0, FactionRelationScore.REL_TENSION: -2.0, FactionRelationScore.REL_WEARINESS: -1.0},
+            "ba": {FactionRelationScore.REL_RELATION:  0,  FactionRelationScore.REL_TRUST:  0,  FactionRelationScore.REL_GRIEVANCE: -1.0, FactionRelationScore.REL_TENSION: -2.0, FactionRelationScore.REL_WEARINESS: -1.0},
         },
         CHOICE_TRAITOR: {
-            "ab": {"d_relation": -2,  "d_trust": -2,  "d_grievance": +2.0, "d_tension": +2.0, "d_weariness":  0.0},
-            "ba": {"d_relation": -2,  "d_trust": -2,  "d_grievance": +2.0, "d_tension": +2.0, "d_weariness":  0.0},
+            "ab": {FactionRelationScore.REL_RELATION: -2,  FactionRelationScore.REL_TRUST: -2,  FactionRelationScore.REL_GRIEVANCE: +2.0, FactionRelationScore.REL_TENSION: +2.0, FactionRelationScore.REL_WEARINESS:  0.0},
+            "ba": {FactionRelationScore.REL_RELATION: -2,  FactionRelationScore.REL_TRUST: -2,  FactionRelationScore.REL_GRIEVANCE: +2.0, FactionRelationScore.REL_TENSION: +2.0, FactionRelationScore.REL_WEARINESS:  0.0},
         },
     },
 
     ARC_ULTIMATUM: {
         CHOICE_LOYAL: {
             # “A obtient des concessions” : A se sent payé (grievance -), B en garde une rancune (grievance +)
-            "ab": {"d_relation": -4,  "d_trust": -2,  "d_grievance": -10.0, "d_tension": +2.0, "d_weariness":  0.0},
-            "ba": {"d_relation": -6,  "d_trust": -4,  "d_grievance":  +6.0, "d_tension": +4.0, "d_weariness":  0.0},
+            "ab": {FactionRelationScore.REL_RELATION: -4,  FactionRelationScore.REL_TRUST: -2,  FactionRelationScore.REL_GRIEVANCE: -10.0, FactionRelationScore.REL_TENSION: +2.0, FactionRelationScore.REL_WEARINESS:  0.0},
+            "ba": {FactionRelationScore.REL_RELATION: -6,  FactionRelationScore.REL_TRUST: -4,  FactionRelationScore.REL_GRIEVANCE:  +6.0, FactionRelationScore.REL_TENSION: +4.0, FactionRelationScore.REL_WEARINESS:  0.0},
         },
         CHOICE_NEUTRAL: {
-            "ab": {"d_relation": -2,  "d_trust": -2,  "d_grievance":  -2.0, "d_tension": +1.0, "d_weariness":  0.0},
-            "ba": {"d_relation": -2,  "d_trust": -1,  "d_grievance":  +2.0, "d_tension": +1.0, "d_weariness":  0.0},
+            "ab": {FactionRelationScore.REL_RELATION: -2,  FactionRelationScore.REL_TRUST: -2,  FactionRelationScore.REL_GRIEVANCE:  -2.0, FactionRelationScore.REL_TENSION: +1.0, FactionRelationScore.REL_WEARINESS:  0.0},
+            "ba": {FactionRelationScore.REL_RELATION: -2,  FactionRelationScore.REL_TRUST: -1,  FactionRelationScore.REL_GRIEVANCE:  +2.0, FactionRelationScore.REL_TENSION: +1.0, FactionRelationScore.REL_WEARINESS:  0.0},
         },
         CHOICE_TRAITOR: {
             # “A humilié / décrédibilisé” : A rancune monte, trust s’effondre
-            "ab": {"d_relation": -6,  "d_trust": -6,  "d_grievance":  +6.0, "d_tension": +4.0, "d_weariness":  0.0},
-            "ba": {"d_relation": -3,  "d_trust": -1,  "d_grievance":   0.0, "d_tension": +2.0, "d_weariness":  0.0},
+            "ab": {FactionRelationScore.REL_RELATION: -6,  FactionRelationScore.REL_TRUST: -6,  FactionRelationScore.REL_GRIEVANCE:  +6.0, FactionRelationScore.REL_TENSION: +4.0, FactionRelationScore.REL_WEARINESS:  0.0},
+            "ba": {FactionRelationScore.REL_RELATION: -3,  FactionRelationScore.REL_TRUST: -1,  FactionRelationScore.REL_GRIEVANCE:   0.0, FactionRelationScore.REL_TENSION: +2.0, FactionRelationScore.REL_WEARINESS:  0.0},
         },
     },
 
     ARC_REPARATIONS: {
         CHOICE_LOYAL: {
             # Réparations acceptées : forte détente bilatérale
-            "ab": {"d_relation": +12, "d_trust": +10, "d_grievance":  -8.0, "d_tension": -10.0, "d_weariness": -2.0},
-            "ba": {"d_relation": +16, "d_trust": +12, "d_grievance": -18.0, "d_tension": -12.0, "d_weariness": -2.0},
+            "ab": {FactionRelationScore.REL_RELATION: +12, FactionRelationScore.REL_TRUST: +10, FactionRelationScore.REL_GRIEVANCE:  -8.0, FactionRelationScore.REL_TENSION: -10.0, FactionRelationScore.REL_WEARINESS: -2.0},
+            "ba": {FactionRelationScore.REL_RELATION: +16, FactionRelationScore.REL_TRUST: +12, FactionRelationScore.REL_GRIEVANCE: -18.0, FactionRelationScore.REL_TENSION: -12.0, FactionRelationScore.REL_WEARINESS: -2.0},
         },
         CHOICE_NEUTRAL: {
-            "ab": {"d_relation":  +6, "d_trust":  +5, "d_grievance":  -4.0, "d_tension":  -6.0, "d_weariness": -1.0},
-            "ba": {"d_relation":  +8, "d_trust":  +6, "d_grievance":  -9.0, "d_tension":  -7.0, "d_weariness": -1.0},
+            "ab": {FactionRelationScore.REL_RELATION:  +6, FactionRelationScore.REL_TRUST:  +5, FactionRelationScore.REL_GRIEVANCE:  -4.0, FactionRelationScore.REL_TENSION:  -6.0, FactionRelationScore.REL_WEARINESS: -1.0},
+            "ba": {FactionRelationScore.REL_RELATION:  +8, FactionRelationScore.REL_TRUST:  +6, FactionRelationScore.REL_GRIEVANCE:  -9.0, FactionRelationScore.REL_TENSION:  -7.0, FactionRelationScore.REL_WEARINESS: -1.0},
         },
         CHOICE_TRAITOR: {
             # Réparations sabotées / fraude : backlash
-            "ab": {"d_relation":  -8, "d_trust": -10, "d_grievance":  +6.0, "d_tension":  +8.0, "d_weariness": +2.0},
-            "ba": {"d_relation": -10, "d_trust": -12, "d_grievance": +10.0, "d_tension": +10.0, "d_weariness": +2.0},
+            "ab": {FactionRelationScore.REL_RELATION:  -8, FactionRelationScore.REL_TRUST: -10, FactionRelationScore.REL_GRIEVANCE:  +6.0, FactionRelationScore.REL_TENSION:  +8.0, FactionRelationScore.REL_WEARINESS: +2.0},
+            "ba": {FactionRelationScore.REL_RELATION: -10, FactionRelationScore.REL_TRUST: -12, FactionRelationScore.REL_GRIEVANCE: +10.0, FactionRelationScore.REL_TENSION: +10.0, FactionRelationScore.REL_WEARINESS: +2.0},
         },
     },
 
     ARC_TRUCE_TALKS: {
         CHOICE_LOYAL: {
-            "ab": {"d_relation":  +8, "d_trust": +12, "d_grievance": -12.0, "d_tension": -18.0, "d_weariness": -4.0},
-            "ba": {"d_relation":  +8, "d_trust": +12, "d_grievance": -12.0, "d_tension": -18.0, "d_weariness": -4.0},
+            "ab": {FactionRelationScore.REL_RELATION:  +8, FactionRelationScore.REL_TRUST: +12, FactionRelationScore.REL_GRIEVANCE: -12.0, FactionRelationScore.REL_TENSION: -18.0, FactionRelationScore.REL_WEARINESS: -4.0},
+            "ba": {FactionRelationScore.REL_RELATION:  +8, FactionRelationScore.REL_TRUST: +12, FactionRelationScore.REL_GRIEVANCE: -12.0, FactionRelationScore.REL_TENSION: -18.0, FactionRelationScore.REL_WEARINESS: -4.0},
         },
         CHOICE_NEUTRAL: {
-            "ab": {"d_relation":  +3, "d_trust":  +5, "d_grievance":  -5.0, "d_tension": -10.0, "d_weariness": -2.0},
-            "ba": {"d_relation":  +3, "d_trust":  +5, "d_grievance":  -5.0, "d_tension": -10.0, "d_weariness": -2.0},
+            "ab": {FactionRelationScore.REL_RELATION:  +3, FactionRelationScore.REL_TRUST:  +5, FactionRelationScore.REL_GRIEVANCE:  -5.0, FactionRelationScore.REL_TENSION: -10.0, FactionRelationScore.REL_WEARINESS: -2.0},
+            "ba": {FactionRelationScore.REL_RELATION:  +3, FactionRelationScore.REL_TRUST:  +5, FactionRelationScore.REL_GRIEVANCE:  -5.0, FactionRelationScore.REL_TENSION: -10.0, FactionRelationScore.REL_WEARINESS: -2.0},
         },
         CHOICE_TRAITOR: {
-            "ab": {"d_relation": -10, "d_trust": -14, "d_grievance":  +8.0, "d_tension": +12.0, "d_weariness": +2.0},
-            "ba": {"d_relation": -10, "d_trust": -14, "d_grievance":  +8.0, "d_tension": +12.0, "d_weariness": +2.0},
+            "ab": {FactionRelationScore.REL_RELATION: -10, FactionRelationScore.REL_TRUST: -14, FactionRelationScore.REL_GRIEVANCE:  +8.0, FactionRelationScore.REL_TENSION: +12.0, FactionRelationScore.REL_WEARINESS: +2.0},
+            "ba": {FactionRelationScore.REL_RELATION: -10, FactionRelationScore.REL_TRUST: -14, FactionRelationScore.REL_GRIEVANCE:  +8.0, FactionRelationScore.REL_TENSION: +12.0, FactionRelationScore.REL_WEARINESS: +2.0},
         },
     },
 
     ARC_RAID: {
         CHOICE_LOYAL: {
             # “paiement” : A grievance baisse, B grievance monte
-            "ab": {"d_relation": -10, "d_trust":  -8, "d_grievance": -15.0, "d_tension": +12.0, "d_weariness": +6.0},
-            "ba": {"d_relation": -16, "d_trust": -12, "d_grievance": +18.0, "d_tension": +14.0, "d_weariness": +4.0},
+            "ab": {FactionRelationScore.REL_RELATION: -10, FactionRelationScore.REL_TRUST:  -8, FactionRelationScore.REL_GRIEVANCE: -15.0, FactionRelationScore.REL_TENSION: +12.0, FactionRelationScore.REL_WEARINESS: +6.0},
+            "ba": {FactionRelationScore.REL_RELATION: -16, FactionRelationScore.REL_TRUST: -12, FactionRelationScore.REL_GRIEVANCE: +18.0, FactionRelationScore.REL_TENSION: +14.0, FactionRelationScore.REL_WEARINESS: +4.0},
         },
         CHOICE_NEUTRAL: {
-            "ab": {"d_relation":  -5, "d_trust":  -4, "d_grievance":  -8.0, "d_tension":  +7.0, "d_weariness": +3.0},
-            "ba": {"d_relation":  -8, "d_trust":  -6, "d_grievance": +10.0, "d_tension":  +8.0, "d_weariness": +2.0},
+            "ab": {FactionRelationScore.REL_RELATION:  -5, FactionRelationScore.REL_TRUST:  -4, FactionRelationScore.REL_GRIEVANCE:  -8.0, FactionRelationScore.REL_TENSION:  +7.0, FactionRelationScore.REL_WEARINESS: +3.0},
+            "ba": {FactionRelationScore.REL_RELATION:  -8, FactionRelationScore.REL_TRUST:  -6, FactionRelationScore.REL_GRIEVANCE: +10.0, FactionRelationScore.REL_TENSION:  +8.0, FactionRelationScore.REL_WEARINESS: +2.0},
         },
         CHOICE_TRAITOR: {
             # Raid retourné / saboté : A se radicalise, B “satisfait” un peu
-            "ab": {"d_relation": -12, "d_trust": -10, "d_grievance": +12.0, "d_tension": +12.0, "d_weariness": +7.0},
-            "ba": {"d_relation":  -8, "d_trust":  -6, "d_grievance":  -8.0, "d_tension": +10.0, "d_weariness": +3.0},
+            "ab": {FactionRelationScore.REL_RELATION: -12, FactionRelationScore.REL_TRUST: -10, FactionRelationScore.REL_GRIEVANCE: +12.0, FactionRelationScore.REL_TENSION: +12.0, FactionRelationScore.REL_WEARINESS: +7.0},
+            "ba": {FactionRelationScore.REL_RELATION:  -8, FactionRelationScore.REL_TRUST:  -6, FactionRelationScore.REL_GRIEVANCE:  -8.0, FactionRelationScore.REL_TENSION: +10.0, FactionRelationScore.REL_WEARINESS: +3.0},
         },
     },
 
     ARC_SABOTAGE: {
         CHOICE_LOYAL: {
-            "ab": {"d_relation":  -6, "d_trust":  -6, "d_grievance":  -8.0, "d_tension":  +8.0, "d_weariness": +2.0},
-            "ba": {"d_relation": -10, "d_trust":  -8, "d_grievance": +10.0, "d_tension": +10.0, "d_weariness": +3.0},
+            "ab": {FactionRelationScore.REL_RELATION:  -6, FactionRelationScore.REL_TRUST:  -6, FactionRelationScore.REL_GRIEVANCE:  -8.0, FactionRelationScore.REL_TENSION:  +8.0, FactionRelationScore.REL_WEARINESS: +2.0},
+            "ba": {FactionRelationScore.REL_RELATION: -10, FactionRelationScore.REL_TRUST:  -8, FactionRelationScore.REL_GRIEVANCE: +10.0, FactionRelationScore.REL_TENSION: +10.0, FactionRelationScore.REL_WEARINESS: +3.0},
         },
         CHOICE_NEUTRAL: {
-            "ab": {"d_relation":  -3, "d_trust":  -3, "d_grievance":  -4.0, "d_tension":  +5.0, "d_weariness": +1.0},
-            "ba": {"d_relation":  -5, "d_trust":  -4, "d_grievance":  +6.0, "d_tension":  +6.0, "d_weariness": +1.0},
+            "ab": {FactionRelationScore.REL_RELATION:  -3, FactionRelationScore.REL_TRUST:  -3, FactionRelationScore.REL_GRIEVANCE:  -4.0, FactionRelationScore.REL_TENSION:  +5.0, FactionRelationScore.REL_WEARINESS: +1.0},
+            "ba": {FactionRelationScore.REL_RELATION:  -5, FactionRelationScore.REL_TRUST:  -4, FactionRelationScore.REL_GRIEVANCE:  +6.0, FactionRelationScore.REL_TENSION:  +6.0, FactionRelationScore.REL_WEARINESS: +1.0},
         },
         CHOICE_TRAITOR: {
             # double-jeu : A se braque, B est “un peu payé”
-            "ab": {"d_relation":  -8, "d_trust": -10, "d_grievance":  +6.0, "d_tension":  +8.0, "d_weariness": +3.0},
-            "ba": {"d_relation":  -6, "d_trust":  -4, "d_grievance":  -4.0, "d_tension":  +6.0, "d_weariness": +2.0},
+            "ab": {FactionRelationScore.REL_RELATION:  -8, FactionRelationScore.REL_TRUST: -10, FactionRelationScore.REL_GRIEVANCE:  +6.0, FactionRelationScore.REL_TENSION:  +8.0, FactionRelationScore.REL_WEARINESS: +3.0},
+            "ba": {FactionRelationScore.REL_RELATION:  -6, FactionRelationScore.REL_TRUST:  -4, FactionRelationScore.REL_GRIEVANCE:  -4.0, FactionRelationScore.REL_TENSION:  +6.0, FactionRelationScore.REL_WEARINESS: +2.0},
         },
     },
 
     ARC_DECLARE_WAR: {
         CHOICE_LOYAL: {
-            "ab": {"d_relation": -35, "d_trust": -30, "d_grievance": -20.0, "d_tension": +30.0, "d_weariness": +8.0},
-            "ba": {"d_relation": -35, "d_trust": -30, "d_grievance": +25.0, "d_tension": +35.0, "d_weariness": +10.0},
+            "ab": {FactionRelationScore.REL_RELATION: -35, FactionRelationScore.REL_TRUST: -30, FactionRelationScore.REL_GRIEVANCE: -20.0, FactionRelationScore.REL_TENSION: +30.0, FactionRelationScore.REL_WEARINESS: +8.0},
+            "ba": {FactionRelationScore.REL_RELATION: -35, FactionRelationScore.REL_TRUST: -30, FactionRelationScore.REL_GRIEVANCE: +25.0, FactionRelationScore.REL_TENSION: +35.0, FactionRelationScore.REL_WEARINESS: +10.0},
         },
         CHOICE_NEUTRAL: {
-            "ab": {"d_relation": -15, "d_trust": -12, "d_grievance":  -8.0, "d_tension": +18.0, "d_weariness":  +4.0},
-            "ba": {"d_relation": -18, "d_trust": -15, "d_grievance": +12.0, "d_tension": +20.0, "d_weariness":  +6.0},
+            "ab": {FactionRelationScore.REL_RELATION: -15, FactionRelationScore.REL_TRUST: -12, FactionRelationScore.REL_GRIEVANCE:  -8.0, FactionRelationScore.REL_TENSION: +18.0, FactionRelationScore.REL_WEARINESS:  +4.0},
+            "ba": {FactionRelationScore.REL_RELATION: -18, FactionRelationScore.REL_TRUST: -15, FactionRelationScore.REL_GRIEVANCE: +12.0, FactionRelationScore.REL_TENSION: +20.0, FactionRelationScore.REL_WEARINESS:  +6.0},
         },
         CHOICE_TRAITOR: {
             # guerre avortée / retournement politique : A humilié mais pas de guerre totale
-            "ab": {"d_relation": -20, "d_trust": -10, "d_grievance": +10.0, "d_tension": +10.0, "d_weariness": +3.0},
-            "ba": {"d_relation": -10, "d_trust":  -5, "d_grievance":  -5.0, "d_tension":  +5.0, "d_weariness": +2.0},
+            "ab": {FactionRelationScore.REL_RELATION: -20, FactionRelationScore.REL_TRUST: -10, FactionRelationScore.REL_GRIEVANCE: +10.0, FactionRelationScore.REL_TENSION: +10.0, FactionRelationScore.REL_WEARINESS: +3.0},
+            "ba": {FactionRelationScore.REL_RELATION: -10, FactionRelationScore.REL_TRUST:  -5, FactionRelationScore.REL_GRIEVANCE:  -5.0, FactionRelationScore.REL_TENSION:  +5.0, FactionRelationScore.REL_WEARINESS: +2.0},
         },
     },
 
     ARC_ALLIANCE_OFFER: {
         CHOICE_LOYAL: {
-            "ab": {"d_relation": +20, "d_trust": +22, "d_grievance": -10.0, "d_tension": -15.0, "d_weariness": -3.0},
-            "ba": {"d_relation": +20, "d_trust": +22, "d_grievance": -10.0, "d_tension": -15.0, "d_weariness": -3.0},
+            "ab": {FactionRelationScore.REL_RELATION: +20, FactionRelationScore.REL_TRUST: +22, FactionRelationScore.REL_GRIEVANCE: -10.0, FactionRelationScore.REL_TENSION: -15.0, FactionRelationScore.REL_WEARINESS: -3.0},
+            "ba": {FactionRelationScore.REL_RELATION: +20, FactionRelationScore.REL_TRUST: +22, FactionRelationScore.REL_GRIEVANCE: -10.0, FactionRelationScore.REL_TENSION: -15.0, FactionRelationScore.REL_WEARINESS: -3.0},
         },
         CHOICE_NEUTRAL: {
-            "ab": {"d_relation": +10, "d_trust": +12, "d_grievance":  -5.0, "d_tension":  -8.0, "d_weariness": -2.0},
-            "ba": {"d_relation": +10, "d_trust": +12, "d_grievance":  -5.0, "d_tension":  -8.0, "d_weariness": -2.0},
+            "ab": {FactionRelationScore.REL_RELATION: +10, FactionRelationScore.REL_TRUST: +12, FactionRelationScore.REL_GRIEVANCE:  -5.0, FactionRelationScore.REL_TENSION:  -8.0, FactionRelationScore.REL_WEARINESS: -2.0},
+            "ba": {FactionRelationScore.REL_RELATION: +10, FactionRelationScore.REL_TRUST: +12, FactionRelationScore.REL_GRIEVANCE:  -5.0, FactionRelationScore.REL_TENSION:  -8.0, FactionRelationScore.REL_WEARINESS: -2.0},
         },
         CHOICE_TRAITOR: {
-            "ab": {"d_relation": -12, "d_trust": -16, "d_grievance":  +8.0, "d_tension": +10.0, "d_weariness": +2.0},
-            "ba": {"d_relation": -12, "d_trust": -16, "d_grievance":  +8.0, "d_tension": +10.0, "d_weariness": +2.0},
+            "ab": {FactionRelationScore.REL_RELATION: -12, FactionRelationScore.REL_TRUST: -16, FactionRelationScore.REL_GRIEVANCE:  +8.0, FactionRelationScore.REL_TENSION: +10.0, FactionRelationScore.REL_WEARINESS: +2.0},
+            "ba": {FactionRelationScore.REL_RELATION: -12, FactionRelationScore.REL_TRUST: -16, FactionRelationScore.REL_GRIEVANCE:  +8.0, FactionRelationScore.REL_TENSION: +10.0, FactionRelationScore.REL_WEARINESS: +2.0},
         },
     },
 }
@@ -299,21 +299,31 @@ static func apply_arc_resolution_event(
     var cap_ab_rel :int = max(min_abs, int(round(abs(rel_ab.relation) * cap_pct_rel)))
     var cap_ba_rel :int = max(min_abs, int(round(abs(rel_ba.relation) * cap_pct_rel)))
 
-    ab_scaled["d_relation"] = clampi(int(ab_scaled["d_relation"]), -cap_ab_rel, cap_ab_rel)
-    ba_scaled["d_relation"] = clampi(int(ba_scaled["d_relation"]), -cap_ba_rel, cap_ba_rel)
+    ab_scaled[FactionRelationScore.REL_RELATION] = clampi(int(ab_scaled[FactionRelationScore.REL_RELATION]), -cap_ab_rel, cap_ab_rel)
+    ba_scaled[FactionRelationScore.REL_RELATION] = clampi(int(ba_scaled[FactionRelationScore.REL_RELATION]), -cap_ba_rel, cap_ba_rel)
 
     # Trust cap (souvent utile)
     if bool(params.get("cap_trust_too", true)):
         var cap_ab_tr :int = max(min_abs, int(round(abs(rel_ab.trust) * cap_pct_trust)))
         var cap_ba_tr :int = max(min_abs, int(round(abs(rel_ba.trust) * cap_pct_trust)))
-        ab_scaled["d_trust"] = clampi(int(ab_scaled["d_trust"]), -cap_ab_tr, cap_ab_tr)
-        ba_scaled["d_trust"] = clampi(int(ba_scaled["d_trust"]), -cap_ba_tr, cap_ba_tr)
+        ab_scaled[FactionRelationScore.REL_TRUST] = clampi(int(ab_scaled[FactionRelationScore.REL_TRUST]), -cap_ab_tr, cap_ab_tr)
+        ba_scaled[FactionRelationScore.REL_TRUST] = clampi(int(ba_scaled[FactionRelationScore.REL_TRUST]), -cap_ba_tr, cap_ba_tr)
 
     # 4) apply deltas
-    rel_ab.apply_delta(int(ab_scaled["d_relation"]), int(ab_scaled["d_trust"]),
-        float(ab_scaled["d_grievance"]), float(ab_scaled["d_tension"]), float(ab_scaled["d_weariness"]))
-    rel_ba.apply_delta(int(ba_scaled["d_relation"]), int(ba_scaled["d_trust"]),
-        float(ba_scaled["d_grievance"]), float(ba_scaled["d_tension"]), float(ba_scaled["d_weariness"]))
+    rel_ab.apply_delta({
+    FactionRelationScore.REL_RELATION: float(ab_scaled[FactionRelationScore.REL_RELATION]), 
+    FactionRelationScore.REL_TRUST : int(ab_scaled[FactionRelationScore.REL_TRUST]),
+    FactionRelationScore.REL_GRIEVANCE : float(ab_scaled[FactionRelationScore.REL_GRIEVANCE]), 
+    FactionRelationScore.REL_TENSION : float(ab_scaled[FactionRelationScore.REL_TENSION]), 
+    FactionRelationScore.REL_WEARINESS : float(ab_scaled[FactionRelationScore.REL_WEARINESS])
+    })
+    rel_ba.apply_delta({
+    FactionRelationScore.REL_RELATION: int(ba_scaled[FactionRelationScore.REL_RELATION]), 
+    FactionRelationScore.REL_TRUST: int(ba_scaled[FactionRelationScore.REL_TRUST]),
+    FactionRelationScore.REL_GRIEVANCE: float(ba_scaled[FactionRelationScore.REL_GRIEVANCE]), 
+    FactionRelationScore.REL_TENSION: float(ba_scaled[FactionRelationScore.REL_TENSION]), 
+    FactionRelationScore.REL_WEARINESS: float(ba_scaled[FactionRelationScore.REL_WEARINESS])
+    })
 
     # 5) cooldown (base * multiplier)
     var cd_base := cooldown_days_for(action, rng)
@@ -351,11 +361,11 @@ static func _scale_deltas_by_personality(delta: Dictionary, prof: FactionProfile
     var expa := prof.get_personality(FactionProfile.PERS_EXPANSIONISM, 0.5)
 
     var out := {
-        "d_relation": int(delta.get("d_relation", 0)),
-        "d_trust": int(delta.get("d_trust", 0)),
-        "d_grievance": float(delta.get("d_grievance", 0.0)),
-        "d_tension": float(delta.get("d_tension", 0.0)),
-        "d_weariness": float(delta.get("d_weariness", 0.0)),
+        FactionRelationScore.REL_RELATION: int(delta.get(FactionRelationScore.REL_RELATION, 0)),
+        FactionRelationScore.REL_TRUST: int(delta.get(FactionRelationScore.REL_TRUST, 0)),
+        FactionRelationScore.REL_GRIEVANCE: float(delta.get(FactionRelationScore.REL_GRIEVANCE, 0.0)),
+        FactionRelationScore.REL_TENSION: float(delta.get(FactionRelationScore.REL_TENSION, 0.0)),
+        FactionRelationScore.REL_WEARINESS: float(delta.get(FactionRelationScore.REL_WEARINESS, 0.0)),
     }
 
     # --- relation/trust ---
@@ -364,47 +374,47 @@ static func _scale_deltas_by_personality(delta: Dictionary, prof: FactionProfile
     # Losses: aggression + vengefulness amplify (more punitive worldview)
     var loss_mul := 1.0 + k_neg_rel * ((aggr - 0.5) + 0.8*(veng - 0.5))
 
-    out["d_relation"] = int(round(_scale_signed_int(out["d_relation"], gain_mul, loss_mul)))
-    out["d_trust"] = int(round(_scale_signed_int(out["d_trust"], gain_mul, loss_mul)))
+    out[FactionRelationScore.REL_RELATION] = int(round(_scale_signed_int(out[FactionRelationScore.REL_RELATION], gain_mul, loss_mul)))
+    out[FactionRelationScore.REL_TRUST] = int(round(_scale_signed_int(out[FactionRelationScore.REL_TRUST], gain_mul, loss_mul)))
 
     # --- grievance ---
     # If delta is negative (grievance reduction), vengefulness makes it less effective.
     # If delta is positive, vengefulness makes it sting more.
-    var g := float(out["d_grievance"])
+    var g := float(out[FactionRelationScore.REL_GRIEVANCE])
     if g < 0.0:
         var g_mul_down := 1.0 - k_griev_down * (veng - 0.5)  # veng>0.5 => smaller reduction
         g_mul_down = clampf(g_mul_down, 0.55, 1.35)
-        out["d_grievance"] = g * g_mul_down
+        out[FactionRelationScore.REL_GRIEVANCE] = g * g_mul_down
     elif g > 0.0:
         var g_mul_up := 1.0 + k_griev_up * ((veng - 0.5) + 0.5*(aggr - 0.5))
         g_mul_up = clampf(g_mul_up, 0.70, 1.45)
-        out["d_grievance"] = g * g_mul_up
+        out[FactionRelationScore.REL_GRIEVANCE] = g * g_mul_up
 
     # --- tension ---
-    var t := float(out["d_tension"])
+    var t := float(out[FactionRelationScore.REL_TENSION])
     if t < 0.0:
         var t_mul_down := 1.0 + k_tension_down * (diplo - 0.5)
         t_mul_down = clampf(t_mul_down, 0.75, 1.40)
-        out["d_tension"] = t * t_mul_down
+        out[FactionRelationScore.REL_TENSION] = t * t_mul_down
     elif t > 0.0:
         var t_mul_up := 1.0 + k_tension_up * ((aggr - 0.5) + 0.6*(veng - 0.5))
         t_mul_up = clampf(t_mul_up, 0.75, 1.45)
-        out["d_tension"] = t * t_mul_up
+        out[FactionRelationScore.REL_TENSION] = t * t_mul_up
 
     # --- weariness ---
-    var w := float(out["d_weariness"])
+    var w := float(out[FactionRelationScore.REL_WEARINESS])
     if w > 0.0:
         # expansionism reduces perceived weariness; risk_aversion increases it
         var w_mul := 1.0 \
             + k_wear_gain * (risk - 0.5) \
             - 0.35 * (expa - 0.5)
         w_mul = clampf(w_mul, 0.65, 1.55)
-        out["d_weariness"] = w * w_mul
+        out[FactionRelationScore.REL_WEARINESS] = w * w_mul
 
     # clamp small floats to avoid noise
-    out["d_grievance"] = _snap_small(out["d_grievance"])
-    out["d_tension"] = _snap_small(out["d_tension"])
-    out["d_weariness"] = _snap_small(out["d_weariness"])
+    out[FactionRelationScore.REL_GRIEVANCE] = _snap_small(out[FactionRelationScore.REL_GRIEVANCE])
+    out[FactionRelationScore.REL_TENSION] = _snap_small(out[FactionRelationScore.REL_TENSION])
+    out[FactionRelationScore.REL_WEARINESS] = _snap_small(out[FactionRelationScore.REL_WEARINESS])
 
     return out
 
@@ -416,6 +426,7 @@ static func _scale_signed_int(x: int, gain_mul: float, loss_mul: float) -> float
 
 static func _snap_small(x: float) -> float:
     return 0.0 if abs(x) < 0.05 else x       
+    
 static func apply_arc_resolution(
     action: StringName,
     choice: StringName,
@@ -431,22 +442,23 @@ static func apply_arc_resolution(
 
     var ab :Dictionary = d["ab"]
     var ba :Dictionary = d["ba"]
+    
+    #TODO a revoir, il n'y a pas d'interer a appliquer un delta de 0
+    rel_ab.apply_delta({
+        FactionRelationScore.REL_RELATION: int(ab.get(FactionRelationScore.REL_RELATION, 0)),
+        FactionRelationScore.REL_TRUST: int(ab.get(FactionRelationScore.REL_TRUST, 0)),
+        FactionRelationScore.REL_GRIEVANCE: float(ab.get(FactionRelationScore.REL_GRIEVANCE, 0.0)),
+        FactionRelationScore.REL_TENSION: float(ab.get(FactionRelationScore.REL_TENSION, 0.0)),
+        FactionRelationScore.REL_WEARINESS: float(ab.get(FactionRelationScore.REL_WEARINESS, 0.0))
+    })
 
-    rel_ab.apply_delta(
-        int(ab.get("d_relation", 0)),
-        int(ab.get("d_trust", 0)),
-        float(ab.get("d_grievance", 0.0)),
-        float(ab.get("d_tension", 0.0)),
-        float(ab.get("d_weariness", 0.0))
-    )
-
-    rel_ba.apply_delta(
-        int(ba.get("d_relation", 0)),
-        int(ba.get("d_trust", 0)),
-        float(ba.get("d_grievance", 0.0)),
-        float(ba.get("d_tension", 0.0)),
-        float(ba.get("d_weariness", 0.0))
-    )
+    rel_ba.apply_delta({
+        FactionRelationScore.REL_RELATION: int(ba.get(FactionRelationScore.REL_RELATION, 0)),
+        FactionRelationScore.REL_TRUST: int(ba.get(FactionRelationScore.REL_TRUST, 0)),
+        FactionRelationScore.REL_GRIEVANCE: float(ba.get(FactionRelationScore.REL_GRIEVANCE, 0.0)),
+        FactionRelationScore.REL_TENSION: float(ba.get(FactionRelationScore.REL_TENSION, 0.0)),
+        FactionRelationScore.REL_WEARINESS: float(ba.get(FactionRelationScore.REL_WEARINESS, 0.0))
+    })
 
     var cd := cooldown_override_days if cooldown_override_days >= 0 else cooldown_days_for(action, rng)
     rel_ab.set_cooldown(current_day, cd)

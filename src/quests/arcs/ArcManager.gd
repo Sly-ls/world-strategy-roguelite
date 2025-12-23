@@ -97,8 +97,7 @@ func on_quest_resolution_choice(inst: QuestInstance, choice: String) -> void:
 # --- Helper pour obtenir une relation ---
 func _get_relation(from_id: StringName, to_id: StringName) -> FactionRelationScore:
     if FactionManager and FactionManager.has_method("get_relation_score"):
-        return FactionManager.get_relation_score(from_id, to_id)
-    
+        return FactionManager.get_relation(from_id, to_id)    
     # Fallback: utiliser le cache local
     if not faction_relations.has(from_id):
         faction_relations[from_id] = {}

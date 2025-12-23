@@ -77,14 +77,18 @@ static func initialize_relations_for_faction(
     var enemy_max: int = int(params.get("enemy_max", 2))
 
     # Boosts applied to selected natural allies/enemies
-    var ally_rel_boost: int = int(params.get("ally_rel_boost", 18))
-    var ally_trust_boost: int = int(params.get("ally_trust_boost", 14))
-    var ally_tension_delta: float = float(params.get("ally_tension_delta", -10.0))
-
-    var enemy_rel_boost: int = int(params.get("enemy_rel_boost", -22))
-    var enemy_trust_boost: int = int(params.get("enemy_trust_boost", -16))
-    var enemy_tension_delta: float = float(params.get("enemy_tension_delta", +15.0))
-    var enemy_grievance_init: float = float(params.get("enemy_grievance_init", 6.0))
+    var ally_rel_boost :Dictionary = {
+        FactionRelationScore.REL_RELATION: int(params.get("ally_rel_boost", 18)),
+        FactionRelationScore.REL_TRUST: int(params.get("ally_trust_boost", 14)),
+        FactionRelationScore.REL_TENSION: float(params.get("ally_tension_delta", -10.0)),
+    }
+    var enemy_rel_boost :Dictionary = {
+        FactionRelationScore.REL_RELATION: int(params.get("enemy_rel_boost", -22)),
+        FactionRelationScore.REL_TRUST: int(params.get("enemy_trust_boost", -16)),
+        FactionRelationScore.REL_TENSION: float(params.get("enemy_tension_delta", +15.0)),
+        FactionRelationScore.REL_GRIEVANCE: float(params.get("enemy_grievance_init", 6.0)),
+    }
+   
 
     # Hard caps on extremes to avoid too many day-1 dooms
     var min_relation_cap: int = int(params.get("min_relation_cap", -85))
@@ -97,7 +101,7 @@ static func initialize_relations_for_faction(
         var b: FactionProfile = faction_profiles[fid]
         var init := FactionProfile.compute_baseline_relation(a, b, baseline_params)
         # ensure tension cap here too
-        init["tension"] = min(float(init.get("tension", 0.0)), tension_cap)
+        init[FactionRelationScore.REL_TENSION] = min(float(init.get("tension", 0.0)), tension_cap)
         init_map[fid] = init
         raw_rel.append(float(init["relation"]))
 
@@ -127,17 +131,9 @@ static func initialize_relations_for_faction(
             rel += float(rng.randi_range(-noise, noise))
 
         rel = clampf(rel, float(min_relation_cap), float(max_relation_cap))
-
+        init[FactionRelationScore.REL_RELATION] = rel
         var rs := FactionRelationScore.new(fid)
-        rs.relation = int(round(rel))
-        rs.trust = int(init.get("trust", 0))
-        rs.tension = float(init.get("tension", 0.0))
-        rs.grievance = 0.0
-        rs.weariness = 0.0
-        rs.last_event_day = -999999
-        rs.cooldown_until_day = -999999
-        rs.clamp_all()
-
+        rs.init(init)
         out[fid] = rs
 
     # ---- 4) Pick a few natural enemies and allies (coherence globale) ----
@@ -182,23 +178,11 @@ static func initialize_relations_for_faction(
     # ---- 5) Apply ally/enemy boosts (creates a few “peaks” in the distribution) ----
     for fid in chosen_enemies:
         var rs: FactionRelationScore = out[fid]
-        rs.apply_delta(
-            enemy_rel_boost,
-            enemy_trust_boost,
-            enemy_grievance_init,
-            enemy_tension_delta,
-            0.0
-        )
+        rs.apply_delta(enemy_rel_boost)
 
     for fid in chosen_allies:
         var rs: FactionRelationScore = out[fid]
-        rs.apply_delta(
-            ally_rel_boost,
-            ally_trust_boost,
-            0.0,
-            ally_tension_delta,
-            0.0
-        )
+        rs.apply_delta(ally_rel_boost)
 
     # Optional: ensure final mean stays centered-ish (small correction only)
     if bool(params.get("final_recenter", true)):

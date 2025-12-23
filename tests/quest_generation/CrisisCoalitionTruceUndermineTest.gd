@@ -11,8 +11,8 @@ func _ready() -> void:
 
 
 func _test_crisis_coalition_truce_then_undermine_creates_suspicion() -> void:
-    var mgr := CoalitionManager.new()
-    mgr.rng.seed = 12345  # Pour reproductibilité
+    _assert(CoalitionManager != null, "CoalitionManager should not be null")
+    CoalitionManager.rng.seed = 12345  # Pour reproductibilité
 
     var A := &"A"  # enemy of B, but will SUPPORT coalition
     var B := &"B"  # opportunist + corruption affinity => UNDERMINE
@@ -22,46 +22,60 @@ func _test_crisis_coalition_truce_then_undermine_creates_suspicion() -> void:
     var faction_ids: Array[StringName] = [A, B, C, D]
 
     # Profiles - utiliser les vraies constantes FactionProfile.AXIS_CORRUPTION
-    var profiles := {
-        A: FactionProfile.from_profile_and_axis(
+    var faction_a = Faction.new()
+    faction_a.id = A
+    faction_a.profile = FactionProfile.from_profile_and_axis(
             {FactionProfile.PERS_HONOR: 0.8, FactionProfile.PERS_DIPLOMACY: 0.7, FactionProfile.PERS_OPPORTUNISM: 0.2, FactionProfile.PERS_FEAR: 0.3},
             {FactionProfile.AXIS_CORRUPTION: -80}
-        ),
-        # B: doit avoir un score >= 0.55 pour joindre, mais UNDERMINE ensuite
-        # On baisse opportunism pour le join score, mais garde fear élevé pour undermine
-        # axis_resist doit être > 0, donc on met corruption légèrement négatif
-        B: FactionProfile.from_profile_and_axis(
+        )
+    var faction_b = Faction.new()
+    faction_a.id = B
+    faction_a.profile = FactionProfile.from_profile_and_axis(
             {FactionProfile.PERS_HONOR: 0.75, FactionProfile.PERS_DIPLOMACY: 0.80, FactionProfile.PERS_OPPORTUNISM: 0.5, FactionProfile.PERS_FEAR: 0.9},
             {FactionProfile.AXIS_CORRUPTION: -10}  # légèrement anti-corruption pour axis_resist > 0
-        ),
-        D: FactionProfile.from_profile_and_axis(
-            {FactionProfile.PERS_HONOR: 0.7, FactionProfile.PERS_DIPLOMACY: 0.65, FactionProfile.PERS_OPPORTUNISM: 0.35, FactionProfile.PERS_FEAR: 0.35},
-            {FactionProfile.AXIS_CORRUPTION: -40}
-        ),
-        C: FactionProfile.from_profile_and_axis(
+        )
+    var faction_c = Faction.new()
+    faction_a.id = C
+    faction_a.profile = FactionProfile.from_profile_and_axis(
             {FactionProfile.PERS_HONOR: 0.3, FactionProfile.PERS_DIPLOMACY: 0.2, FactionProfile.PERS_OPPORTUNISM: 0.7, FactionProfile.PERS_FEAR: 0.4},
             {FactionProfile.AXIS_CORRUPTION: 90}
-        ),
-    }
+        )
+    var faction_d = Faction.new()
+    faction_a.id = D
+    faction_a.profile = FactionProfile.from_profile_and_axis(
+            {FactionProfile.PERS_HONOR: 0.7, FactionProfile.PERS_DIPLOMACY: 0.65, FactionProfile.PERS_OPPORTUNISM: 0.35, FactionProfile.PERS_FEAR: 0.35},
+            {FactionProfile.AXIS_CORRUPTION: -40}
+        )
 
-    # Relations matrix
-    var relations := {}
-    for f in faction_ids:
-        relations[f] = {}
+    FactionManager.register_faction(faction_a)
+    FactionManager.register_faction(faction_b)
+    FactionManager.register_faction(faction_c)
+    FactionManager.register_faction(faction_d)
+
+    # init relation
     for x in faction_ids:
         for y in faction_ids:
             if x == y:
                 continue
-            relations[x][y] = FactionRelationScore.new(y)
-
-    # A and B are enemies / at war-like
-    relations[A][B].relation = -80
-    relations[B][A].relation = -80
-
-    # Everyone dislikes C enough to join anti crisis (STOP_CRISIS uses dislike source)
-    relations[A][C].relation = -70
-    relations[D][C].relation = -60
-    relations[B][C].relation = -50  # B dislikes C too, enough to join
+            var faction :Faction = FactionManager.get_faction(x)
+            var rel_x_y = faction.get_relation_to(y)
+            if rel_x_y == null:
+                rel_x_y = FactionRelationScore.new(y)
+            # A and B are enemies / at war-like
+            if (x == A && y == B) || (x == B && y == A):
+                rel_x_y.set_score(FactionRelationScore.REL_RELATION, -80);
+            # Everyone dislikes C enough to join anti crisis (STOP_CRISIS uses dislike source)
+            elif (x == A && y == B):
+                rel_x_y.set_score(FactionRelationScore.REL_RELATION, -80);
+            elif (x == A && y == C):
+                rel_x_y.set_score(FactionRelationScore.REL_RELATION, -70);
+            elif (x == D && y == C):
+                rel_x_y.set_score(FactionRelationScore.REL_RELATION, -60);
+            elif (x == B && y == C):
+                rel_x_y.set_score(FactionRelationScore.REL_RELATION, -50);
+            else :
+                rel_x_y.set_score(FactionRelationScore.REL_RELATION, -10);
+            faction.set_relation_to(y, rel_x_y)
 
     # World crisis - utiliser la vraie constante pour crisis_axis
     var world := {
@@ -77,27 +91,24 @@ func _test_crisis_coalition_truce_then_undermine_creates_suspicion() -> void:
     # Debug: afficher les scores de join avant tick
     print("  [DEBUG] Join scores before tick_day:")
     for f in [A, B, D]:
-        var score := mgr._stop_crisis_join_score(
-            f, C, FactionProfile.AXIS_CORRUPTION, 0.90,
-            profiles, relations, world, notebook
-        )
+        var score := CoalitionManager._stop_crisis_join_score( f, C, FactionProfile.AXIS_CORRUPTION, 0.90, world, notebook)
         print("    %s: score=%.3f (threshold=0.55)" % [str(f), score])
 
     # Day 10: tick => should form STOP_CRISIS coalition and set truce locks
-    mgr.tick_day(10, faction_ids, profiles, relations, world, notebook)
+    CoalitionManager.tick_day(10, faction_ids, world, notebook)
 
     # Debug: afficher les coalitions créées
-    print("  [DEBUG] Coalitions created: %d" % mgr.coalitions_by_id.size())
-    for cid in mgr.coalitions_by_id.keys():
-        var c: CoalitionBlock = mgr.coalitions_by_id[cid]
+    print("  [DEBUG] Coalitions created: %d" % CoalitionManager.coalitions_by_id.size())
+    for cid in CoalitionManager.coalitions_by_id.keys():
+        var c: CoalitionBlock = CoalitionManager.coalitions_by_id[cid]
         print("    - %s: kind=%s goal=%s target=%s members=%s" % [
             str(cid), str(c.kind), str(c.goal), str(c.target_id), str(c.member_ids)
         ])
 
     # Find the created STOP_CRISIS coalition
     var coal: CoalitionBlock = null
-    for cid in mgr.coalitions_by_id.keys():
-        var c: CoalitionBlock = mgr.coalitions_by_id[cid]
+    for cid in CoalitionManager.coalitions_by_id.keys():
+        var c: CoalitionBlock = CoalitionManager.coalitions_by_id[cid]
         if c.kind == &"CRISIS" and c.goal == &"STOP_CRISIS" and c.target_id == C:
             coal = c
             break
@@ -121,7 +132,7 @@ func _test_crisis_coalition_truce_then_undermine_creates_suspicion() -> void:
     # Ensure a JOINT OP offer exists (spawned by tick_day after lock_until_day)
     # Note: lock_until_day = day + 2 = 12, so offers won't spawn until day 12+
     # Let's advance to day 15 to trigger offer spawning
-    mgr.tick_day(15, faction_ids, profiles, relations, world, notebook)
+    CoalitionManager.tick_day(15, world, notebook)
 
     var joint_ctx: Dictionary = {}
     if QuestPool != null:
@@ -152,7 +163,7 @@ func _test_crisis_coalition_truce_then_undermine_creates_suspicion() -> void:
     if notebook.has_method("count_events_by_action"):
         betrayals_before = notebook.count_events_by_action(&"COALITION_BETRAYAL")
 
-    mgr.apply_joint_op_resolution(joint_ctx, &"LOYAL", 16, profiles, relations, world, notebook)
+    CoalitionManager.apply_joint_op_resolution(joint_ctx, &"LOYAL", 16, profiles, relations, world, notebook)
 
    # print("  [DEBUG] Cohesion: before=%d after=%d" % [cohesion_before, coal.cohesion])
 

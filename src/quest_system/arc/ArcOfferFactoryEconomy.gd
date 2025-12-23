@@ -9,8 +9,8 @@ static func compute_difficulty(arc_state_name: StringName, rel_ab: FactionRelati
         &"WAR":      state_factor = 0.70
         &"TRUCE":    state_factor = 0.25
         &"ALLIANCE": state_factor = 0.20
-    var t := rel_ab.tension / 100.0
-    var g := rel_ab.grievance / 100.0
+    var t := rel_ab.get_score(FactionRelationScore.REL_TENSION) / 100.0
+    var g := rel_ab.get_score(FactionRelationScore.REL_GRIEVANCE) / 100.0
     var tier_factor := clampf(0.15 * float(max(tier - 1, 0)), 0.0, 0.45)
     return clampf(0.35*risk + 0.30*t + 0.20*g + 0.15*state_factor + tier_factor, 0.0, 1.0)
 

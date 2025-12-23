@@ -99,10 +99,11 @@ func can_start() -> bool:
         return false
     
     # Check relation faction
-    if FactionManager.has_faction(faction_id):
-        var relation := FactionManager.get_relation(faction_id)
-        if relation < required_faction_relation:
-            return false
+    # TODO may be use it later
+    #if FactionManager.has_faction(faction_id):
+    #    var relation := FactionManager.get_relation(faction_id)
+    #    if relation < required_faction_relation:
+    #        return false
     
     # Check tags joueur
     for tag in required_player_tags:

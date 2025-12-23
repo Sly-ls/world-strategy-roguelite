@@ -97,11 +97,12 @@ func can_appear() -> bool:
         if not QuestManager.has_world_tag(tag):
             return false
     
+    # TODO je pense que c'est pour verifier la relation avec le jouer,a revoir
     # Relations faction minimales
-    for faction_id in min_faction_relation:
-        var min_rel: int = min_faction_relation[faction_id]
-        if FactionManager.get_relation(faction_id) < min_rel:
-            return false
+    #for faction_id in min_faction_relation:
+    #    var min_rel: int = min_faction_relation[faction_id]
+    #   if FactionManager.get_relation(faction_id) < min_rel:
+    #        return false
     
     return true
 

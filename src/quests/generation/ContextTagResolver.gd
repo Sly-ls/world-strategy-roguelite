@@ -47,7 +47,7 @@ static func _add_faction_tags(ctx: Dictionary) -> void:
     if giver == "" or ant == "" or giver == ant:
         return
 
-    var rel: int = FactionManager.get_relation_between(giver, ant)
+    var rel: int = FactionManager.get_relation(giver, ant).get_score(FactionRelationScore.REL_TRUST)
 
     if rel <= -50:
         ctx["tags"].append("FACTION_AT_WAR")

@@ -33,16 +33,16 @@ func _ready() -> void:
 
 
 func _init_default_factions() -> void:
-	"""Initialise les factions par défaut"""
+    """Initialise les factions par défaut"""
     # Factions humaines
-    var humans := register_faction(
+    var humans := register_faction_with_params(
         "humans", "Royaume des Hommes",
         "Le plus grand royaume humain",
         8, Faction.FactionType.FRIENDLY
     )
     humans.profile = _create_human_profile()
     
-    var elves := register_faction(
+    var elves := register_faction_with_params(
         "elves", "Conclave Elfique",
         "Les anciens gardiens de la forêt",
         6, Faction.FactionType.MAGICAL
@@ -50,14 +50,14 @@ func _init_default_factions() -> void:
     elves.profile = _create_elf_profile()
     
     # Factions hostiles
-    var orcs := register_faction(
+    var orcs := register_faction_with_params(
         "orcs", "Horde Orc",
         "Une coalition de tribus guerrières",
         7, Faction.FactionType.HOSTILE
     )
     orcs.profile = _create_orc_profile()
     
-    var bandits := register_faction(
+    var bandits := register_faction_with_params(
         "bandits", "Confrérie des Ombres",
         "Un réseau de brigands et de voleurs",
         4, Faction.FactionType.HOSTILE
@@ -65,7 +65,7 @@ func _init_default_factions() -> void:
     bandits.profile = _create_bandit_profile()
     
     # Factions neutres
-    var merchants := register_faction(
+    var merchants := register_faction_with_params(
         "merchants", "Guilde des Marchands",
         "Une puissante guilde commerciale",
         5, Faction.FactionType.TRADER
@@ -187,9 +187,9 @@ func _create_merchant_profile() -> FactionProfile:
     
     return profile
 
-
+    
 func _init_relation_scores() -> void:
-	"""Initialise les FactionRelationScore entre toutes les factions basé sur leurs profils"""
+    """Initialise les FactionRelationScore entre toutes les factions basé sur leurs profils"""
     var faction_ids := factions.keys()
     
     for from_id in faction_ids:
@@ -198,25 +198,7 @@ func _init_relation_scores() -> void:
         for to_id in faction_ids:
             if from_id == to_id:
                 continue
-            
-            var to_faction: Faction = factions[to_id]
-            var score := FactionRelationScore.new(StringName(to_id))
-            
-            # Calculer baseline si les deux ont des profils
-            if from_faction.profile != null and to_faction.profile != null:
-                var baseline := FactionProfile.compute_baseline_relation(
-                    from_faction.profile, 
-                    to_faction.profile
-                )
-                score.relation = baseline["relation"]
-                score.trust = baseline["trust"]
-                score.tension = int(baseline["tension"])
-                score.grievance = 0
-                score.weariness = 0
-                score.clamp_all()
-            
-            # Stocker dans la faction (pas dans FactionManager)
-            from_faction.relations[to_id] = score
+            from_faction.init_relation(to_id)
     
     print("✓ Relations inter-factions initialisées")
 
@@ -224,14 +206,14 @@ func _init_relation_scores() -> void:
 # GESTION DES FACTIONS
 # ========================================
 
-func register_faction(
+func register_faction_with_params(
     p_id: String,
     p_name: String,
     p_description: String,
     p_power: int,
     p_type: Faction.FactionType
 ) -> Faction:
-	"""Enregistre une nouvelle faction"""
+    """Enregistre une nouvelle faction"""
     
     var f := Faction.new()
     f.id = p_id
@@ -241,18 +223,22 @@ func register_faction(
     #f.relation_with_player = p_relation
     f.power_level = p_power
     f.faction_type = p_type
-    
-    factions[p_id] = f
-    return f
+    return register_faction(f)
 
+func register_faction(
+    faction: Faction,
+) -> Faction:
+    """Enregistre une nouvelle faction"""
+    factions[faction.id] = faction
+    return faction
 
 func get_faction(faction_id: String) -> Faction:
-	"""Récupère une faction par son ID"""
+    """Récupère une faction par son ID"""
     return factions.get(faction_id, null)
 
 
 func has_faction(faction_id: String) -> bool:
-	"""Vérifie si une faction existe"""
+    """Vérifie si une faction existe"""
     return factions.has(faction_id)
 
 # ========================================
@@ -260,7 +246,7 @@ func has_faction(faction_id: String) -> bool:
 # ========================================
 
 func get_faction_profile(faction_id) -> FactionProfile:
-	"""Récupère le profil d'une faction (ou en génère un par défaut)"""
+    """Récupère le profil d'une faction (ou en génère un par défaut)"""
     var id_str := str(faction_id)
     var f := get_faction(id_str)
     if f != null and f.profile != null:
@@ -273,7 +259,7 @@ func get_faction_profile(faction_id) -> FactionProfile:
 
 
 func get_faction_profiles() -> Dictionary:
-	"""Retourne un dictionnaire faction_id -> FactionProfile pour toutes les factions"""
+    """Retourne un dictionnaire faction_id -> FactionProfile pour toutes les factions"""
     var profiles: Dictionary = {}  # StringName -> FactionProfile
     for faction_id in factions.keys():
         var f: Faction = factions[faction_id]
@@ -286,28 +272,26 @@ func get_faction_profiles() -> Dictionary:
 # Méthodes d'accès centralisées - délèguent à Faction.relations
 # ========================================
 
-func get_relation_score(from_id, to_id) -> FactionRelationScore:
-	"""Récupère le FactionRelationScore de from_id vers to_id"""
-    var from_str := str(from_id)
-    var to_str := str(to_id)
-    
-    var from_faction := get_faction(from_str)
+func get_relation(from_id, to_id) -> FactionRelationScore:
+    """Récupère le FactionRelationScore de from_id vers to_id"""
+    var from_faction := get_faction(from_id)
     if from_faction == null:
         # Créer un score neutre si la faction n'existe pas
-        return FactionRelationScore.new(StringName(to_str))
-    
-    # Récupérer depuis Faction.relations
-    if from_faction.relations.has(to_str):
-        return from_faction.relations[to_str]
-    
-    # Lazy loading: créer un nouveau score neutre si n'existe pas
-    var score := FactionRelationScore.new(StringName(to_str))
-    from_faction.relations[to_str] = score
-    return score
+        myLogger.error("faction not found : " + from_id)
+        return null
+    else :
+        return from_faction.get_relation_to(to_id)
+   
 
 
-func get_relation_scores() -> Dictionary:
-	"""Retourne le dictionnaire complet des relations (format: from_id -> { to_id -> FactionRelationScore })"""
+func get_relation_score(score_name: StringName, from_id, to_id) -> float:
+    """Récupère le FactionRelationScore de from_id vers to_id"""
+    var faction_from :Faction = FactionManager.get_faction(from_id)
+    var rel : FactionRelationScore = faction_from.get_relation_to(to_id)
+    return rel.get_score(score_name)
+    
+func get_all_relations() -> Dictionary:
+    """Retourne le dictionnaire complet des relations (format: from_id -> { to_id -> FactionRelationScore })"""
     var result: Dictionary = {}
     for faction_id in factions.keys():
         var f: Faction = factions[faction_id]
@@ -315,16 +299,16 @@ func get_relation_scores() -> Dictionary:
     return result
 
 
-func get_all_relation_scores_for(faction_id: String) -> Dictionary:
-	"""Retourne toutes les relations d'une faction vers les autres"""
+func get_all_relations_for(faction_id: String) -> Dictionary:
+    """Retourne toutes les relations d'une faction vers les autres"""
     var f := get_faction(faction_id)
     if f != null:
         return f.relations
     return {}
 
 
-func set_relation_score(from_id, to_id, score: FactionRelationScore) -> void:
-	"""Définit le FactionRelationScore de from_id vers to_id"""
+func set_relation(from_id, to_id, score: FactionRelationScore) -> void:
+    """Définit le FactionRelationScore de from_id vers to_id"""
     var from_str := str(from_id)
     var to_str := str(to_id)
     
@@ -332,6 +316,14 @@ func set_relation_score(from_id, to_id, score: FactionRelationScore) -> void:
     if from_faction != null:
         from_faction.relations[to_str] = score
 
+func set_relation_score(from_id, to_id, score_name: StringName, score: int) -> void:
+    """Définit le FactionRelationScore de from_id vers to_id"""
+    var from_str := str(from_id)
+    var to_str := str(to_id)
+    
+    var from_faction := get_faction(from_str)
+    if from_faction != null:
+        from_faction.relations[to_str] = score
 # ========================================
 # RELATIONS (avec le joueur)
 # TODO: doit être migré avec les factions mineures et les armées libres
@@ -385,7 +377,7 @@ func set_relation_score(from_id, to_id, score: FactionRelationScore) -> void:
 # ========================================
 
 func get_all_factions() -> Array[Faction]:
-	"""Retourne toutes les factions"""
+    """Retourne toutes les factions"""
     var result: Array[Faction] = []
     for f in factions.values():
         result.append(f)
@@ -393,7 +385,7 @@ func get_all_factions() -> Array[Faction]:
 
 
 func get_all_faction_ids() -> Array[String]:
-	"""Retourne tous les IDs de faction"""
+    """Retourne tous les IDs de faction"""
     var result: Array[String] = []
     for id in factions.keys():
         result.append(id)
@@ -432,7 +424,7 @@ func get_all_faction_ids() -> Array[String]:
 # ========================================
 
 func save_state() -> Dictionary:
-	"""Sauvegarde l'état de toutes les factions"""
+    """Sauvegarde l'état de toutes les factions"""
     var data := {}
     for id in factions:
         var f: Faction = factions[id]
@@ -441,7 +433,7 @@ func save_state() -> Dictionary:
 
 
 func load_state(data: Dictionary) -> void:
-	"""Charge l'état de toutes les factions"""
+    """Charge l'état de toutes les factions"""
     for id in data:
         if factions.has(id):
             var f: Faction = factions[id]
@@ -454,7 +446,7 @@ func load_state(data: Dictionary) -> void:
 # ========================================
 
 func print_relation_scores() -> void:
-	"""Affiche les FactionRelationScore détaillés"""
+    """Affiche les FactionRelationScore détaillés"""
     print("\n=== RELATION SCORES DÉTAILLÉS ===")
     for faction_id in factions.keys():
         var f: Faction = factions[faction_id]
@@ -467,7 +459,7 @@ func print_relation_scores() -> void:
 
 
 func print_faction_profiles() -> void:
-	"""Affiche les profils de faction"""
+    """Affiche les profils de faction"""
     print("\n=== FACTION PROFILES ===")
     for id in factions.keys():
         var f: Faction = factions[id]
@@ -537,8 +529,7 @@ func generate_faction(
     var f = _new_faction_object()
     f.set("id", faction_id)
     f.set("profile", profile)
-
-    factions[faction_id] = f
+    register_faction(f)
     return f
 
 
@@ -643,15 +634,15 @@ func _new_faction_object():
 # API high-level : monde complet
 # -----------------------------------------
 func generate_world(count: int, heat: int, seed: int = 0, params: Dictionary = {}) -> Array:
-    var factions_generated := generate_factions(count, heat, seed, params)
-    initialize_relations_world(factions_generated, heat, seed + 1, params)
-    return factions_generated
+    generate_factions(count, heat, seed, params)
+    initialize_relations_world(heat, seed + 1, params)
+    return get_all_factions()
 
 
 # -----------------------------------------
 # Relations : init globale en 1 passe
 # -----------------------------------------
-func initialize_relations_world(factions_generated: Array, heat: int, seed: int = 0, params: Dictionary = {}) -> void:
+func initialize_relations_world(heat: int, seed: int = 0, params: Dictionary = {}) -> void:
     heat = clampi(heat, 1, 100)
     var h := float(heat) / 100.0
 
@@ -682,64 +673,37 @@ func initialize_relations_world(factions_generated: Array, heat: int, seed: int 
     var enemies_k := clampi(1 + int(heat / 35), 1, 3)         # heat↑ => + d'ennemis naturels
     var allies_k := clampi(2 - int(heat / 70), 1, 2)          # heat↑ => - d'alliés naturels
 
-    # --- 1) Build matrix A->B brute
-    var ids: Array[StringName] = []
-    for f in factions_generated:
-        var id: StringName = f.get("id")
-        ids.append(id)
-
     # store[A][B] = relation score object/dict
     var store := {}
-    for a in ids:
-        store[a] = {}
+    for a in get_all_factions():
+        store[a.id] = {}
 
-    for a in ids:
-        var fa = factions.get(a, null)
-        if fa == null: fa = _find_faction_in_array(factions_generated, a)
-        var pa: FactionProfile = fa.get("profile")
-
-        for b in ids:
-            if a == b: continue
-            var fb = factions.get(b, null)
-            if fb == null: fb = _find_faction_in_array(factions_generated, b)
-            var pb: FactionProfile = fb.get("profile")
-
-            var init := FactionProfile.compute_baseline_relation(pa, pb, rel_params)
+    for fa in get_all_factions():
+        for fb in get_all_factions():
+            if fa == fb: continue
+            fa.init_relation(fb.id, rel_params)
+            
             # relation noise (symétrique, borné)
-            var r := int(init["relation"]) + int(round(rng.randfn(0.0, noise_sigma)))
-            init["relation"] = clampi(r, -100, 100)
-
-            store[a][b] = _make_relation_score(b, init)
+            var delta = int(round(rng.randfn(0.0, noise_sigma)))
+            fa.get_relation_to(fb.id).apply_delta_to(FactionRelationScore.REL_RELATION, delta)
 
     # --- 2) Center outgoing mean per faction (moyenne ~ 0)
-    _center_outgoing_means(store, ids, 1.0)
+    _center_outgoing_means(1.0)
 
     # --- 3) Add a few "natural enemies/allies" per faction (polarisation contrôlée)
-    _apply_natural_extremes(store, ids, enemies_k, allies_k, heat, rng)
+    _apply_natural_extremes(enemies_k, allies_k, heat, rng)
 
     # --- 4) Re-center lightly to keep global coherence after extremes
-    _center_outgoing_means(store, ids, 0.70)
+    _center_outgoing_means(0.70)
 
     # --- 5) Apply "light reciprocity" (A->B and B->A converge ~70% sans être identiques)
-    _apply_reciprocity(store, ids, reciprocity, rng)
+    _apply_reciprocity(reciprocity, rng)
 
-    # --- 6) Commit to factions (store per faction)
-    for a in ids:
-        var fa = factions.get(a, null)
-        if fa == null: fa = _find_faction_in_array(factions_generated, a)
-        _set_relations_dict_on_faction(fa, store[a])
 
 
 # -----------------------------------------
 # Helpers (non invasifs)
 # -----------------------------------------
-func _find_faction_in_array(factions_arr: Array, id: StringName):
-    for f in factions_arr:
-        if f.get("id") == id:
-            return f
-    return null
-
-
 func _set_relations_dict_on_faction(faction_obj, rel_dict: Dictionary) -> void:
     # Utiliser directement Faction.relations
     if faction_obj is Faction:
@@ -785,90 +749,80 @@ func _make_relation_score(other_id: StringName, init: Dictionary):
         "weariness": 0.0
     }
 
-
-func _get_rel_value(rel, key: String, default_val):
-    if rel is Dictionary:
-        return rel.get(key, default_val)
-    return rel.get(key, default_val)
-
-
-func _set_rel_value(rel, key: String, value) -> void:
-    if rel is Dictionary:
-        rel[key] = value
-    else:
-        rel.set(key, value)
-
-
-func _center_outgoing_means(store: Dictionary, ids: Array[StringName], strength: float) -> void:
-    for a in ids:
+func _center_outgoing_means(strength: float) -> void:
+    var all_factions = get_all_factions()
+    for fa in all_factions:
         var sum := 0.0
         var cnt := 0
-        for b in ids:
-            if a == b: continue
-            var rel = store[a][b]
-            sum += float(_get_rel_value(rel, "relation", 0))
+        for fb in all_factions:
+            if fa == fb: continue
+            sum += fa.get_relation_to(fb.id).get_score(FactionRelationScore.REL_RELATION)
             cnt += 1
         if cnt <= 0: continue
         var mean := sum / float(cnt)
 
-        for b in ids:
-            if a == b: continue
-            var rel = store[a][b]
-            var r := float(_get_rel_value(rel, "relation", 0))
+        for fb in all_factions:
+            if fa == fb: continue
+            var r := fa.get_relation_to(fb.id).get_score(FactionRelationScore.REL_RELATION)
             r = r - mean * strength
-            _set_rel_value(rel, "relation", clampi(int(round(r)), -100, 100))
+            fa.get_relation_to(fb.id).set_score(FactionRelationScore.REL_RELATION, r)
 
 
-func _apply_natural_extremes(store: Dictionary, ids: Array[StringName], enemies_k: int, allies_k: int, heat: int, rng: RandomNumberGenerator) -> void:
+func _apply_natural_extremes(enemies_k: int, allies_k: int, heat: int, rng: RandomNumberGenerator) -> void:
     var h := float(heat) / 100.0
     var enemy_delta := int(round(lerp(10.0, 22.0, h)))
     var ally_delta := int(round(lerp(8.0, 18.0, h)))
 
-    for a in ids:
+    var all_factions = get_all_factions()
+    for fa in all_factions:
         # rank others by current relation
         var others: Array = []
-        for b in ids:
-            if a == b: continue
-            var rel = store[a][b]
-            others.append({"b": b, "r": int(_get_rel_value(rel, "relation", 0))})
+        for fb in all_factions:
+            if fa == fb: continue
+            var score_rel = fa.get_relation_to(fb.id).get_score(FactionRelationScore.REL_RELATION)
+            others.append({"b": fb.id, "r": score_rel})
 
         others.sort_custom(func(x, y): return int(x["r"]) < int(y["r"])) # ascending
 
         # enemies: lowest relations
         for i in range(min(enemies_k, others.size())):
             var b: StringName = others[i]["b"]
-            var rel = store[a][b]
-            var r := int(_get_rel_value(rel, "relation", 0)) - enemy_delta - rng.randi_range(0, 4)
-            _set_rel_value(rel, "relation", clampi(r, -100, 100))
+            var relation_fa =  fa.get_relation_to(b)
+            var score_rel = relation_fa.get_score(FactionRelationScore.REL_RELATION)
+            var r :float = score_rel - enemy_delta - rng.randi_range(0, 4)
+            relation_fa.set_score(FactionRelationScore.REL_RELATION, r)
             # tension a bit up too
-            var t :float = float(_get_rel_value(rel, "tension", 0.0)) + lerp(2.0, 6.0, h)
-            _set_rel_value(rel, "tension", t)
+            var score_tension = relation_fa.get_score(FactionRelationScore.REL_TENSION)
+            var t :float = score_tension + lerp(2.0, 6.0, h)
+            relation_fa.set_score(FactionRelationScore.REL_TENSION, t)
 
         # allies: highest relations
         for j in range(min(allies_k, others.size())):
             var idx := others.size() - 1 - j
-            var b2: StringName = others[idx]["b"]
-            var rel2 = store[a][b2]
-            var r2 := int(_get_rel_value(rel2, "relation", 0)) + ally_delta + rng.randi_range(0, 3)
-            _set_rel_value(rel2, "relation", clampi(r2, -100, 100))
+            var b: StringName = others[idx]["b"]
+            var relation_fa =  fa.get_relation_to(b)
+            var score_rel = relation_fa.get_score(FactionRelationScore.REL_RELATION)
+            var r :float = score_rel + ally_delta + rng.randi_range(0, 3)
+            relation_fa.set_score(FactionRelationScore.REL_RELATION, r)
             # tension a bit down
-            var t2 :float = float(_get_rel_value(rel2, "tension", 0.0)) - lerp(1.0, 4.0, h)
-            _set_rel_value(rel2, "tension", max(0.0, t2))
+            var score_tension = relation_fa.get_score(FactionRelationScore.REL_TENSION)
+            var t :float = score_tension - lerp(1.0, 4.0, h)
+            relation_fa.set_score(FactionRelationScore.REL_TENSION, t)
 
 
-func _apply_reciprocity(store: Dictionary, ids: Array[StringName], r: float, rng: RandomNumberGenerator) -> void:
+func _apply_reciprocity(r: float, rng: RandomNumberGenerator) -> void:
     r = clampf(r, 0.0, 1.0)
-    for i in range(ids.size()):
-        for j in range(i + 1, ids.size()):
-            var a := ids[i]
-            var b := ids[j]
+    var all_factions = get_all_factions()
+    for i in range(all_factions.size()):
+        for j in range(i + 1, all_factions.size()):
+            var fa :Faction = all_factions[i]
+            var fb :Faction = all_factions[j]
 
-            var ab = store[a][b]
-            var ba = store[b][a]
-
+            var relation_fa =  fa.get_relation_to(fb.id)
+            var relation_fb =  fb.get_relation_to(fa.id)
             # relation
-            var rab := float(_get_rel_value(ab, "relation", 0))
-            var rba := float(_get_rel_value(ba, "relation", 0))
+            var rab := relation_fa.get_score(FactionRelationScore.REL_RELATION)
+            var rba := relation_fb.get_score(FactionRelationScore.REL_RELATION)
             var m := (rab + rba) / 2.0
             rab = lerp(rab, m, r)
             rba = lerp(rba, m, r)
@@ -877,24 +831,24 @@ func _apply_reciprocity(store: Dictionary, ids: Array[StringName], r: float, rng
             var jitter := rng.randf_range(-2.0, 2.0) * (1.0 - r)
             rab += jitter
             rba -= jitter
-
-            _set_rel_value(ab, "relation", clampi(int(round(rab)), -100, 100))
-            _set_rel_value(ba, "relation", clampi(int(round(rba)), -100, 100))
+            relation_fa.apply_delta_to(FactionRelationScore.REL_RELATION, jitter)
+            relation_fb.apply_delta_to(FactionRelationScore.REL_RELATION, -jitter)
 
             # trust (same approach)
-            var tab := float(_get_rel_value(ab, "trust", 0))
-            var tba := float(_get_rel_value(ba, "trust", 0))
+            
+            var tab := relation_fa.get_score(FactionRelationScore.REL_TRUST)
+            var tba := relation_fb.get_score(FactionRelationScore.REL_TRUST)
             var mt := (tab + tba) / 2.0
             tab = lerp(tab, mt, r)
             tba = lerp(tba, mt, r)
-            _set_rel_value(ab, "trust", clampi(int(round(tab)), -100, 100))
-            _set_rel_value(ba, "trust", clampi(int(round(tba)), -100, 100))
+            relation_fa.set_score(FactionRelationScore.REL_TRUST, tab)
+            relation_fb.set_score(FactionRelationScore.REL_TRUST, tba)
 
             # tension (float)
-            var ten_ab := float(_get_rel_value(ab, "tension", 0.0))
-            var ten_ba := float(_get_rel_value(ba, "tension", 0.0))
+            var ten_ab := relation_fa.get_score(FactionRelationScore.REL_TENSION)
+            var ten_ba := relation_fb.get_score(FactionRelationScore.REL_TENSION)
             var mt2 := (ten_ab + ten_ba) / 2.0
             ten_ab = lerp(ten_ab, mt2, r)
             ten_ba = lerp(ten_ba, mt2, r)
-            _set_rel_value(ab, "tension", max(0.0, ten_ab))
-            _set_rel_value(ba, "tension", max(0.0, ten_ba))
+            relation_fa.set_score(FactionRelationScore.REL_TRUST, ten_ab)
+            relation_fb.set_score(FactionRelationScore.REL_TRUST, ten_ba)

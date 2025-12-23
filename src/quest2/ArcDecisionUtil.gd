@@ -57,10 +57,10 @@ static func compute_arc_event_chance(
 
     var p := base
 
-    var tension := rel.tension / 100.0
-    var friction := rel.friction / 100.0
-    var grievance := rel.grievance / 100.0
-    var weariness := rel.weariness / 100.0
+    var tension := rel.get_score(FactionRelationScore.REL_TENSION) / 100.0
+    var friction := rel.get_score(FactionRelationScore.REL_FRICTION) / 100.0
+    var grievance := rel.get_score(FactionRelationScore.REL_GRIEVANCE) / 100.0
+    var weariness := rel.get_score(FactionRelationScore.REL_WEARINESS) / 100.0
     var negrel :float= max(0.0, -float(rel.relation) / 100.0)
 
     p += tension * tension_w
@@ -98,10 +98,10 @@ static func select_arc_action_type(
         return ARC_IGNORE
 
     # --- Inputs normalisés ---
-    var tension := rel.tension / 100.0
-    var friction := rel.friction / 100.0
-    var grievance := rel.grievance / 100.0
-    var weariness := rel.weariness / 100.0
+    var tension := rel.get_score(FactionRelationScore.REL_TENSION) / 100.0
+    var friction := rel.get_score(FactionRelationScore.REL_FRICTION) / 100.0
+    var grievance := rel.get_score(FactionRelationScore.REL_GRIEVANCE) / 100.0
+    var weariness := rel.get_score(FactionRelationScore.REL_WEARINESS) / 100.0
     var negrel :float = max(0.0, -float(rel.relation) / 100.0)
     var posrel :float = max(0.0, float(rel.relation) / 100.0)
     var trust_pos :float = max(0.0, float(rel.trust) / 100.0)
