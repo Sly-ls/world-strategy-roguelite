@@ -1,7 +1,7 @@
 [gd_scene load_steps=5 format=3 uid="uid://bh7xtdnugcefb"]
 
-[ext_resource type="Script" uid="uid://c74ootueqj7oc" path="res://src/combat/CombatScene.gd" id="1_gc2ly"]
-[ext_resource type="Texture2D" uid="uid://bfs05wxe1k2iw" path="res://assets/combat/Battle Backgrounds_0.png" id="2_4j82b"]
+[ext_resource type="Script" uid="uid://dw2opx1br2stb" path="res://src/combat/CombatScene.gd" id="1_gc2ly"]
+[ext_resource type="Texture2D" uid="uid://bbqrumnemrfsk" path="res://assets/combat/Battle Backgrounds_0.png" id="2_4j82b"]
 [ext_resource type="PackedScene" uid="uid://dbrk8f1wf3w8j" path="res://scenes/BattleResultPanel.tscn" id="4_h7esm"]
 [ext_resource type="PackedScene" uid="uid://8yauwskm03an" path="res://scenes/components/UnitGridDisplay.tscn" id="5_grid"]
 

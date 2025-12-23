@@ -699,7 +699,7 @@ func initialize_relations_world(heat: int = 1, seed: int = 0, params: Dictionary
     _center_outgoing_means(0.70)
 
     # --- 5) Apply "light reciprocity" (A->B and B->A converge ~70% sans être identiques)
-    _apply_reciprocity(reciprocity, rng)
+    FactionRelationsUtil.apply_reciprocity(rng, {"reciprocity_strength":reciprocity,})
 
 
 
@@ -810,47 +810,3 @@ func _apply_natural_extremes(enemies_k: int, allies_k: int, heat: int, rng: Rand
             var score_tension = relation_fa.get_score(FactionRelationScore.REL_TENSION)
             var t :float = score_tension - lerp(1.0, 4.0, h)
             relation_fa.set_score(FactionRelationScore.REL_TENSION, t)
-
-
-func _apply_reciprocity(r: float, rng: RandomNumberGenerator) -> void:
-    r = clampf(r, 0.0, 1.0)
-    var all_factions = get_all_factions()
-    for i in range(all_factions.size()):
-        for j in range(i + 1, all_factions.size()):
-            var fa :Faction = all_factions[i]
-            var fb :Faction = all_factions[j]
-
-            var relation_fa =  fa.get_relation_to(fb.id)
-            var relation_fb =  fb.get_relation_to(fa.id)
-            # relation
-            var rab := relation_fa.get_score(FactionRelationScore.REL_RELATION)
-            var rba := relation_fb.get_score(FactionRelationScore.REL_RELATION)
-            var m := (rab + rba) / 2.0
-            rab = lerp(rab, m, r)
-            rba = lerp(rba, m, r)
-
-            # tiny asym jitter so they're not identical
-            var jitter := rng.randf_range(-2.0, 2.0) * (1.0 - r)
-            rab += jitter
-            rba -= jitter
-            relation_fa.apply_delta_to(FactionRelationScore.REL_RELATION, jitter)
-            relation_fb.apply_delta_to(FactionRelationScore.REL_RELATION, -jitter)
-
-            # trust (same approach)
-            
-            var tab := relation_fa.get_score(FactionRelationScore.REL_TRUST)
-            var tba := relation_fb.get_score(FactionRelationScore.REL_TRUST)
-            var mt := (tab + tba) / 2.0
-            tab = lerp(tab, mt, r)
-            tba = lerp(tba, mt, r)
-            relation_fa.set_score(FactionRelationScore.REL_TRUST, tab)
-            relation_fb.set_score(FactionRelationScore.REL_TRUST, tba)
-
-            # tension (float)
-            var ten_ab := relation_fa.get_score(FactionRelationScore.REL_TENSION)
-            var ten_ba := relation_fb.get_score(FactionRelationScore.REL_TENSION)
-            var mt2 := (ten_ab + ten_ba) / 2.0
-            ten_ab = lerp(ten_ab, mt2, r)
-            ten_ba = lerp(ten_ba, mt2, r)
-            relation_fa.set_score(FactionRelationScore.REL_TRUST, ten_ab)
-            relation_fb.set_score(FactionRelationScore.REL_TRUST, ten_ba)

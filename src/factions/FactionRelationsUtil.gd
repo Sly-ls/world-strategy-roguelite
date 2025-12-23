@@ -43,24 +43,11 @@ extends RefCounted
 
 static func initialize_relations_for_faction(
     source_faction_id: StringName,
-    faction_profiles: Dictionary, # Dictionary[StringName, FactionProfile]
     rng: RandomNumberGenerator,
     params: Dictionary = {},
     baseline_params: Dictionary = {}
 ) -> Dictionary:
-    # Returns: Dictionary[StringName, FactionRelationScore] (A -> others)
-
-    if not faction_profiles.has(source_faction_id):
-        return {}
-
-    var a: FactionProfile = faction_profiles[source_faction_id]
-    var targets: Array[StringName] = []
-    for fid in faction_profiles.keys():
-        if StringName(fid) != source_faction_id:
-            targets.append(StringName(fid))
-
-    if targets.is_empty():
-        return {}
+    var source_faction: Faction = FactionManager.get_faction(source_faction_id)
 
     # ---- Tunables (defaults) ----
     var desired_mean: float = float(params.get("desired_mean", 0.0))         # center around 0
@@ -93,17 +80,19 @@ static func initialize_relations_for_faction(
     # Hard caps on extremes to avoid too many day-1 dooms
     var min_relation_cap: int = int(params.get("min_relation_cap", -85))
     var max_relation_cap: int = int(params.get("max_relation_cap", +85))
+    
+    var all_factions :Array[Faction] = FactionManager.get_all_factions()
 
     # ---- 1) Raw baseline compute for all targets ----
     var raw_rel: Array[float] = []
     var init_map: Dictionary = {} # fid -> {relation, friction, trust, tension}
-    for fid in targets:
-        var b: FactionProfile = faction_profiles[fid]
-        var init := FactionProfile.compute_baseline_relation(a, b, baseline_params)
-        # ensure tension cap here too
-        init[FactionRelationScore.REL_TENSION] = min(float(init.get("tension", 0.0)), tension_cap)
-        init_map[fid] = init
-        raw_rel.append(float(init["relation"]))
+    for target_faction in all_factions:
+        if target_faction != source_faction:
+            var init := source_faction.compute_baseline_relation(target_faction.profile, baseline_params)
+            # ensure tension cap here too
+            init[FactionRelationScore.REL_TENSION] = min(float(init.get(FactionRelationScore.REL_RELATION, 0.0)), tension_cap)
+            init_map[target_faction.id] = init
+            raw_rel.append(float(init[FactionRelationScore.REL_RELATION]))
 
     # ---- 2) Center mean and normalize spread (std) ----
     var mean := _mean(raw_rel)
@@ -120,9 +109,9 @@ static func initialize_relations_for_faction(
 
     # ---- 3) Build preliminary relation scores ----
     var out: Dictionary[StringName, FactionRelationScore] = {}
-    for fid in targets:
-        var init :Dictionary = init_map[fid]
-        var rel0 := float(init["relation"])
+    for target_faction in all_factions:
+        var init :Dictionary = init_map[target_faction.id]
+        var rel0 := float(init[FactionRelationScore.REL_RELATION])
 
         var rel := (rel0 + shift - desired_mean) * scale + desired_mean
 
@@ -132,9 +121,9 @@ static func initialize_relations_for_faction(
 
         rel = clampf(rel, float(min_relation_cap), float(max_relation_cap))
         init[FactionRelationScore.REL_RELATION] = rel
-        var rs := FactionRelationScore.new(fid)
+        var rs := FactionRelationScore.new(target_faction.id)
         rs.init(init)
-        out[fid] = rs
+        out[target_faction.id] = rs
 
     # ---- 4) Pick a few natural enemies and allies (coherence globale) ----
     var enemy_count := rng.randi_range(enemy_min, enemy_max)
@@ -144,20 +133,20 @@ static func initialize_relations_for_faction(
     var enemy_candidates: Array = []
     var ally_candidates: Array = []
 
-    for fid in targets:
-        var init :Dictionary = init_map[fid]
-        var rs: FactionRelationScore = out[fid]
+    for target_faction in all_factions:
+        var init :Dictionary = init_map[target_faction.id]
+        var rs: FactionRelationScore = out[target_faction.id]
 
         var friction := float(init.get("friction", 0.0))
         var neg :float = max(0.0, -float(rs.relation))
 
         # Enemies: friction + neg + low trust
         var enemy_score :float = (0.65*friction) + (0.55*neg) + (0.25*max(0.0, -float(rs.trust)))
-        enemy_candidates.append({"fid": fid, "score": enemy_score})
+        enemy_candidates.append({"fid": target_faction.id, "score": enemy_score})
 
         # Allies: high relation + trust - friction
         var ally_score := (0.70*float(rs.relation)) + (0.45*float(rs.trust)) - (0.35*friction)
-        ally_candidates.append({"fid": fid, "score": ally_score})
+        ally_candidates.append({"fid": target_faction.id, "score": ally_score})
 
     enemy_candidates.sort_custom(func(ae, be): return ae["score"] > be["score"])
     ally_candidates.sort_custom(func(ae, be): return ae["score"] > be["score"])
@@ -246,30 +235,22 @@ static func initialize_relations_world_OLD(
     for a_id in ids:
         world[a_id] = initialize_relations_for_faction(
             a_id,
-            faction_profiles,
             rng,
             per_faction_params,
             baseline_params
         )
 
     # --- Pass 2: optional reciprocity convergence ---
+    var params ={}
     var apply_recip := bool(world_params.get("apply_reciprocity", true))
     if apply_recip:
-        var reciprocity_strength := float(world_params.get("reciprocity_strength", 0.70)) # 0..1
-        var keep_asymmetry := float(world_params.get("keep_asymmetry", 0.30))            # 0..1
-        var reciprocity_noise := int(world_params.get("reciprocity_noise", 2))           # small jitter
-        var max_change_per_pair := int(world_params.get("max_change_per_pair", 18))      # clamp per pair update
-
-        _apply_reciprocity(
-            world,
-            ids,
-            rng,
-            reciprocity_strength,
-            keep_asymmetry,
-            reciprocity_noise,
-            max_change_per_pair
-        )
-
+        params["reciprocity_strength"] = float(world_params.get("reciprocity_strength", 0.70)) # 0..1
+        params["keep_asymmetry"] = float(world_params.get("keep_asymmetry", 0.30)) # 0..1
+        params["reciprocity_noise"] = float(world_params.get("reciprocity_noise", 2)) # small jitter
+        params["max_change_per_pair"] = float(world_params.get("max_change_per_pair", 18)) # clamp per pair update
+        
+    apply_reciprocity(rng, params)
+    
     # --- Pass 3: optional global clamps / sanity ---
     if bool(world_params.get("final_global_sanity", true)):
         _global_sanity_pass(world, ids, world_params)
@@ -299,115 +280,37 @@ static func initialize_relations_world(
     for a_id in ids:
         world[a_id] = initialize_relations_for_faction(
             a_id,
-            faction_profiles,
             rng,
             per_faction_params,
             baseline_params
         )
 
     # --- Pass 2: optional reciprocity convergence ---
+    var params ={}
     var apply_recip := bool(world_params.get("apply_reciprocity", true))
     if apply_recip:
-        var reciprocity_strength := float(world_params.get("reciprocity_strength", 0.70)) # 0..1
-        var keep_asymmetry := float(world_params.get("keep_asymmetry", 0.30))            # 0..1
-        var reciprocity_noise := int(world_params.get("reciprocity_noise", 2))           # small jitter
-        var max_change_per_pair := int(world_params.get("max_change_per_pair", 18))      # clamp per pair update
-
-        _apply_reciprocity(
-            world,
-            ids,
-            rng,
-            reciprocity_strength,
-            keep_asymmetry,
-            reciprocity_noise,
-            max_change_per_pair
-        )
-
+        params["reciprocity_strength"] = float(world_params.get("reciprocity_strength", 0.70)) # 0..1
+        params["keep_asymmetry"] = float(world_params.get("keep_asymmetry", 0.30)) # 0..1
+        params["reciprocity_noise"] = float(world_params.get("reciprocity_noise", 2)) # small jitter
+        params["max_change_per_pair"] = float(world_params.get("max_change_per_pair", 18)) # clamp per pair update
+        
+    apply_reciprocity(rng, params)
+    
     # --- Pass 3: optional global clamps / sanity ---
     if bool(world_params.get("final_global_sanity", true)):
         _global_sanity_pass(world, ids, world_params)
 
     return world
 
+static func apply_reciprocity(rng: RandomNumberGenerator, params :Dictionary={}) -> void:
 
-static func _apply_reciprocity(
-    world: Dictionary,
-    ids: Array[StringName],
-    rng: RandomNumberGenerator,
-    reciprocity_strength: float,
-    keep_asymmetry: float,
-    reciprocity_noise: int,
-    max_change_per_pair: int
-) -> void:
-    reciprocity_strength = clampf(reciprocity_strength, 0.0, 1.0)
-    keep_asymmetry = clampf(keep_asymmetry, 0.0, 1.0)
-
-    for i in range(ids.size()):
-        var a_id := ids[i]
-        for j in range(i + 1, ids.size()):
-            var b_id := ids[j]
-
-            var map_a: Dictionary = world.get(a_id, {})
-            var map_b: Dictionary = world.get(b_id, {})
-            if not map_a.has(b_id) or not map_b.has(a_id):
-                continue
-
-            var ab: FactionRelationScore = map_a[b_id]
-            var ba: FactionRelationScore = map_b[a_id]
-
-            # --- Relation reciprocity ---
-            var ab_rel := float(ab.relation)
-            var ba_rel := float(ba.relation)
-            var avg_rel := (ab_rel + ba_rel) * 0.5
-
-            # asymmetry target: keep part of (ab - ba)
-            var asym := (ab_rel - ba_rel) * keep_asymmetry
-
-            var ab_target := avg_rel + asym
-            var ba_target := avg_rel - asym
-
-            # move each towards target by reciprocity_strength
-            var ab_new :float = lerp(ab_rel, ab_target, reciprocity_strength)
-            var ba_new :float = lerp(ba_rel, ba_target, reciprocity_strength)
-
-            # tiny noise to avoid perfect pair patterns
-            if reciprocity_noise > 0:
-                ab_new += float(rng.randi_range(-reciprocity_noise, reciprocity_noise))
-                ba_new += float(rng.randi_range(-reciprocity_noise, reciprocity_noise))
-
-            # clamp change per pair so you don't destroy natural enemies/allies too much
-            ab_new = _clamp_delta(ab_rel, ab_new, float(max_change_per_pair))
-            ba_new = _clamp_delta(ba_rel, ba_new, float(max_change_per_pair))
-
-            ab.relation = clampi(int(round(ab_new)), -100, 100)
-            ba.relation = clampi(int(round(ba_new)), -100, 100)
-
-            # --- Trust reciprocity (softer) ---
-            var ab_tr := float(ab.trust)
-            var ba_tr := float(ba.trust)
-            var avg_tr := (ab_tr + ba_tr) * 0.5
-            var asym_tr := (ab_tr - ba_tr) * (keep_asymmetry * 0.8)
-
-            var ab_tr_target := avg_tr + asym_tr
-            var ba_tr_target := avg_tr - asym_tr
-
-            var ab_tr_new :float = lerp(ab_tr, ab_tr_target, reciprocity_strength * 0.55)
-            var ba_tr_new :float = lerp(ba_tr, ba_tr_target, reciprocity_strength * 0.55)
-
-            ab.trust = clampi(int(round(ab_tr_new)), -100, 100)
-            ba.trust = clampi(int(round(ba_tr_new)), -100, 100)
-
-            # --- Tension reciprocity (makes arcs more stable) ---
-            # Tension converges faster than relation (keeps wars from being too one-sided).
-            var ab_te := ab.tension
-            var ba_te := ba.tension
-            var avg_te := (ab_te + ba_te) * 0.5
-
-            ab.tension = clampf(lerp(ab_te, avg_te, reciprocity_strength * 0.80), 0.0, 100.0)
-            ba.tension = clampf(lerp(ba_te, avg_te, reciprocity_strength * 0.80), 0.0, 100.0)
-
-            ab.clamp_all()
-            ba.clamp_all()
+    var all_factions :Array[Faction] = FactionManager.get_all_factions()
+    for i in range(all_factions.size()):
+        for j in range(i + 1, all_factions.size()):
+            var fa :Faction = all_factions[i]
+            var fb :Faction = all_factions[j]
+            if fa !=fb:
+                fa.apply_reciprocity(fb, rng, params)
 
 
 static func _clamp_delta(old_v: float, new_v: float, max_delta: float) -> float:

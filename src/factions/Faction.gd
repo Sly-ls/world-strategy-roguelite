@@ -201,6 +201,86 @@ func compute_baseline_relation(b: FactionProfile, params: Dictionary = {}) -> Di
                 
     return init_dict
 
+
+func apply_reciprocity(fb :Faction, rng: RandomNumberGenerator, params: Dictionary = {}) -> void:
+    # --- get parameter ---
+    var reciprocity_strength = params.get("reciprocity_strength", 0.5)
+    var keep_asymmetry = params.get("keep_asymmetry", 0)
+    var reciprocity_noise = params.get("reciprocity_noise", 2)
+    var max_change_per_pair = params.get("max_change_per_pair", 18)
+    reciprocity_strength = clampf(reciprocity_strength, 0.0, 1.0)
+    keep_asymmetry = clampf(keep_asymmetry, 0.0, 1.0)
+    reciprocity_noise = clampf(reciprocity_noise, 0, 20)
+    max_change_per_pair = clampf(max_change_per_pair, 0, 50)
+    
+    # --- get existing relation ---
+    var ab: FactionRelationScore = get_relation_to(fb.id)
+    var ba: FactionRelationScore = fb.get_relation_to(id)
+
+    # --- Relation reciprocity ---
+    var ab_rel := float(ab.get_score(FactionRelationScore.REL_RELATION))
+    var ba_rel := float(ba.get_score(FactionRelationScore.REL_RELATION))
+    var avg_rel := (ab_rel + ba_rel) * 0.5
+
+    # asymmetry target: keep part of (ab - ba)
+    var asym :float = (ab_rel - ba_rel) * keep_asymmetry
+
+    var ab_target := avg_rel + asym
+    var ba_target := avg_rel - asym
+
+    # move each towards target by reciprocity_strength
+    var ab_new :float = lerp(ab_rel, ab_target, reciprocity_strength)
+    var ba_new :float = lerp(ba_rel, ba_target, reciprocity_strength)
+
+    # tiny noise to avoid perfect pair patterns
+    if reciprocity_noise > 0:
+        ab_new += float(rng.randi_range(-reciprocity_noise, reciprocity_noise))
+        ba_new += float(rng.randi_range(-reciprocity_noise, reciprocity_noise))
+
+    # clamp change per pair so you don't destroy natural enemies/allies too much
+    ab_new = _clamp_delta(ab_rel, ab_new, float(max_change_per_pair))
+    ba_new = _clamp_delta(ba_rel, ba_new, float(max_change_per_pair))
+   
+    var ab_relation_score = clampi(int(round(ab_new)), -100, 100)
+    var ba_relation_score = clampi(int(round(ba_new)), -100, 100)
+    ab.set_score(FactionRelationScore.REL_RELATION, ab_relation_score)
+    ba.set_score(FactionRelationScore.REL_RELATION, ba_relation_score)
+    
+    # --- Trust reciprocity (softer) ---
+    var ab_tr := float(ab.get_score(FactionRelationScore.REL_TRUST))
+    var ba_tr := float(ba.get_score(FactionRelationScore.REL_TRUST))
+    var avg_tr := (ab_tr + ba_tr) * 0.5
+    var asym_tr :float = (ab_tr - ba_tr) * (keep_asymmetry * 0.8)
+
+    var ab_tr_target :float = avg_tr + asym_tr
+    var ba_tr_target :float = avg_tr - asym_tr
+
+    var ab_tr_new :float = lerp(ab_tr, ab_tr_target, reciprocity_strength * 0.55)
+    var ba_tr_new :float = lerp(ba_tr, ba_tr_target, reciprocity_strength * 0.55)
+
+    var ab_trust_score = clampi(int(round(ab_tr_new)), -100, 100)
+    var ba_trust_score = clampi(int(round(ba_tr_new)), -100, 100)
+    ab.set_score(FactionRelationScore.REL_TRUST, ab_trust_score)
+    ba.set_score(FactionRelationScore.REL_TRUST, ba_trust_score)
+
+    # --- Tension reciprocity (makes arcs more stable) ---
+    # Tension converges faster than relation (keeps wars from being too one-sided).
+    var ab_te := ab.get_score(FactionRelationScore.REL_TENSION)
+    var ba_te := ba.get_score(FactionRelationScore.REL_TENSION)
+    var avg_te := (ab_te + ba_te) * 0.5
+
+    var ab_tension_score = clampf(lerp(ab_te, avg_te, reciprocity_strength * 0.80), 0.0, 100.0)
+    var ba_tension_score = clampf(lerp(ba_te, avg_te, reciprocity_strength * 0.80), 0.0, 100.0)
+    ab.set_score(FactionRelationScore.REL_TENSION, ab_tension_score)
+    ba.set_score(FactionRelationScore.REL_TENSION, ba_tension_score)
+
+static func _clamp_delta(old_v: float, new_v: float, max_delta: float) -> float:
+    var d := new_v - old_v
+    if d > max_delta:
+        return old_v + max_delta
+    if d < -max_delta:
+        return old_v - max_delta
+    return new_v
 # ========================================
 # PERSISTANCE
 # ========================================
