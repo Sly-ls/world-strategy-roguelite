@@ -2,28 +2,37 @@
 class_name QuestOutcomeUtil
 extends RefCounted
 
-static func compute_outcome_success(inst, actor_profile, opposition: FactionRelationScore, tier: int, rng: RandomNumberGenerator = null) -> bool:
+  
+static func compute_outcome_success(inst, tier: int, rng: RandomNumberGenerator = null) -> bool:
     var ctx: Dictionary = inst.context if inst != null and "context" in inst else {}
-    var action_type: StringName = StringName(ctx.get("arc_action_type", ctx.get("tp_action", ctx.get("quest_type", &""))))
-
+    var action_type: StringName = StringName(ctx.get("action_type", &""))
+    var f_mediator_id = ctx.get("third_party_id")
+    var f_a_id = ctx.get("giver_faction_id")
+    var f_b_id = ctx.get("antagonist_faction_id")
+    var faction_a = FactionManager.get_faction(f_a_id)
+    var faction_b = FactionManager.get_faction(f_b_id)
+    var relation_ab = faction_a.get_relation_to(f_b_id)
+    var relation_ba = faction_b.get_relation_to(f_a_id)
+    relation_ab.get_score(FactionRelationScore.REL_TENSION)
+    var mediator_profile = FactionManager.get_faction(f_mediator_id).profile
     # --- base chance from tier ---
     var p := 0.62 - 0.08 * float(max(0, tier - 1))  # tier 1 ~0.62, tier 5 ~0.30
     p = clampf(p, 0.05, 0.90)
-
     # --- conflict heat / friction (works for 2 or 3 factions) ---
-    var tension := float(opposition.get("tension_mean", opposition.get("tension", 0.0))) / 100.0
-    var grievance := float(opposition.get("grievance_mean", opposition.get("grievance", 0.0))) / 100.0
-    var friction := float(opposition.get("friction", 0.0))          # 0..1 (si tu l’as)
+    var tension := float(max(relation_ab.get_score(FactionRelationScore.REL_TENSION), relation_ba.get_score(FactionRelationScore.REL_TENSION))) / 100.0
+    var grievance := float(max(relation_ab.get_score(FactionRelationScore.REL_GRIEVANCE), relation_ba.get_score(FactionRelationScore.REL_GRIEVANCE))) / 100.0
+    var friction := float(max(relation_ab.get_score(FactionRelationScore.REL_FRICTION), relation_ba.get_score(FactionRelationScore.REL_FRICTION))) / 100.0
     var heat := clampf(0.55 * tension + 0.35 * grievance + 0.30 * friction, 0.0, 1.0)
 
     # --- actor skill (2 or 3 participants) ---
-    var skill := _compute_actor_skill(actor_profile, ctx, action_type) # 0..1
+    var skill := _compute_actor_skill(mediator_profile, ctx, action_type) # 0..1
 
     # --- opposition resistance (optional) ---
-    var opp := float(opposition.get("resistance", 0.5))               # 0..1
-    var opp_participants :Dictionary = opposition.get("participants", null)
-    if opp_participants is Dictionary:
-        opp = clampf(0.5 + 0.35 * float(opp_participants.size() - 1), 0.5, 0.95)
+    var opp := float(max(relation_ab.get_score(FactionRelationScore.REL_RESISTANCE), relation_ba.get_score(FactionRelationScore.REL_RESISTANCE)))
+    #TODO NOT USED ANYMORE? TO BE CONFIRMED
+    #var opp_participants :Dictionary = opposition.get("participants", null)
+    #if opp_participants is Dictionary:
+    #    opp = clampf(0.5 + 0.35 * float(opp_participants.size() - 1), 0.5, 0.95)
 
     # --- action-specific shaping ---
     match action_type:
@@ -79,12 +88,12 @@ static func _compute_actor_skill(profile :FactionProfile, ctx: Dictionary, actio
     #    prof = actor_profile[actor_id]
 
     # choose key weights by action
-    var cun :float = profile.get_personality(FactionProfile.PERS_CUNNING, 0.5)
-    var dip :float = profile.get_personality(FactionProfile.PERS_DIPLOMACY, 0.5)
-    var agr :float = profile.get_personality(FactionProfile.PERS_AGGRESSION, 0.5)
-    var opp :float = profile.get_personality(FactionProfile.PERS_OPPORTUNISM, 0.5)
-    var dis :float = profile.get_personality(FactionProfile.PERS_DISCIPLINE, 0.5)
-    var hon :float = profile.get_personality(FactionProfile.PERS_HONOR, 0.5)
+    var cun :float = profile.get_personality(FactionProfile.PERS_CUNNING)
+    var dip :float = profile.get_personality(FactionProfile.PERS_DIPLOMACY)
+    var agr :float = profile.get_personality(FactionProfile.PERS_AGGRESSION)
+    var opp :float = profile.get_personality(FactionProfile.PERS_OPPORTUNISM)
+    var dis :float = profile.get_personality(FactionProfile.PERS_DISCIPLINE)
+    var hon :float = profile.get_personality(FactionProfile.PERS_HONOR)
     match action_type:
         &"tp.mediation", &"arc.truce_talks":
             # bon médiateur = dip/honor/discipline, mauvais = opportunism/aggression
@@ -93,16 +102,3 @@ static func _compute_actor_skill(profile :FactionProfile, ctx: Dictionary, actio
             return clampf(0.40*cun + 0.25*dis + 0.15*agr - 0.10*hon - 0.05*dip, 0.0, 1.0)
         _:
             return clampf(0.25*dip + 0.20*dis + 0.20*cun + 0.10*hon - 0.10*opp, 0.0, 1.0)
-
-
-static func _p(profile, key: StringName, default_val: float) -> float:
-    if profile == null:
-        return default_val
-    if profile.has_method("get_personality"):
-        return float(profile.get_personality(key, default_val))
-    if profile is Dictionary:
-        # accept either {"personality":{...}} or direct keys
-        if profile.has("personality"):
-            return float(profile["personality"].get(key, default_val))
-        return float(profile.get(key, default_val))
-    return default_val

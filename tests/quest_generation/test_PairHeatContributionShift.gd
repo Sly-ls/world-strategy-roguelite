@@ -18,11 +18,11 @@ func _test_heat_norms_shift_between_day10_and_day30() -> void:
     for day in range(1, 31):
         # B raid A (3 fois)
         if day == 2 or day == 4 or day == 6:
-            nb.record_pair_event(b, self_id, ArcDecisionUtil.ARC_RAID, day)
+            nb.record_pair_event(day, b, self_id, ArcDecisionUtil.ARC_RAID)
 
         # B réparations (2 fois)
         if day == 25 or day == 27:
-            nb.record_pair_event(b, self_id, ArcDecisionUtil.ARC_REPARATIONS, day)
+            nb.record_pair_event(day, b, self_id, ArcDecisionUtil.ARC_REPARATIONS)
 
     # --- Day 10 heat ---
     var h10 := nb.get_pair_heat(self_id, b, 10, decay)

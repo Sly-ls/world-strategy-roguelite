@@ -194,8 +194,8 @@ func _daily_decay(ids: Array[StringName], world_rel: Dictionary, faction_profile
 
     for a_id in ids:
         var prof: FactionProfile = faction_profiles[a_id]
-        var diplo := prof.get_personality(FactionProfile.PERS_DIPLOMACY, 0.5)
-        var veng := prof.get_personality(FactionProfile.PERS_VENGEFULNESS, 0.5)
+        var diplo := prof.get_personality(FactionProfile.PERS_DIPLOMACY)
+        var veng := prof.get_personality(FactionProfile.PERS_VENGEFULNESS)
 
         var tension_mul := 0.70 + 0.80 * diplo           # diplomate => tension redescend plus vite
         var griev_mul := 0.55 + 0.90 * (1.0 - veng)      # vindicatif => grievance redescend moins vite
@@ -214,8 +214,8 @@ func _daily_decay(ids: Array[StringName], world_rel: Dictionary, faction_profile
 # -----------------------------
 func _resolve_choice(action: StringName, rel_ab: FactionRelationScore) -> StringName:
     # Heuristique: plus tension/grievance sont hauts, plus c’est “LOYAL” côté acteur A (ça passe en force).
-    var t := rel_ab.tension / 100.0
-    var g := rel_ab.grievance / 100.0
+    var t := rel_ab.get_score(FactionRelationScore.REL_TENSION) / 100.0
+    var g := rel_ab.get_score(FactionRelationScore.REL_GRIEVANCE) / 100.0
     var bias := clampf(0.45 + 0.25*t + 0.20*g, 0.35, 0.75)
 
     var p_loyal := bias
@@ -243,8 +243,8 @@ func _resolve_choice(action: StringName, rel_ab: FactionRelationScore) -> String
 
 func _compute_opportunity(rel_ab: FactionRelationScore, a_prof: FactionProfile) -> float:
     # Rough: expansionism aide, weariness pénalise
-    var expa := a_prof.get_personality(FactionProfile.PERS_EXPANSIONISM, 0.5)
-    var w := rel_ab.weariness / 100.0
+    var expa := a_prof.get_personality(FactionProfile.PERS_EXPANSIONISM)
+    var w := rel_ab.get_score(FactionRelationScore.REL_WEARINESS) / 100.0
     return clampf(0.45 + 0.35*(expa - 0.5) - 0.40*w, 0.05, 0.95)
 
 
@@ -327,7 +327,7 @@ func _count_hot_pairs(ids: Array[StringName], world_rel: Dictionary) -> int:
             var ab: FactionRelationScore = world_rel[a][b]
             var ba: FactionRelationScore = world_rel[b][a]
             var mean_rel := 0.5 * (float(ab.relation) + float(ba.relation))
-            var mean_t := 0.5 * (ab.tension + ba.tension)
+            var mean_t := 0.5 * (ab.get_score(FactionRelationScore.REL_TENSION) + ba.get_score(FactionRelationScore.REL_TENSION))
             if mean_t >= 80.0 and mean_rel <= -70.0:
                 c += 1
     return c

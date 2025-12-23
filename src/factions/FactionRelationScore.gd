@@ -9,6 +9,8 @@ const REL_GRIEVANCE: StringName = &"grievance"
 const REL_TENSION: StringName = &"tension"
 const REL_WEARINESS: StringName = &"weariness"
 const REL_FRICTION: StringName = &"friction"
+const REL_RESISTANCE: StringName = &"resistance"
+
 
 const MIN: StringName = &"min"
 const MAX: StringName = &"max"
@@ -20,6 +22,7 @@ const ALL_RELATION_KEYS: Array[StringName] = [
     REL_TENSION,
     REL_WEARINESS,
     REL_FRICTION,
+    REL_RESISTANCE,
 ]
 
 var min_max :Dictionary = {
@@ -44,8 +47,12 @@ var min_max :Dictionary = {
         MAX:METER_MIN,
     },
     REL_FRICTION:{
-        MIN:METER_MIN,
-        MAX:METER_MIN,
+        MIN:RATIO_MIN,
+        MAX:RATIO_MAX,
+    },
+    REL_RESISTANCE:{
+        MIN:RATIO_MIN,
+        MAX:RATIO_MAX,
     },
 }
 const REL_MIN: float = -100.0
@@ -57,6 +64,8 @@ const TRUST_MAX: float = 100
 const METER_MIN: float = 0.0
 const METER_MAX: float = 100.0
 
+const RATIO_MIN: float = 0.0
+const RATIO_MAX: float = 1.0
 # Directional: this is "from owner faction" -> "to target faction"
 var target_faction_id: StringName
 

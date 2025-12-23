@@ -14,8 +14,9 @@ extends Node
 @export var per_test_timeout_sec: float = 10.0
 
 var test_counter :int = 1
+var test_size :int = 1
 func _ready() -> void:
-    
+
     print("====================================\n")
     print("Recherche des tests")
     print("====================================\n")
@@ -27,9 +28,14 @@ func _ready() -> void:
         return
 
     print("\n== TestRunner: %d test(s) détecté(s) ==" % tests.size())
+    var i = 1
+    test_size = tests.size()
     for t in tests:
-        print(" - ", t)
-    print("====================================\n")
+        print("%d - %s", [i, t])
+        i += 1
+    print("=============================================")
+    print("==    TestRunner: %d test(s) détecté(s)    ==" % tests.size())
+    print("=============================================\n")
 
     var results := []
     for path in tests:
@@ -40,7 +46,7 @@ func _ready() -> void:
             break
 
     _print_summary(results)
-    
+
 func _reset_autoload():
     FactionManager.reset()
 func _is_excluded_dir(path: String) -> bool:
@@ -53,12 +59,11 @@ func _is_excluded_dir(path: String) -> bool:
     return false
 func _discover_tests(dir_path: String) -> Array[String]:
     var out: Array[String] = []
-    
+
     # ✅ stoppe la récursion si le répertoire est exclu
-    if _is_excluded_dir(dir_path):    
-        print("Tests dans le repertoire: %s", dir_path)
+    if _is_excluded_dir(dir_path):
         return out
-        
+
     var dir := DirAccess.open(dir_path)
     if dir == null:
         push_error("TestRunner: impossible d'ouvrir %s" % dir_path)
@@ -86,7 +91,8 @@ func _discover_tests(dir_path: String) -> Array[String]:
     dir.list_dir_end()
     return out
 func _run_one(path: String) -> bool:
-    print("\n%d --- RUN %s ---" % [test_counter, path])
+    print("\n%d/%d --- RUN %s ---" % [test_counter, test_size, path])
+    test_counter += 1
 
     var scr := load(path)
     if scr == null:
