@@ -82,10 +82,9 @@ func _discover_tests(dir_path: String) -> Array[String]:
             out.append_array(_discover_tests(full))
         else:
             # Pattern: test_*.gd (on exclut base_test.gd)
-            if (name.begins_with("test_") or name.ends_with("Test.gd")):
+            if ((name.begins_with("test_") or name.ends_with("Test.gd"))) and name.ends_with(".gd"):
                 if name == "base_test.gd":
                     continue
-                print("test ajouté : %s", name)
                 out.append(full)
 
     dir.list_dir_end()
