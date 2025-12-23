@@ -92,11 +92,7 @@ func init_relation(target_id: StringName, params: Dictionary = {}) -> void:
     target_relation.init(init_rel)
     relations[target_id] = target_relation
     
-func compute_baseline_relation(
-    b: FactionProfile,
-    params: Dictionary = {}
-) -> Dictionary:
-    
+func compute_baseline_relation(b: FactionProfile, params: Dictionary = {}) -> Dictionary:
     # ---- Tunables ----
     var w_axis_similarity: float = float(params.get("w_axis_similarity", 80.0))  # poids du "même axe"
     var w_cross_conflict: float = float(params.get("w_cross_conflict", 55.0))   # poids des conflits croisés
@@ -150,12 +146,12 @@ func compute_baseline_relation(
     cross = clampf(cross, 0.0, 1.0)
 
     # ---- Personality filters (directional: A's worldview) ----
-    var aggr := profile.get_personality(FactionProfile.PERS_AGGRESSION, 0.5)
-    var veng := profile.get_personality(FactionProfile.PERS_VENGEFULNESS, 0.5)
-    var diplo := profile.get_personality(FactionProfile.PERS_DIPLOMACY, 0.5)
-    var risk := profile.get_personality(FactionProfile.PERS_RISK_AVERSION, 0.5)
-    var expa := profile.get_personality(FactionProfile.PERS_EXPANSIONISM, 0.5)
-    var integ := profile.get_personality(FactionProfile.PERS_INTEGRATIONISM, 0.5)
+    var aggr := profile.get_personality(FactionProfile.PERS_AGGRESSION)
+    var veng := profile.get_personality(FactionProfile.PERS_VENGEFULNESS)
+    var diplo := profile.get_personality(FactionProfile.PERS_DIPLOMACY)
+    var risk := profile.get_personality(FactionProfile.PERS_RISK_AVERSION)
+    var expa := profile.get_personality(FactionProfile.PERS_EXPANSIONISM)
+    var integ := profile.get_personality(FactionProfile.PERS_INTEGRATIONISM)
 
     # "Ideological intensity" : plus A est extrême, plus il juge fort (positif ou négatif)
     var intensity :float = (abs(aT) + abs(aM) + abs(aN) + abs(aD) + abs(aC)) / 5.0  # 0..1
@@ -204,69 +200,6 @@ func compute_baseline_relation(
     }
                 
     return init_dict
-
-# ========================================
-# MÉTHODES - RELATION AVEC LE JOUEUR
-# TODO: doit être migré avec les factions mineures et les armées libres
-# ========================================
-## Ajuster la relation avec le joueur
-#func adjust_relation(delta: int) -> void:
-#	var old_relation := relation_with_player
-#	relation_with_player = clampi(relation_with_player + delta, -100, 100)
-#	
-#	var old_status := _get_relation_status_for_value(old_relation)
-#	var new_status := get_relation_status()
-#	
-#	if old_status != new_status:
-#		print("⚡ Relation avec %s : %s → %s" % [name, old_status, new_status])
-
-
-## Obtenir le statut de relation actuel avec le joueur
-#func get_relation_status() -> String:
-#	return _get_relation_status_for_value(relation_with_player)
-
-
-## Helper pour obtenir le statut d'une valeur de relation
-#func _get_relation_status_for_value(value: int) -> String:
-#	if value >= 75:
-#		return "Allié"
-#	elif value >= 25:
-#		return "Amical"
-#	elif value >= -25:
-#		return "Neutre"
-#	elif value >= -75:
-#		return "Hostile"
-#	else:
-#		return "Ennemi juré"
-
-
-## Obtenir la couleur de la relation
-#func get_relation_color() -> Color:
-#	if relation_with_player >= 75:
-#		return Color(0.2, 0.8, 0.2)  # Vert
-#	elif relation_with_player >= 25:
-#		return Color(0.5, 1.0, 0.5)  # Vert clair
-#	elif relation_with_player >= -25:
-#		return Color(0.8, 0.8, 0.8)  # Gris
-#	elif relation_with_player >= -75:
-#		return Color(1.0, 0.5, 0.2)  # Orange
-#	else:
-#		return Color(1.0, 0.2, 0.2)  # Rouge
-
-
-## Vérifier si la faction est alliée (avec le joueur)
-#func is_ally() -> bool:
-#	return relation_with_player >= 50
-
-
-## Vérifier si la faction est ennemie (avec le joueur)
-#func is_enemy() -> bool:
-#	return relation_with_player <= -50
-
-
-## Vérifier si la faction est neutre (avec le joueur)
-#func is_neutral() -> bool:
-#	return relation_with_player > -50 and relation_with_player < 50
 
 # ========================================
 # PERSISTANCE
@@ -331,3 +264,60 @@ func get_type_name() -> String:
         FactionType.DIVINE: return "Divin"
         FactionType.DEMONIC: return "Démoniaque"
         _: return "Inconnu"
+
+
+# ========================================
+# MÉTHODES - RELATION AVEC LE JOUEUR
+# TODO: doit être migré avec les factions mineures et les armées libres
+# ========================================
+## Ajuster la relation avec le joueur
+#func adjust_relation(delta: int) -> void:
+#	var old_relation := relation_with_player
+#	relation_with_player = clampi(relation_with_player + delta, -100, 100)
+#	
+#	var old_status := _get_relation_status_for_value(old_relation)
+#	var new_status := get_relation_status()
+#	
+#	if old_status != new_status:
+#		print("⚡ Relation avec %s : %s → %s" % [name, old_status, new_status])
+## Obtenir le statut de relation actuel avec le joueur
+#func get_relation_status() -> String:
+#	return _get_relation_status_for_value(relation_with_player)
+
+## Helper pour obtenir le statut d'une valeur de relation
+#func _get_relation_status_for_value(value: int) -> String:
+#	if value >= 75:
+#		return "Allié"
+#	elif value >= 25:
+#		return "Amical"
+#	elif value >= -25:
+#		return "Neutre"
+#	elif value >= -75:
+#		return "Hostile"
+#	else:
+#		return "Ennemi juré"
+
+## Obtenir la couleur de la relation
+#func get_relation_color() -> Color:
+#	if relation_with_player >= 75:
+#		return Color(0.2, 0.8, 0.2)  # Vert
+#	elif relation_with_player >= 25:
+#		return Color(0.5, 1.0, 0.5)  # Vert clair
+#	elif relation_with_player >= -25:
+#		return Color(0.8, 0.8, 0.8)  # Gris
+#	elif relation_with_player >= -75:
+#		return Color(1.0, 0.5, 0.2)  # Orange
+#	else:
+#		return Color(1.0, 0.2, 0.2)  # Rouge
+
+## Vérifier si la faction est alliée (avec le joueur)
+#func is_ally() -> bool:
+#	return relation_with_player >= 50
+
+## Vérifier si la faction est ennemie (avec le joueur)
+#func is_enemy() -> bool:
+#	return relation_with_player <= -50
+
+## Vérifier si la faction est neutre (avec le joueur)
+#func is_neutral() -> bool:
+#	return relation_with_player > -50 and relation_with_player < 50

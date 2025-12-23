@@ -41,9 +41,9 @@ func _test_spawn_logs_reward_style_w_gold_dw_for_greedy() -> void:
     arc_state.entered_day = day - 5
     
     var rel_ab := FactionRelationScore.new(target)
-    rel_ab.relation = -30
-    rel_ab.trust = 20
-    rel_ab.tension = 50
+    rel_ab.set_score(FactionRelationScore.REL_RELATION, -30)
+    rel_ab.set_score(FactionRelationScore.REL_TRUST, 20)
+    rel_ab.set_score(FactionRelationScore.REL_TENSION, 50)
 
     # 3. Faction profiles (Dictionary: faction_id -> FactionProfile)
     var prof_greedy := FactionProfile.new()

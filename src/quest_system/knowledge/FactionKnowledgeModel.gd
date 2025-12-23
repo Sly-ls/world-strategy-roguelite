@@ -42,7 +42,7 @@ func register_fact(event: Dictionary) -> void:
 # ------------------------------------------------------------
 # 2) inject_rumor(rumor)
 # ------------------------------------------------------------
-func inject_rumor(rumor: Dictionary, observers: Array, profiles: Dictionary = {}) -> void:
+func inject_rumor(rumor: Dictionary, observers: Array) -> void:
     # Expected keys:
     # id, day, seed_id, claim_actor, claim_target, claim_type, strength(0..1), credibility(0..1),
     # malicious(bool), related_event_id(optional)
@@ -69,9 +69,10 @@ func inject_rumor(rumor: Dictionary, observers: Array, profiles: Dictionary = {}
 
         # bias from personality (optional)
         # keys expected in profile personality dict: paranoia, diplomacy, intel
-        var paranoia := _get_personality(profiles, observer, &"paranoia", 0.5)
-        var diplomacy := _get_personality(profiles, observer, &"diplomacy", 0.5)
-        var intel := _get_personality(profiles, observer, &"intel", 0.5)
+        var paranoia :float = FactionManager.get_faction(observer).profile.get_personality(FactionProfile.PERS_PARANOIA)
+        var diplomacy :float = FactionManager.get_faction(observer).profile.get_personality(FactionProfile.PERS_DIPLOMACY)
+        var intel :float = FactionManager.get_faction(observer).profile.get_personality(FactionProfile.PERS_INTEL)
+
 
         var conf := base + 0.20*intel + 0.20*paranoia - 0.20*diplomacy
         conf = clampf(conf, 0.05, 0.95)
@@ -115,8 +116,6 @@ func inject_rumor(rumor: Dictionary, observers: Array, profiles: Dictionary = {}
 func apply_knowledge_resolution(
     context: Dictionary,
     choice: StringName,
-    relations: Dictionary,
-    profiles: Dictionary = {},
     day: int = -1
 ) -> void:
     # context expected:
@@ -186,8 +185,8 @@ func apply_knowledge_resolution(
             dconf = -0.15 if choice == &"LOYAL" else 0.0
 
     # apply personality modulation (optional): paranoia amplifies, diplomacy dampens
-    var paranoia := _get_personality(profiles, observer, &"paranoia", 0.5)
-    var diplomacy := _get_personality(profiles, observer, &"diplomacy", 0.5)
+    var paranoia :float = FactionManager.get_faction(observer).profile.get_personality(FactionProfile.PERS_PARANOIA)
+    var diplomacy :float = FactionManager.get_faction(observer).profile.get_personality(FactionProfile.PERS_DIPLOMACY)
     var mult := clampf(1.0 + 0.25*(paranoia - 0.5) - 0.25*(diplomacy - 0.5), 0.75, 1.25)
 
     var old_conf := float(belief["confidence"])
@@ -197,8 +196,8 @@ func apply_knowledge_resolution(
     beliefs_by_faction[observer][eid] = belief
 
     # Apply relationship deltas based on perceived belief change (asymmetric: observer -> claimed_actor)
-    if claimed_actor != &"" and observer != &"" and relations.has(observer) and relations[observer].has(claimed_actor):
-        var r: FactionRelationScore = relations[observer][claimed_actor]
+    if claimed_actor != &"" and observer != &"" :
+        var r: FactionRelationScore = FactionManager.get_relation(observer, claimed_actor)
 
         # hostile claim: higher confidence => higher tension/grievance and lower trust/relation
         # We use delta_conf to determine direction of change.
@@ -208,15 +207,18 @@ func apply_knowledge_resolution(
 
         # if we're increasing confidence in hostile claim => worsen relation
         # if decreasing confidence => ease relation a bit
-        r.tension = int(clampi(r.tension + int(round(+3.0 * delta_conf * scale)), 0, 100))
-        r.grievance = int(clampi(r.grievance + int(round(+2.0 * delta_conf * scale)), 0, 100))
-        r.trust = int(clampi(r.trust - int(round(+2.0 * delta_conf * scale)), 0, 100))
-        r.relation = int(clampi(r.relation - int(round(+2.0 * delta_conf * scale)), -100, 100))
+        var delta :Dictionary = {
+            FactionRelationScore.REL_TENSION: int(round(+3.0 * delta_conf * scale)),
+            FactionRelationScore.REL_GRIEVANCE: int(round(+2.0 * delta_conf * scale)),
+            FactionRelationScore.REL_TRUST:- int(round(+2.0 * delta_conf * scale)),
+            FactionRelationScore.REL_RELATION:- int(round(+2.0 * delta_conf * scale)),
+        }
+        r.apply_delta(delta)
 
         # If we strongly debunked a rumor: small bonus
         if old_conf >= 0.6 and new_conf <= 0.25:
-            r.tension = int(clampi(r.tension - 3, 0, 100))
-            r.trust = int(clampi(r.trust + 2, 0, 100))
+            r.apply_delta_to(FactionRelationScore.REL_TENSION, -3)
+            r.apply_delta_to(FactionRelationScore.REL_TRUST, 2)
 
     # Optional: if source is propaganda and was debunked, reduce trust in seed_id (not implemented here)
 
@@ -256,15 +258,3 @@ func get_perceived_heat(observer: StringName, other: StringName, day: int) -> fl
 func _ensure_observer(observer: StringName) -> void:
     if not beliefs_by_faction.has(observer):
         beliefs_by_faction[observer] = {}
-
-func _get_personality(profiles: Dictionary, faction_id: StringName, key: StringName, default_val: float) -> float:
-    var p = profiles.get(faction_id, null)
-    if p == null:
-        return default_val
-    # supports either Dictionary profiles, or FactionProfile with get_personality()
-    if p is Dictionary:
-        var d: Dictionary = p.get("personality", {})
-        return float(d.get(key, default_val))
-    if p.has_method("get_personality"):
-        return float(p.get_personality(key, default_val))
-    return default_val

@@ -30,19 +30,32 @@ func _test_bundle_spawns_then_debunk_reduces_bundle() -> void:
     var B := &"B"  # observer/victim
     var C := &"C"  # true actor
 
+    var faction_a :Faction = Faction.new()
+    faction_a.id = A
+    faction_a.name = "Faction " + A
+    FactionManager.register_faction(faction_a)
+    
+    var faction_b :Faction = Faction.new()
+    faction_b.id = B
+    faction_b.name = "Faction " + B
+    FactionManager.register_faction(faction_b)
+    
+    var faction_c :Faction = Faction.new()
+    faction_c.id = C
+    faction_c.name = "Faction " + C
+    FactionManager.register_faction(faction_c)
+
+    # high heat A<->B + neutral trust to mediator
     # Profiles: B is more parano than diplomate => believes rumors more
-    var profiles := {
-        B: {"personality": {&"paranoia": 0.7, &"diplomacy": 0.3, &"intel": 0.5}}
-    }
+    faction_b.profile.set_personality(FactionProfile.PERS_PARANOIA, 0.7)
+    faction_b.profile.set_personality(FactionProfile.PERS_DIPLOMACY, 0.3)
+    faction_b.profile.set_personality(FactionProfile.PERS_INTEL, 0.5)
 
     # Minimal relations (used by apply_knowledge_resolution)
-    var relations := {}
-    relations[B] = {}
-    relations[B][A] = FactionRelationScore.new()
-    relations[B][A].trust = 40
-    relations[B][A].tension = 10
-    relations[B][A].grievance = 5
-    relations[B][A].relation = 0
+    faction_b.get_relation_to(A).set_score(FactionRelationScore.REL_TRUST, 40)
+    faction_b.get_relation_to(A).set_score(FactionRelationScore.REL_TENSION, 10)
+    faction_b.get_relation_to(A).set_score(FactionRelationScore.REL_GRIEVANCE, 5)
+    faction_b.get_relation_to(A).set_score(FactionRelationScore.REL_RELATION, 0)
 
     # Fact: true raid is C -> B at day 1
     knowledge.register_fact({
@@ -67,7 +80,7 @@ func _test_bundle_spawns_then_debunk_reduces_bundle() -> void:
         "malicious": true,
         "related_event_id": &"evt_1"
     }
-    knowledge.inject_rumor(rumor1, [B], profiles)
+    knowledge.inject_rumor(rumor1, [B])
 
     # Rumor #2 (day 3): reinforce the same claim, seed = BROKER
     var rumor2 := {
@@ -82,7 +95,7 @@ func _test_bundle_spawns_then_debunk_reduces_bundle() -> void:
         "malicious": true,
         "related_event_id": &"evt_1"
     }
-    knowledge.inject_rumor(rumor2, [B], profiles)
+    knowledge.inject_rumor(rumor2, [B])
 
     var heat_before := knowledge.get_perceived_heat(B, A, 3)
     _assert(heat_before >= 40.0, "precondition: heat should be >=40 after 2 rumors (heat=%.1f)" % heat_before)
@@ -97,8 +110,6 @@ func _test_bundle_spawns_then_debunk_reduces_bundle() -> void:
         [B],
         3,
         pool,
-        notebook,
-        profiles,
         {"knowledge_bundle_max": 3, "knowledge_offer_cooldown_days": 0}
     )
 
@@ -149,7 +160,7 @@ func _test_bundle_spawns_then_debunk_reduces_bundle() -> void:
         "knowledge_action": &"PROVE_INNOCENCE",
         "related_event_id": &"evt_1",
         "day": 4
-    }, &"LOYAL", relations, profiles, 4)
+    }, &"LOYAL", 4)
 
     var heat_after_debunk := knowledge.get_perceived_heat(B, A, 4)
     _assert(heat_after_debunk < heat_before, "heat should drop after debunk (%.1f -> %.1f)" % [heat_before, heat_after_debunk])
@@ -168,7 +179,7 @@ func _test_bundle_spawns_then_debunk_reduces_bundle() -> void:
         "malicious": true,
         "related_event_id": &"evt_1"
     }
-    knowledge.inject_rumor(rumor3, [B], profiles)
+    knowledge.inject_rumor(rumor3, [B])
 
     var heat_day5 := knowledge.get_perceived_heat(B, A, 5)
 
@@ -179,8 +190,6 @@ func _test_bundle_spawns_then_debunk_reduces_bundle() -> void:
         [B],
         5,
         pool2,
-        notebook,
-        profiles,
         {"knowledge_bundle_max": 3, "knowledge_offer_cooldown_days": 0}
     )
 

@@ -383,9 +383,9 @@ func _decide_member_stance(
     crisis_axis: StringName,
     crisis_source: StringName
 ) -> StringName:
-    var diplomacy :float = member.profile.get_personality(FactionProfile.PERS_DIPLOMACY, 0.5)
-    var honor :float = member.profile.get_personality(FactionProfile.PERS_HONOR, 0.5)
-    var opportunism :float = member.profile.get_personality(FactionProfile.PERS_OPPORTUNISM, 0.5)
+    var diplomacy :float = member.profile.get_personality(FactionProfile.PERS_DIPLOMACY)
+    var honor :float = member.profile.get_personality(FactionProfile.PERS_HONOR)
+    var opportunism :float = member.profile.get_personality(FactionProfile.PERS_OPPORTUNISM)
 
     var commit := float(c.member_commitment.get(member.id, 0.6))
 
@@ -563,9 +563,9 @@ world: Dictionary) -> float:
     # join if fear/hostility or recent losses or ideology clash; also if weak
     var relation = faction.get_relation(hegemon.id)
     var rel :float = relation.get_score(FactionRelationScore.REL_RELATION) / 100.0
-    var diplomacy :float = faction.profile.get_personality(FactionProfile.PERS_DIPLOMACY, 0.5)
-    var opportunism :float = faction.profile.get_personality(FactionProfile.PERS_OPPORTUNISM, 0.5)
-    var honor :float = faction.profile.get_personality(FactionProfile.PERS_HONOR, 0.5)
+    var diplomacy :float = faction.profile.get_personality(FactionProfile.PERS_DIPLOMACY)
+    var opportunism :float = faction.profile.get_personality(FactionProfile.PERS_OPPORTUNISM)
+    var honor :float = faction.profile.get_personality(FactionProfile.PERS_HONOR)
 
     var power_map: Dictionary = world.get("power_by_faction", {})
     var my_power := float(power_map.get(faction.id, 0.0))
@@ -583,9 +583,9 @@ world: Dictionary) -> float:
 
 func _stop_crisis_join_score(faction: Faction, source: Faction, crisis_axis: StringName, sev: float, world: Dictionary) -> float:
     # join anti-crisis if altruism/honor/diplomacy, dislikes source, or crisis threatens them
-    var diplomacy :float = faction.profile.get_personality(FactionProfile.PERS_DIPLOMACY, 0.5)
-    var opportunism :float = faction.profile.get_personality(FactionProfile.PERS_OPPORTUNISM, 0.5)
-    var honor :float = faction.profile.get_personality(FactionProfile.PERS_HONOR, 0.5)
+    var diplomacy :float = faction.profile.get_personality(FactionProfile.PERS_DIPLOMACY)
+    var opportunism :float = faction.profile.get_personality(FactionProfile.PERS_OPPORTUNISM)
+    var honor :float = faction.profile.get_personality(FactionProfile.PERS_HONOR)
     
     var rel_to_source := faction.get_relation_to(source.id).get_score(FactionRelationScore.REL_RELATION) / 100.0
     var axis_aff := 0.0
@@ -600,8 +600,8 @@ func _stop_crisis_join_score(faction: Faction, source: Faction, crisis_axis: Str
 
 func _support_crisis_join_score(faction: Faction, source: Faction, crisis_axis: StringName, sev: float, world: Dictionary) -> float:
     # join pro-crisis if opportunistic, aligned with axis, friendly to source
-    var opportunism :float = faction.profile.get_personality(FactionProfile.PERS_OPPORTUNISM, 0.5)
-    var honor :float = faction.profile.get_personality(FactionProfile.PERS_HONOR, 0.5)
+    var opportunism :float = faction.profile.get_personality(FactionProfile.PERS_OPPORTUNISM)
+    var honor :float = faction.profile.get_personality(FactionProfile.PERS_HONOR)
     var rel_to_source := faction.get_relation_to(source.id).get_score(FactionRelationScore.REL_RELATION) / 100.0
 
     var axis_aff := 0.0

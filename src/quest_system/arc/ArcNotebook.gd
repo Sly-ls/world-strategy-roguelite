@@ -68,6 +68,8 @@ const STAGE_DECISIVE: int = 3
 const STAGE_RESOLVED: int = 4
 
 
+var knowledge_spawn_cooldowns: Dictionary = {} # key -> last_day
+
 # =============================================================================
 # Reset
 # =============================================================================
@@ -620,3 +622,13 @@ func count_triplet_events_by_action(action: StringName) -> int:
 func get_recent_triplet_events(limit: int = 20) -> Array:
     var start: int = max(0, triplet_events.size() - limit)
     return triplet_events.slice(start)
+
+#==========================================
+# KNOWLEDGE
+#=========================================
+func can_spawn_knowledge_offer(key: StringName, day: int, cooldown_days: int) -> bool:
+    var last := int(knowledge_spawn_cooldowns.get(key, -999999))
+    return (day - last) >= cooldown_days
+
+func mark_knowledge_offer_spawned(key: StringName, day: int) -> void:
+    knowledge_spawn_cooldowns[key] = day

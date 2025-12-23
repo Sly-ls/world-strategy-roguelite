@@ -119,39 +119,6 @@ func complete_quest(runtime_id: String) -> void:
     # On ne donne plus les rewards ici : la résolution fera foi.
     quest_completed.emit(inst)
 
-
-func complete_quest_OLD(runtime_id: String) -> void:
-    """Termine une quête avec succès"""
-    var inst: QuestInstance = active_quests.get(runtime_id, null)
-    if inst == null:
-        return
-    
-    inst.complete()
-    
-    # Appliquer les récompenses
-    _apply_rewards(inst)
-    
-    # Ajouter les tags (de ChatGPT)
-    for tag in inst.template.adds_player_tags:
-        add_player_tag(tag)
-    for tag in inst.template.adds_world_tags:
-        add_world_tag(tag)
-    
-    # Déplacer vers historique
-    completed_quests.append(inst)
-    active_quests.erase(runtime_id)
-    
-    # Event de complétion (de ChatGPT)
-    if inst.template.completion_event_id != "":
-        _trigger_completion_event_OLD(inst)
-    
-    # Quête suivante (chaîne - de ChatGPT)
-    if inst.template.next_quest_id != "":
-        start_quest(inst.template.next_quest_id, inst.context)
-    
-    # Signal
-    quest_completed.emit(inst)
-
 func fail_quest(runtime_id: String) -> void:
     """Échoue une quête"""
     var inst: QuestInstance = active_quests.get(runtime_id, null)
@@ -215,12 +182,6 @@ func _get_inventory_for_instance(inst: QuestInstance) -> Inventory:
         _:
             return null
 
-
-func _trigger_completion_event_OLD(inst: QuestInstance) -> void:
-    """Déclenche un event à la complétion (de ChatGPT)"""
-    # TODO: Intégration avec WorldMapController pour lancer l'event
-    print("→ Event de complétion : %s (à implémenter)" % inst.template.completion_event_id)
-    
 func _apply_effect(inst: QuestInstance, effect: QuestEffect) -> void:
     match effect.type:
         QuestEffect.EffectType.GOLD:
@@ -232,8 +193,9 @@ func _apply_effect(inst: QuestInstance, effect: QuestEffect) -> void:
 
         QuestEffect.EffectType.REL_GIVER:
             var giver := String(inst.context.get("giver_faction_id", ""))
-            if giver != "":
-                FactionManager.adjust_relation(giver, effect.amount)
+            #TODO avant c'etait pour la relation avec le joueur, maintenant il va faloir que ce soit avec la personne qui fait la quete
+            #if giver != "":
+            # FactionManager.get_relation(giver).apply_delta_to(FactionRelationScore.REL_TRUST, effect.amount)
 
         QuestEffect.EffectType.REL_ANT:
             var ant := String(inst.context.get("antagonist_faction_id", ""))
@@ -245,24 +207,6 @@ func _apply_effect_OLD(inst: QuestInstance, effect: QuestEffect) -> void:
     match effect.type:
         QuestEffect.EffectType.GOLD:
             ResourceManager.add_resource("gold", effect.amount)
-""" OLD ENUM VALUE
-        QuestEffect.EffectType.PLAYER_TAG:
-            add_player_tag(effect.tag)
-
-        QuestEffect.EffectType.WORLD_TAG:
-            add_world_tag(effect.tag)
-
-        QuestEffect.EffectType.FACTION_RELATION:
-            var faction_id := ""
-            match effect.faction_role:
-                "giver":
-                    faction_id = inst.giver_faction_id
-                "antagonist":
-                    faction_id = inst.antagonist_faction_id
-
-            if faction_id != "":
-                FactionManager.adjust_relation(faction_id, effect.amount)
-  """              
              
 func resolve_quest(runtime_id: String, choice: String) -> void:
     var inst: QuestInstance = active_quests.get(runtime_id)

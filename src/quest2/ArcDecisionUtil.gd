@@ -49,11 +49,11 @@ static func compute_arc_event_chance(
     var weariness_w: float = float(params.get("weariness_w", 0.18))
 
     # personnalité (A filtre l’impulsivité)
-    var aggr := a_profile.get_personality(FactionProfile.PERS_AGGRESSION, 0.5)
-    var veng := a_profile.get_personality(FactionProfile.PERS_VENGEFULNESS, 0.5)
-    var diplo := a_profile.get_personality(FactionProfile.PERS_DIPLOMACY, 0.5)
-    var risk := a_profile.get_personality(FactionProfile.PERS_RISK_AVERSION, 0.5)
-    var expa := a_profile.get_personality(FactionProfile.PERS_EXPANSIONISM, 0.5)
+    var aggr := a_profile.get_personality(FactionProfile.PERS_AGGRESSION)
+    var veng := a_profile.get_personality(FactionProfile.PERS_VENGEFULNESS)
+    var diplo := a_profile.get_personality(FactionProfile.PERS_DIPLOMACY)
+    var risk := a_profile.get_personality(FactionProfile.PERS_RISK_AVERSION)
+    var expa := a_profile.get_personality(FactionProfile.PERS_EXPANSIONISM)
 
     var p := base
 
@@ -107,12 +107,12 @@ static func select_arc_action_type(
     var trust_pos :float = max(0.0, float(rel.trust) / 100.0)
 
     # personnalité A
-    var aggr := a_profile.get_personality(FactionProfile.PERS_AGGRESSION, 0.5)
-    var veng := a_profile.get_personality(FactionProfile.PERS_VENGEFULNESS, 0.5)
-    var diplo := a_profile.get_personality(FactionProfile.PERS_DIPLOMACY, 0.5)
-    var risk := a_profile.get_personality(FactionProfile.PERS_RISK_AVERSION, 0.5)
-    var expa := a_profile.get_personality(FactionProfile.PERS_EXPANSIONISM, 0.5)
-    var integ := a_profile.get_personality(FactionProfile.PERS_INTEGRATIONISM, 0.5)
+    var aggr := a_profile.get_personality(FactionProfile.PERS_AGGRESSION)
+    var veng := a_profile.get_personality(FactionProfile.PERS_VENGEFULNESS)
+    var diplo := a_profile.get_personality(FactionProfile.PERS_DIPLOMACY)
+    var risk := a_profile.get_personality(FactionProfile.PERS_RISK_AVERSION)
+    var expa := a_profile.get_personality(FactionProfile.PERS_EXPANSIONISM)
+    var integ := a_profile.get_personality(FactionProfile.PERS_INTEGRATIONISM)
     # (optionnel) si tu ajoutes plus tard pers.cunning : fallback 0.5
     var cunning := float(a_profile.personality.get(&"pers.cunning", 0.5))
 

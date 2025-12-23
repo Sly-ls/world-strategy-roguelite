@@ -13,20 +13,33 @@ func _test_two_rumors_then_debunk_reduces_heat_below_threshold() -> void:
     var B := &"B"
     var C := &"C"
 
-    # Profiles (minimum) : B est un peu parano et pas trop diplomate => croit plus vite aux rumeurs
-    var profiles := {
-        B: {"personality": {&"paranoia": 0.7, &"diplomacy": 0.3, &"intel": 0.5}}
-    }
+    var faction_a :Faction = Faction.new()
+    faction_a.id = A
+    faction_a.name = "Faction " + A
+    FactionManager.register_faction(faction_a)
+    
+    var faction_b :Faction = Faction.new()
+    faction_b.id = B
+    faction_b.name = "Faction " + B
+    FactionManager.register_faction(faction_b)
+    
+    var faction_c :Faction = Faction.new()
+    faction_c.id = C
+    faction_c.name = "Faction " + C
+    FactionManager.register_faction(faction_c)
 
-    # Relations (optionnel, mais apply_knowledge_resolution peut les modifier)
-    var relations := {}
-    relations[B] = {}
-    relations[B][A] = FactionRelationScore.new()
-    relations[B][A].trust = 40
-    relations[B][A].tension = 10
-    relations[B][A].grievance = 5
-    relations[B][A].relation = 0
+    # high heat A<->B + neutral trust to mediator
+    # Profiles: B is more parano than diplomate => believes rumors more
+    faction_b.profile.set_personality(FactionProfile.PERS_PARANOIA, 0.7)
+    faction_b.profile.set_personality(FactionProfile.PERS_DIPLOMACY, 0.3)
+    faction_b.profile.set_personality(FactionProfile.PERS_INTEL, 0.5)
 
+    # Minimal relations (used by apply_knowledge_resolution)
+    faction_b.get_relation_to(A).set_score(FactionRelationScore.REL_TRUST, 40)
+    faction_b.get_relation_to(A).set_score(FactionRelationScore.REL_TENSION, 10)
+    faction_b.get_relation_to(A).set_score(FactionRelationScore.REL_GRIEVANCE, 5)
+    faction_b.get_relation_to(A).set_score(FactionRelationScore.REL_RELATION, 0)
+    
     # 1) Fact : le vrai raid est C -> B (jour 1)
     knowledge.register_fact({
         "id": &"evt_1",
@@ -49,7 +62,7 @@ func _test_two_rumors_then_debunk_reduces_heat_below_threshold() -> void:
         "credibility": 0.55,
         "malicious": true,
         "related_event_id": &"evt_1"
-    }, [B], profiles)
+    }, [B])
 
     var heat_after_1 := knowledge.get_perceived_heat(B, A, 2)
 
@@ -65,7 +78,7 @@ func _test_two_rumors_then_debunk_reduces_heat_below_threshold() -> void:
         "credibility": 0.55,
         "malicious": true,
         "related_event_id": &"evt_1"
-    }, [B], profiles)
+    }, [B])
 
     var heat_after_2 := knowledge.get_perceived_heat(B, A, 3)
 
@@ -84,7 +97,7 @@ func _test_two_rumors_then_debunk_reduces_heat_below_threshold() -> void:
         "knowledge_action": &"INVESTIGATE",
         "related_event_id": &"evt_1",
         "day": 4
-    }, &"LOYAL", relations, profiles, 4)
+    }, &"LOYAL", 4)
 
     var heat_after_debunk := knowledge.get_perceived_heat(B, A, 4)
 

@@ -14,10 +14,10 @@ static func tick_domestic(
 ) -> void:
     # ---- inputs/proxies ----
     
-    var diplo :float = profile.get_personality(FactionProfile.PERS_DIPLOMACY, 0.5)
-    var bell :float = profile.get_personality(FactionProfile.PERS_BELLIGERENCE, 0.5)
-    var honor :float = profile.get_personality(FactionProfile.PERS_HONOR, 0.5)
-    var fear :float = profile.get_personality(FactionProfile.PERS_FEAR, 0.5)
+    var diplo :float = profile.get_personality(FactionProfile.PERS_DIPLOMACY)
+    var bell :float = profile.get_personality(FactionProfile.PERS_BELLIGERENCE)
+    var honor :float = profile.get_personality(FactionProfile.PERS_HONOR)
+    var fear :float = profile.get_personality(FactionProfile.PERS_FEAR)
 
     var gold :int = (economy.gold if economy != null and economy.has_method("get") == false else (economy.gold if economy != null else 0))
     var poor :bool = (gold < 80) # TODO proxy simple (à remplacer par income/expenses si tu as)

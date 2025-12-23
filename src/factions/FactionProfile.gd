@@ -1,84 +1,3 @@
-"""
-Exemples d’utilisation
-Normal :
-    profile.axis_affinity = FactionProfile.generate_axis_affinity(rng, FactionProfile.GEN_NORMAL)
-Centré (nuancé) :
-    profile.axis_affinity = FactionProfile.generate_axis_affinity(rng, FactionProfile.GEN_CENTERED)
-Dramatique (radical) :
-    profile.axis_affinity = FactionProfile.generate_axis_affinity(rng, FactionProfile.GEN_DRAMATIC)
-Forcer une faction “anti-magie” (antagoniste d’un monde très magique) :
-    profile.axis_affinity = FactionProfile.generate_axis_affinity(
-        rng, FactionProfile.GEN_DRAMATIC, {}, FactionProfile.AXIS_MAGIC
-    )
-Forcer une faction antagoniste à une faction dominante (profil connu) :
-    profile.axis_affinity = FactionProfile.generate_axis_affinity(
-        rng,
-        FactionProfile.GEN_NORMAL,
-        {},
-        &"",                      # pas d’axe imposé
-        dominant_faction.profile, # contre cette faction
-        1.3                       # antagonisme un peu renforcé
-    )
-    
-    Exemples d’utilisation
-Générer une personnalité “normale” aléatoire :
-profile.personality = FactionProfile.generate_personality(rng, FactionProfile.PGEN_NORMAL)
-Forcer un type précis (ex : pacifique) :
-    profile.personality = FactionProfile.generate_personality(
-        rng, FactionProfile.PGEN_NORMAL, {}, FactionProfile.PTYPE_PACIFIST
-    )
-Mode dramatique (traits plus marqués) :
-profile.personality = FactionProfile.generate_personality(rng, FactionProfile.PGEN_DRAMATIC)
-Faire émerger un antagoniste naturel d’une faction dominante :
-    profile.personality = FactionProfile.generate_personality(
-        rng,
-        FactionProfile.PGEN_NORMAL,
-        {"antagonism_blend": 0.15},        # tu peux augmenter si tu veux du “hard counter”
-        &"",                               # laisse le code choisir le template antagoniste
-        dominant_faction.profile,
-        1.3
-    )
-    
-A) Profil “standard” (normal)
-    var p := FactionProfile.generate_full_profile(rng, FactionProfile.GEN_NORMAL)
-B) Profil “centered” (plus nuancé)
-    var p := FactionProfile.generate_full_profile(rng, FactionProfile.GEN_CENTERED)
-C) Profil “dramatic” (plus radical)
-    var p := FactionProfile.generate_full_profile(rng, FactionProfile.GEN_DRAMATIC)
-D) Faire émerger un antagoniste “anti-hégémonie”
-    var p := FactionProfile.generate_full_profile(
-        rng,
-        FactionProfile.GEN_DRAMATIC,
-            {
-                "antagonist_full_mode": true,
-                "antagonist_force_dominant_axis": true,
-                "antagonist_personality_blend": 0.20,
-                "coherence_strength": 0.75
-            },
-        &"",                       # pas d’axe forcé à la main
-        dominant_faction.profile,  # la faction à contrer
-        1.3                        # antagonisme renforcé
-    )
-
-E) Forcer “contre Magie” (mais sans cible faction)
-    var p := FactionProfile.generate_full_profile(
-        rng,
-        FactionProfile.GEN_NORMAL,
-        {"coherence_strength": 0.6},
-        FactionProfile.AXIS_MAGIC
-    )
-    
-Comment l’utiliser pour initialiser ton FactionRelationScore A→B
-    var init := FactionProfile.compute_baseline_relation(a.profile, b.profile)
-
-    var rs := FactionRelationScore.new(b.faction_id)
-    rs.relation = init["relation"]
-    rs.trust = init["trust"]
-    rs.tension = init["tension"]
-    rs.grievance = 0.0
-    rs.weariness = 0.0
-    rs.clamp_all()
-"""
 class_name FactionProfile
 extends RefCounted
 
@@ -107,6 +26,8 @@ const PERS_HONOR: StringName = &"honor"
 const PERS_BELLIGERENCE: StringName = &"belligerence"
 const PERS_FEAR: StringName = &"fear"
 const PERS_DISCIPLINE: StringName = &"discipline"
+const PERS_PARANOIA: StringName = &"pers.paranoia"
+const PERS_INTEL: StringName = &"pers.intel"
 
 const ALL_PERSONALITY_KEYS: Array[StringName] = [
     PERS_AGGRESSION,
@@ -122,6 +43,8 @@ const ALL_PERSONALITY_KEYS: Array[StringName] = [
     PERS_GREED,
     PERS_DISCIPLINE,
     PERS_CUNNING,
+    PERS_PARANOIA,
+    PERS_INTEL,
 ]
 
 # --- Generation constraints ---
@@ -207,8 +130,8 @@ func validate_axis_rules() -> bool:
 func set_personality(key: StringName, value: float) -> void:
     personality[key] = clampf(value, 0.0, 1.0)
 
-func get_personality(key: StringName, default_value: float = 0.5) -> float:
-    return float(personality.get(key, default_value))
+func get_personality(key: StringName) -> float:
+    return personality.get(key)
         
 # Applies small random variation to a template (Dictionary[StringName, float] of 0..1 values)
 func apply_personality_template(template: Dictionary[StringName, float], rng: RandomNumberGenerator = null) -> void:

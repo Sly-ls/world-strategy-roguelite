@@ -28,7 +28,6 @@ static func spawn_offers_for_rumor(
     observers: Array,                 # factions qui "reçoivent" la rumeur (ex: [B] ou alliés)
     day: int,
     quest_pool,                       # ton QuestPool (ou retourne un Array[QuestInstance])
-    arc_notebook: ArcNotebook,
     profiles: Dictionary = {},
     params: Dictionary = {}
 ) -> Array:
@@ -45,7 +44,7 @@ static func spawn_offers_for_rumor(
     # cooldown anti-spam par rumeur/pair
     var key := StringName("know|" + String(rid))
     var cd := int(params.get("knowledge_offer_cooldown_days", 5))
-    if arc_notebook.has_method("can_spawn_knowledge_offer") and not arc_notebook.can_spawn_knowledge_offer(key, day, cd):
+    if not ArcManagerRunner.arc_notebook.can_spawn_knowledge_offer(key, day, cd):
         return out
 
     var max_offers := int(params.get("knowledge_bundle_max", 3))
@@ -115,8 +114,7 @@ static func spawn_offers_for_rumor(
                 quest_pool.try_add_offer(inst)
 
     # mark cooldown
-    if arc_notebook.has_method("mark_knowledge_offer_spawned"):
-        arc_notebook.mark_knowledge_offer_spawned(key, day)
+    ArcManagerRunner.arc_notebook.mark_knowledge_offer_spawned(key, day)
 
     return final
 

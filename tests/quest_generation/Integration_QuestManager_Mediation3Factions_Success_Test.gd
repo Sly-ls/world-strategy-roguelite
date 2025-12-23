@@ -23,8 +23,6 @@ func _test_resolve_quest_mediation_success_logs_and_inverse_deltas() -> void:
     ArcManagerRunner.arc_notebook = notebook
 
     # --- backup existing relation_scores ---
-    var prev_relation_scores: Dictionary = FactionManager.get_all_relations().duplicate(true)
-
     var A := &"A"
     var B := &"B"
     var C := &"C"  # mediator
@@ -96,15 +94,15 @@ func _test_resolve_quest_mediation_success_logs_and_inverse_deltas() -> void:
     # add to active quests
     QuestManager.start_runtime_quest(inst)
 
-    var tension_before: float = FactionManager.get_relation_score(A, B, FactionRelationScore.REL_TENSION)
-    var trust_a_c_before: float = FactionManager.get_relation_score(A, C, FactionRelationScore.REL_TRUST)
+    var tension_before: float = FactionManager.get_relation_score( FactionRelationScore.REL_TENSION, A, B)
+    var trust_a_c_before: float = FactionManager.get_relation_score(FactionRelationScore.REL_TRUST, A, C)
 
     # --- act ---
     QuestManager.resolve_quest(inst.runtime_id, &"LOYAL")
 
 
-    var tension_after: float = FactionManager.get_relation_score(A, B, FactionRelationScore.REL_TENSION)
-    var trust_a_c_after: float = FactionManager.get_relation_score(A, C, FactionRelationScore.REL_TRUST)
+    var tension_after: float = FactionManager.get_relation_score(FactionRelationScore.REL_TENSION, A, B)
+    var trust_a_c_after: float = FactionManager.get_relation_score(FactionRelationScore.REL_TRUST, A, C)
     # --- status should be COMPLETED (not FAILED) ---
     _assert(inst.status == QuestTypes.QuestStatus.COMPLETED, "quest status should be COMPLETED (got %s)" % str(inst.status))
 
@@ -138,7 +136,3 @@ func _test_resolve_quest_mediation_success_logs_and_inverse_deltas() -> void:
             found = true
             break
     _assert(found, "expected a triplet_event for tp.mediation in ArcNotebook")
-
-    # --- restore ---
-    ArcManagerRunner.arc_notebook = prev_arc_notebook
-    FactionManager.relation_scores = prev_relation_scores

@@ -222,8 +222,6 @@ static func tick_tribute_if_any(
     arc_state: ArcState,
     day: int,
     economies: Dictionary,
-    relations: Dictionary,              # relations[winner][loser]
-    notebook: ArcNotebook,              # pour cooldown anti-spam d’offer
     spawn_collect_offer_fn: Callable    # injection: (winner, loser, day, tier) -> QuestInstance
 ) -> void:
     if not arc_state.war_terms.get("tribute_active", false):
@@ -266,14 +264,15 @@ static func tick_tribute_if_any(
         var miss := int(arc_state.war_terms["tribute_missed_payments"])
         arc_state.treaty.violation_score += 0.20 + 0.05 * float(min(miss, 6))
 
+        
         # Relation fallout: loser hates winner more (asym)
-        var l2w: FactionRelationScore = relations[loser][winner]
+        var l2w: FactionRelationScore = FactionManager.get_relation(loser, winner)
         l2w.grievance = int(clampi(l2w.grievance + 6, 0, 100))
         l2w.tension = int(clampi(l2w.tension + 4, 0, 100))
         l2w.trust = int(clampi(l2w.trust - 4, 0, 100))
 
         # winner becomes less trusting too (sym small)
-        var w2l: FactionRelationScore = relations[winner][loser]
+        var w2l: FactionRelationScore = FactionManager.get_relation(loser, winner)
         w2l.trust = int(clampi(w2l.trust - 2, 0, 100))
         w2l.tension = int(clampi(w2l.tension + 2, 0, 100))
 
@@ -288,8 +287,9 @@ static func tick_tribute_if_any(
         winner: FactionManager.get_faction_profile(winner),
         loser: FactionManager.get_faction_profile(loser)
     }
-    var desired := ArcStateMachine.decide_state_on_tribute_default( winner, loser, day, arc_state, relations, notebook, faction_profiles, null )
+    var desired := ArcStateMachine.decide_state_on_tribute_default( winner, loser, day, faction_profiles, null )
 
+    var notebook = ArcManagerRunner.arc_notebook
     if ArcStateMachine.maybe_break_treaty(arc_state, day, desired):
         notebook.inc_pair_counter(pair_key, &"treaty_breaks", 1)
         if desired == &"WAR":
@@ -311,14 +311,12 @@ static func decide_state_on_tribute_default(
     winner_id: StringName,
     loser_id: StringName,
     day: int,
-    arc_state: ArcState,
-    relations: Dictionary,   # relations[X][Y] -> FactionRelationScore
-    notebook: ArcNotebook,
     profiles: Dictionary,    # profiles[faction] -> FactionProfile
     ctx: FactionWorldContext = null
 ) -> StringName:
-    var w2l: FactionRelationScore = relations[winner_id][loser_id]
-    var l2w: FactionRelationScore = relations[loser_id][winner_id]
+    var notebook = ArcManagerRunner.arc_notebook
+    var l2w: FactionRelationScore = FactionManager.get_relation(loser_id, winner_id)
+    var w2l: FactionRelationScore = FactionManager.get_relation(winner_id, loser_id)
 
     var tension := 0.5 * (w2l.get_score(FactionRelationScore.REL_TENSION) + l2w.get_score(FactionRelationScore.REL_TENSION)) / 100.0
     var griev := 0.5 * (w2l.get_score(FactionRelationScore.REL_GRIEVANCE) + l2w.get_score(FactionRelationScore.REL_GRIEVANCE)) / 100.0
@@ -340,10 +338,10 @@ static func decide_state_on_tribute_default(
     var pw: FactionProfile = profiles.get(winner_id, null)
     var pl: FactionProfile = profiles.get(loser_id, null)
 
-    var bell := pw.get_personality(FactionProfile.PERS_BELLIGERENCE, 0.5) if pw else 0.5
-    var diplo := pw.get_personality(FactionProfile.PERS_DIPLOMACY, 0.5) if pw else 0.5
-    var expa := pw.get_personality(FactionProfile.PERS_EXPANSIONISM, 0.5) if pw else 0.5
-    var honor := pw.get_personality(FactionProfile.PERS_HONOR, 0.5) if pw else 0.5
+    var bell := pw.get_personality(FactionProfile.PERS_BELLIGERENCE)
+    var diplo := pw.get_personality(FactionProfile.PERS_DIPLOMACY)
+    var expa := pw.get_personality(FactionProfile.PERS_EXPANSIONISM)
+    var honor := pw.get_personality(FactionProfile.PERS_HONOR)
 
     # axes : divergence moyenne (0..1)
     var axis_div := 0.0

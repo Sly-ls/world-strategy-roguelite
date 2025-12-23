@@ -353,12 +353,12 @@ static func _scale_deltas_by_personality(delta: Dictionary, prof: FactionProfile
     var k_tension_up := float(params.get("k_tension_up", 0.25))
     var k_wear_gain := float(params.get("k_wear_gain", 0.45))
 
-    var diplo := prof.get_personality(FactionProfile.PERS_DIPLOMACY, 0.5)
-    var integ := prof.get_personality(FactionProfile.PERS_INTEGRATIONISM, 0.5)
-    var aggr := prof.get_personality(FactionProfile.PERS_AGGRESSION, 0.5)
-    var veng := prof.get_personality(FactionProfile.PERS_VENGEFULNESS, 0.5)
-    var risk := prof.get_personality(FactionProfile.PERS_RISK_AVERSION, 0.5)
-    var expa := prof.get_personality(FactionProfile.PERS_EXPANSIONISM, 0.5)
+    var diplo := prof.get_personality(FactionProfile.PERS_DIPLOMACY)
+    var integ := prof.get_personality(FactionProfile.PERS_INTEGRATIONISM)
+    var aggr := prof.get_personality(FactionProfile.PERS_AGGRESSION)
+    var veng := prof.get_personality(FactionProfile.PERS_VENGEFULNESS)
+    var risk := prof.get_personality(FactionProfile.PERS_RISK_AVERSION)
+    var expa := prof.get_personality(FactionProfile.PERS_EXPANSIONISM)
 
     var out := {
         FactionRelationScore.REL_RELATION: int(delta.get(FactionRelationScore.REL_RELATION, 0)),

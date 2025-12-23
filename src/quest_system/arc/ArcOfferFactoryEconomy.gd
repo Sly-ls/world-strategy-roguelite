@@ -42,8 +42,8 @@ static func compute_action_cost_points(action: StringName, arc_state_name: Strin
     var diff_mul := 0.85 + 0.95 * clampf(difficulty, 0.0, 1.0)
     var tier_mul := 1.0 + 0.18 * float(max(tier - 1, 0))
 
-    var expa := giver_profile.get_personality(FactionProfile.PERS_EXPANSIONISM, 0.5)
-    var diplo := giver_profile.get_personality(FactionProfile.PERS_DIPLOMACY, 0.5)
+    var expa := giver_profile.get_personality(FactionProfile.PERS_EXPANSIONISM)
+    var diplo := giver_profile.get_personality(FactionProfile.PERS_DIPLOMACY)
 
     var pers_mul := 1.0
     if ArcStateMachine.is_hostile_action(action):

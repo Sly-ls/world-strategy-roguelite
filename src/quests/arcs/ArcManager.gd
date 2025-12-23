@@ -17,7 +17,6 @@ var faction_profiles: Dictionary = {}
 # Faction relations cache (faction_id -> {other_id -> FactionRelationScore})
 var faction_relations: Dictionary = {}
 
-
 func _ready() -> void:
     print("[ARC] ArcManager before connect")
     _connect_signals()

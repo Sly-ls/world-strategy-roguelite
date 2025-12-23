@@ -22,7 +22,7 @@ func _init(id: StringName = &"") -> void:
 func regen_daily(profile: FactionProfile, war_pressure: float = 0.0) -> void:
     # war_pressure 0..1 (ex: proportion de paires en WAR)
     # Logistique/discipline => meilleure regen (si tu as ces traits)
-    var org := profile.get_personality(FactionProfile.PERS_RISK_AVERSION, 0.5)
+    var org := profile.get_personality(FactionProfile.PERS_RISK_AVERSION)
     var base := points_per_week / 7.0
     var mul := 0.85 + 0.50 * org
     mul *= (1.0 - 0.35 * clampf(war_pressure, 0.0, 1.0))
