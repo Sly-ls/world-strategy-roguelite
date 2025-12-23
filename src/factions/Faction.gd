@@ -42,7 +42,7 @@ var territories: Array[Vector2i] = []  ## POI contrôlés (futur)
 
 ## Profil de la faction (axes + personnalité)
 ## Utilisé par le système d'arcs et de relations inter-factions
-var profile: FactionProfile = null
+var profile: FactionProfile = FactionProfile.new()
 
 ## Relations avec les autres factions (directionnelles, asymétriques)
 ## other_faction_id -> FactionRelationScore

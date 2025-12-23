@@ -101,10 +101,7 @@ func apply_joint_op_resolution(
     context: Dictionary,           # from QuestInstance.context
     choice: StringName,            # LOYAL/NEUTRAL/TRAITOR (player)
     day: int,
-    profiles: Dictionary,
-    relations: Dictionary,
     world: Dictionary,
-    arc_notebook
 ) -> void:
     if not bool(context.get("is_coalition", false)):
         return
@@ -127,7 +124,8 @@ func apply_joint_op_resolution(
     var crisis_source: StringName = StringName(world.get("crisis_source_id", &""))
 
     for m in members:
-        var stance := _decide_member_stance(c, m, day, profiles, relations, world, arc_notebook, crisis_axis, crisis_source)
+        var member = FactionManager.get_faction(m)
+        var stance := _decide_member_stance(c, member, day, world, crisis_axis, crisis_source)
         stances[m] = stance
         if stance == STANCE_SUPPORT: support_count += 1
         elif stance == STANCE_UNDERMINE: undermine_count += 1
@@ -159,7 +157,7 @@ func apply_joint_op_resolution(
     c.cohesion = int(clampi(c.cohesion + dc, 0, 100))
 
     # 3) Relationship deltas among members (asymmetric, based on stances)
-    _apply_member_deltas(c, members, stances, relations, arc_notebook, day)
+    _apply_member_deltas(c, members, stances, day)
 
     # 4) Member commitment shifts (people can hedge/undermine without being "LOYAL")
     for m in members:
@@ -379,31 +377,25 @@ func _ensure_crisis_coalitions(
 # ------------------------------------------------------------
 func _decide_member_stance(
     c: CoalitionBlock,
-    m: StringName,
+    member: Faction,
     day: int,
-    profiles: Dictionary,
-    relations: Dictionary,
     world: Dictionary,
-    arc_notebook,
     crisis_axis: StringName,
     crisis_source: StringName
 ) -> StringName:
-    var p = profiles.get(m, null)
-    var diplomacy :float = p.get_personality(FactionProfile.PERS_DIPLOMACY, 0.5)
-    var honor :float = p.get_personality(FactionProfile.PERS_HONOR, 0.5)
-    var opportunism :float = p.get_personality(FactionProfile.PERS_OPPORTUNISM, 0.5)
+    var diplomacy :float = member.profile.get_personality(FactionProfile.PERS_DIPLOMACY, 0.5)
+    var honor :float = member.profile.get_personality(FactionProfile.PERS_HONOR, 0.5)
+    var opportunism :float = member.profile.get_personality(FactionProfile.PERS_OPPORTUNISM, 0.5)
 
-    var commit := float(c.member_commitment.get(m, 0.6))
+    var commit := float(c.member_commitment.get(member.id, 0.6))
 
     # Relation to target
-    var rel_to_target := 0.0
-    if c.target_id != &"" and relations.has(m) and relations[m].has(c.target_id):
-        rel_to_target = float(relations[m][c.target_id].relation) / 100.0
+    var rel_score :float = member.get_relation_to(c.target_id).get_score(FactionRelationScore.REL_RELATION)
+    var rel_to_target = rel_score / 100.0
 
     # Axis affinity (for crisis)
     var axis_aff := 0.0
-    if crisis_axis != &"" and p != null and p.has_method("get_axis_affinity"):
-        axis_aff = float(p.get_axis_affinity(crisis_axis, 0)) / 100.0
+    axis_aff = float(member.profile.get_axis_affinity(crisis_axis, 0)) / 100.0
 
     # Base probability
     var p_support := 0.40 + 0.30*commit + 0.15*honor + 0.10*diplomacy
@@ -497,11 +489,10 @@ func _apply_member_deltas(
     c: CoalitionBlock,
     members: Array[StringName],
     stances: Dictionary,
-    relations: Dictionary,
-    arc_notebook,
     day: int
 ) -> void:
     # Leader trust towards members based on stance
+    var leader :Faction = FactionManager.get_faction(c.leader_id)
     for m in members:
         var stance: StringName = StringName(stances.get(m, STANCE_HEDGE))
         if m != c.leader_id:
@@ -517,29 +508,29 @@ func _apply_member_deltas(
                 modificator_trust = -6
                 modificator_relation = -4
                 
-                
-            _apply_rel(relations, c.leader_id, m, "trust", (modificator_trust))
-            _apply_rel(relations, c.leader_id, m, "relation", (modificator_relation))
+            leader.get_relation_to(m).apply_delta_to(FactionRelationScore.REL_TRUST, modificator_trust)
+            leader.get_relation_to(m).apply_delta_to(FactionRelationScore.REL_RELATION, modificator_relation)
 
         # Target relationship (if target exists)
-        if c.target_id != &"" and relations.has(m) and relations[m].has(c.target_id):
+        if c.target_id != &"":
+            var member :Faction = FactionManager.get_faction(m)
             if c.side == &"AGAINST_TARGET":
                 if stance == STANCE_SUPPORT:
-                    _apply_rel(relations, m, c.target_id, "tension", +4)
-                    _apply_rel(relations, m, c.target_id, "grievance", +3)
-                    _apply_rel(relations, m, c.target_id, "relation", -3)
+                    member.get_relation_to(c.target_id).apply_delta_to(FactionRelationScore.REL_TENSION, +4)
+                    member.get_relation_to(c.target_id).apply_delta_to(FactionRelationScore.REL_GRIEVANCE, +3)
+                    member.get_relation_to(c.target_id).apply_delta_to(FactionRelationScore.REL_RELATION, -3)
                 elif stance == STANCE_UNDERMINE:
                     # le membre "fait copain-copain" ou leak => relation s'améliore, coalition le déteste
-                    _apply_rel(relations, m, c.target_id, "trust", +2)
-                    _apply_rel(relations, m, c.target_id, "relation", +2)
+                    member.get_relation_to(c.target_id).apply_delta_to(FactionRelationScore.REL_TRUST, +2)
+                    member.get_relation_to(c.target_id).apply_delta_to(FactionRelationScore.REL_RELATION, +2)
             else:
                 # coalition WITH target
                 if stance == STANCE_SUPPORT:
-                    _apply_rel(relations, m, c.target_id, "trust", +2)
-                    _apply_rel(relations, m, c.target_id, "relation", +2)
+                    member.get_relation_to(c.target_id).apply_delta_to(FactionRelationScore.REL_TRUST, +2)
+                    member.get_relation_to(c.target_id).apply_delta_to(FactionRelationScore.REL_RELATION, +2)
                 elif stance == STANCE_UNDERMINE:
-                    _apply_rel(relations, m, c.target_id, "trust", -4)
-                    _apply_rel(relations, m, c.target_id, "relation", -3)
+                    member.get_relation_to(c.target_id).apply_delta_to(FactionRelationScore.REL_TRUST, -4)
+                    member.get_relation_to(c.target_id).apply_delta_to(FactionRelationScore.REL_RELATION, -3)
 
     # Member-member trust shifts
     for i in range(members.size()):
@@ -548,18 +539,19 @@ func _apply_member_deltas(
             var b := members[j]
             var sa: StringName = StringName(stances[a])
             var sb: StringName = StringName(stances[b])
+            var member_a := FactionManager.get_faction(members[i])
+            var member_b := FactionManager.get_faction(members[j])
 
             if sa == STANCE_SUPPORT and sb == STANCE_SUPPORT:
-                _apply_rel(relations, a, b, "trust", +2)
-                _apply_rel(relations, b, a, "trust", +2)
+                member_a.get_relation_to(b).apply_delta_to(FactionRelationScore.REL_TRUST, 2)
+                member_b.get_relation_to(a).apply_delta_to(FactionRelationScore.REL_TRUST, 2)
             elif (sa == STANCE_SUPPORT and sb == STANCE_HEDGE) or (sa == STANCE_HEDGE and sb == STANCE_SUPPORT):
-                _apply_rel(relations, a, b, "trust", -1)
-                _apply_rel(relations, b, a, "trust", -1)
+                member_a.get_relation_to(b).apply_delta_to(FactionRelationScore.REL_TRUST, -1)
+                member_b.get_relation_to(a).apply_delta_to(FactionRelationScore.REL_TRUST, -1)
             elif (sa == STANCE_UNDERMINE and sb == STANCE_SUPPORT) or (sa == STANCE_SUPPORT and sb == STANCE_UNDERMINE):
-                _apply_rel(relations, a, b, "trust", -6)
-                _apply_rel(relations, b, a, "trust", -6)
-                if arc_notebook != null and arc_notebook.has_method("record_pair_event"):
-                    arc_notebook.record_pair_event(day, a, b, &"COALITION_BETRAYAL", &"", {}) # debug/metrics
+                member_a.get_relation_to(b).apply_delta_to(FactionRelationScore.REL_TRUST, -6)
+                member_b.get_relation_to(a).apply_delta_to(FactionRelationScore.REL_TRUST, -6)
+                ArcManagerRunner.arc_notebook.record_pair_event(day, a, b, &"COALITION_BETRAYAL", &"", {}) # debug/metrics
 
 
 # -------------------- scoring helpers --------------------
@@ -648,18 +640,3 @@ func _build_template_fallback(id: StringName, tier: int, expires_in_days: int) -
     t.objective_count = 1
     t.expires_in_days = expires_in_days
     return t
-
-
-# -------------------- tiny relation utils --------------------
-func _apply_rel(relations: Dictionary, a: StringName, b: StringName, field: String, delta: int) -> void:
-    if a == &"" or b == &"":
-        return
-    if not relations.has(a) or not relations[a].has(b):
-        return
-    var r: FactionRelationScore = relations[a][b]
-    match field:
-        "relation":   r.relation = int(clampi(r.relation + delta, -100, 100))
-        "trust":      r.trust = int(clampi(r.trust + delta, 0, 100))
-        "tension":    r.tension = int(clampi(r.tension + delta, 0, 100))
-        "grievance":  r.grievance = int(clampi(r.grievance + delta, 0, 100))
-        "weariness":  r.weariness = int(clampi(r.weariness + delta, 0, 100))

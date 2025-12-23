@@ -46,11 +46,11 @@ func assert_true(cond: bool, message: String = "assert_true failed") -> void:
         count_error += 1
 
 
-func _assert(cond: bool, msg: String) -> void:
+func _assert(cond: bool, msg: String) -> bool:
     if not cond:
         print("FAILED = " + msg)
         count_error += 1
-        #assert(false)
+    return cond
         
 func enable_test(enable:bool):
     if !enable:

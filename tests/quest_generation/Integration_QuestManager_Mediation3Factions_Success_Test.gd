@@ -28,7 +28,15 @@ func _test_resolve_quest_mediation_success_logs_and_inverse_deltas() -> void:
     var A := &"A"
     var B := &"B"
     var C := &"C"  # mediator
-
+    var faction_a = Faction.new()
+    faction_a.id = A
+    var faction_b = Faction.new()
+    faction_b.id = B
+    var faction_c = Faction.new()
+    faction_c.id = C
+    FactionManager.register_faction(faction_a)
+    FactionManager.register_faction(faction_b)
+    FactionManager.register_faction(faction_c)
     # --- setup test relations in FactionManager.relation_scores ---
     # Structure: relation_scores[from_id][to_id, FactionRelationScore
     FactionManager.set_relation(A, B, FactionRelationScore.new(B))
@@ -39,27 +47,21 @@ func _test_resolve_quest_mediation_success_logs_and_inverse_deltas() -> void:
     FactionManager.set_relation(C, B, FactionRelationScore.new(B))
 
     # baseline: conflict moderate, mediator trust neutral
-    var relation_to_change : FactionRelationScore = FactionManager.get_relation_score(A,B)
-    relation_to_change.tension = 45
-    relation_to_change.grievance = 25
-    FactionManager.set_relation(A,B, relation_to_change)
-    relation_to_change = FactionManager.get_relation_score(B, A)
-    relation_to_change.tension = 45
-    relation_to_change.grievance = 25
-    FactionManager.set_relation(B, A, relation_to_change)
-    relation_to_change = FactionManager.get_relation_score(A, C)
-    relation_to_change.grievance = 25
-    relation_to_change.trust = 50
-    FactionManager.set_relation(A, C, relation_to_change)
-    relation_to_change = FactionManager.get_relation_score(B, C)
-    relation_to_change.trust = 50
-    FactionManager.set_relation(B, C, relation_to_change)
-    relation_to_change = FactionManager.get_relation_score(C, A)
-    relation_to_change.trust = 50
-    FactionManager.set_relation(C, A, relation_to_change)
-    relation_to_change = FactionManager.get_relation_score(C, B)
-    relation_to_change.trust = 50
-    FactionManager.set_relation(C, B, relation_to_change)
+    var relation_to_change : FactionRelationScore = FactionManager.get_relation(A,B)
+    relation_to_change.set_score(FactionRelationScore.REL_TENSION, 45)
+    relation_to_change.set_score(FactionRelationScore.REL_GRIEVANCE, 25)
+    relation_to_change = FactionManager.get_relation(B, A)
+    relation_to_change.set_score(FactionRelationScore.REL_TENSION, 45)
+    relation_to_change.set_score(FactionRelationScore.REL_GRIEVANCE, 25)
+    relation_to_change = FactionManager.get_relation(A, C)
+    relation_to_change.set_score(FactionRelationScore.REL_TRUST, 50)
+    relation_to_change.set_score(FactionRelationScore.REL_GRIEVANCE, 25)
+    relation_to_change = FactionManager.get_relation(B, C)
+    relation_to_change.set_score(FactionRelationScore.REL_TRUST, 50)
+    relation_to_change = FactionManager.get_relation(C, A)
+    relation_to_change.set_score(FactionRelationScore.REL_TRUST, 50)
+    relation_to_change = FactionManager.get_relation(C, B)
+    relation_to_change.set_score(FactionRelationScore.REL_TRUST, 50)
 
     # --- quest instance mediation 3 factions ---
     var template = QuestTemplate.new()
@@ -94,12 +96,15 @@ func _test_resolve_quest_mediation_success_logs_and_inverse_deltas() -> void:
     # add to active quests
     QuestManager.start_runtime_quest(inst)
 
-    var tension_before: int = FactionManager.relation_scores[A][B].tension
-    var trust_a_c_before: int = FactionManager.relation_scores[A][C].trust
+    var tension_before: float = FactionManager.get_relation_score(A, B, FactionRelationScore.REL_TENSION)
+    var trust_a_c_before: float = FactionManager.get_relation_score(A, C, FactionRelationScore.REL_TRUST)
 
     # --- act ---
     QuestManager.resolve_quest(inst.runtime_id, &"LOYAL")
 
+
+    var tension_after: float = FactionManager.get_relation_score(A, B, FactionRelationScore.REL_TENSION)
+    var trust_a_c_after: float = FactionManager.get_relation_score(A, C, FactionRelationScore.REL_TRUST)
     # --- status should be COMPLETED (not FAILED) ---
     _assert(inst.status == QuestTypes.QuestStatus.COMPLETED, "quest status should be COMPLETED (got %s)" % str(inst.status))
 
@@ -108,13 +113,13 @@ func _test_resolve_quest_mediation_success_logs_and_inverse_deltas() -> void:
         _assert(not QuestManager.active_quests.has(inst.runtime_id), "quest should be removed from active_quests after resolve")
 
     # --- inverse deltas: tension down, trust to mediator up ---
-    _assert(FactionManager.relation_scores[A][B].tension < tension_before, 
+    _assert(tension_after < tension_before, 
         "tension(A→B) should decrease on successful mediation (before=%d after=%d)" % [
-            tension_before, FactionManager.relation_scores[A][B].tension
+            tension_before, tension_after
         ])
-    _assert(FactionManager.relation_scores[A][C].trust > trust_a_c_before, 
+    _assert(trust_a_c_after > trust_a_c_before, 
         "trust(A→C) should increase on successful mediation (before=%d after=%d)" % [
-            trust_a_c_before, FactionManager.relation_scores[A][C].trust
+            trust_a_c_before, trust_a_c_after
         ])
 
     # --- ArcNotebook meta: outcome/chance/roll ---

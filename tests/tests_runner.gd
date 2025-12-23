@@ -33,12 +33,16 @@ func _ready() -> void:
 
     var results := []
     for path in tests:
+        _reset_autoload()
         var ok := await _run_one(path)
         results.append({ "path": path, "ok": ok })
         if stop_on_failure and not ok:
             break
 
     _print_summary(results)
+    
+func _reset_autoload():
+    FactionManager.reset()
 func _is_excluded_dir(path: String) -> bool:
     var p := path.simplify_path()
     for ex in excluded_dirs:

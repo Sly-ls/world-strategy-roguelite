@@ -31,7 +31,9 @@ func _ready() -> void:
     _init_relation_scores()
     print("✓ FactionManager initialisé avec %d factions" % factions.size())
 
-
+func reset():
+    factions.clear()
+    
 func _init_default_factions() -> void:
     """Initialise les factions par défaut"""
     # Factions humaines
@@ -642,7 +644,7 @@ func generate_world(count: int, heat: int, seed: int = 0, params: Dictionary = {
 # -----------------------------------------
 # Relations : init globale en 1 passe
 # -----------------------------------------
-func initialize_relations_world(heat: int, seed: int = 0, params: Dictionary = {}) -> void:
+func initialize_relations_world(heat: int = 1, seed: int = 0, params: Dictionary = {}) -> void:
     heat = clampi(heat, 1, 100)
     var h := float(heat) / 100.0
 

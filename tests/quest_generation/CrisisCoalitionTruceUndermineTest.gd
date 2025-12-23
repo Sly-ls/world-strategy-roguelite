@@ -19,8 +19,6 @@ func _test_crisis_coalition_truce_then_undermine_creates_suspicion() -> void:
     var D := &"D"  # third member to satisfy min members
     var C := &"C"  # crisis instigator/target of STOP coalition
 
-    var faction_ids: Array[StringName] = [A, B, C, D]
-
     # Profiles - utiliser les vraies constantes FactionProfile.AXIS_CORRUPTION
     var faction_a = Faction.new()
     faction_a.id = A
@@ -29,20 +27,20 @@ func _test_crisis_coalition_truce_then_undermine_creates_suspicion() -> void:
             {FactionProfile.AXIS_CORRUPTION: -80}
         )
     var faction_b = Faction.new()
-    faction_a.id = B
-    faction_a.profile = FactionProfile.from_profile_and_axis(
+    faction_b.id = B
+    faction_b.profile = FactionProfile.from_profile_and_axis(
             {FactionProfile.PERS_HONOR: 0.75, FactionProfile.PERS_DIPLOMACY: 0.80, FactionProfile.PERS_OPPORTUNISM: 0.5, FactionProfile.PERS_FEAR: 0.9},
             {FactionProfile.AXIS_CORRUPTION: -10}  # légèrement anti-corruption pour axis_resist > 0
         )
     var faction_c = Faction.new()
-    faction_a.id = C
-    faction_a.profile = FactionProfile.from_profile_and_axis(
+    faction_c.id = C
+    faction_c.profile = FactionProfile.from_profile_and_axis(
             {FactionProfile.PERS_HONOR: 0.3, FactionProfile.PERS_DIPLOMACY: 0.2, FactionProfile.PERS_OPPORTUNISM: 0.7, FactionProfile.PERS_FEAR: 0.4},
             {FactionProfile.AXIS_CORRUPTION: 90}
         )
     var faction_d = Faction.new()
-    faction_a.id = D
-    faction_a.profile = FactionProfile.from_profile_and_axis(
+    faction_d.id = D
+    faction_d.profile = FactionProfile.from_profile_and_axis(
             {FactionProfile.PERS_HONOR: 0.7, FactionProfile.PERS_DIPLOMACY: 0.65, FactionProfile.PERS_OPPORTUNISM: 0.35, FactionProfile.PERS_FEAR: 0.35},
             {FactionProfile.AXIS_CORRUPTION: -40}
         )
@@ -51,31 +49,29 @@ func _test_crisis_coalition_truce_then_undermine_creates_suspicion() -> void:
     FactionManager.register_faction(faction_b)
     FactionManager.register_faction(faction_c)
     FactionManager.register_faction(faction_d)
-
+    FactionManager.initialize_relations_world()
+    
+    var all_factions :Array[Faction] = FactionManager.get_all_factions()
     # init relation
-    for x in faction_ids:
-        for y in faction_ids:
+    for x in all_factions:
+        for y in all_factions:
             if x == y:
                 continue
-            var faction :Faction = FactionManager.get_faction(x)
-            var rel_x_y = faction.get_relation_to(y)
-            if rel_x_y == null:
-                rel_x_y = FactionRelationScore.new(y)
+            var rel_x_y = x.get_relation_to(y.id)
             # A and B are enemies / at war-like
-            if (x == A && y == B) || (x == B && y == A):
+            if (x.id == A && y.id == B) || (x.id == B && y.id == A):
                 rel_x_y.set_score(FactionRelationScore.REL_RELATION, -80);
             # Everyone dislikes C enough to join anti crisis (STOP_CRISIS uses dislike source)
-            elif (x == A && y == B):
+            elif (x.id == A && y.id == B):
                 rel_x_y.set_score(FactionRelationScore.REL_RELATION, -80);
-            elif (x == A && y == C):
+            elif (x.id == A && y.id == C):
                 rel_x_y.set_score(FactionRelationScore.REL_RELATION, -70);
-            elif (x == D && y == C):
+            elif (x.id == D && y.id == C):
                 rel_x_y.set_score(FactionRelationScore.REL_RELATION, -60);
-            elif (x == B && y == C):
+            elif (x.id == B && y.id == C):
                 rel_x_y.set_score(FactionRelationScore.REL_RELATION, -50);
             else :
-                rel_x_y.set_score(FactionRelationScore.REL_RELATION, -10);
-            faction.set_relation_to(y, rel_x_y)
+                rel_x_y.set_score(FactionRelationScore.REL_RELATION, 0);
 
     # World crisis - utiliser la vraie constante pour crisis_axis
     var world := {
@@ -91,11 +87,12 @@ func _test_crisis_coalition_truce_then_undermine_creates_suspicion() -> void:
     # Debug: afficher les scores de join avant tick
     print("  [DEBUG] Join scores before tick_day:")
     for f in [A, B, D]:
-        var score := CoalitionManager._stop_crisis_join_score( f, C, FactionProfile.AXIS_CORRUPTION, 0.90, world, notebook)
+        var faction :Faction = FactionManager.get_faction(f)
+        var score := CoalitionManager._stop_crisis_join_score(faction, faction_c, FactionProfile.AXIS_CORRUPTION, 0.90, world)
         print("    %s: score=%.3f (threshold=0.55)" % [str(f), score])
 
     # Day 10: tick => should form STOP_CRISIS coalition and set truce locks
-    CoalitionManager.tick_day(10, faction_ids, world, notebook)
+    CoalitionManager.tick_day(10, world)
 
     # Debug: afficher les coalitions créées
     print("  [DEBUG] Coalitions created: %d" % CoalitionManager.coalitions_by_id.size())
@@ -112,71 +109,71 @@ func _test_crisis_coalition_truce_then_undermine_creates_suspicion() -> void:
         if c.kind == &"CRISIS" and c.goal == &"STOP_CRISIS" and c.target_id == C:
             coal = c
             break
+    #TODO repair the assert
+    if _assert(coal != null, "should create a STOP_CRISIS coalition"):
+        _assert(coal.member_ids.has(A), "coalition should include A")
+        _assert(coal.member_ids.has(B), "coalition should include B")
+        _assert(coal.member_ids.has(D), "coalition should include D")
+        print("  ✓ STOP_CRISIS coalition created with members: %s" % str(coal.member_ids))
 
-    _assert(coal != null, "should create a STOP_CRISIS coalition")
-    _assert(coal.member_ids.has(A), "coalition should include A")
-    _assert(coal.member_ids.has(B), "coalition should include B")
-    _assert(coal.member_ids.has(D), "coalition should include D")
-    print("  ✓ STOP_CRISIS coalition created with members: %s" % str(coal.member_ids))
+        # Verify pair lock truce between members (A|B in particular)
+        var pair_key_ab := Utils.pair_key(A, B)
+        _assert(notebook.pair_locks.has(pair_key_ab), "expected pair lock for A|B to exist (temporary coalition truce)")
+        
+        var lock: Dictionary = notebook.pair_locks.get(pair_key_ab, {})
+        _assert(not lock.is_empty(), "lock should not be empty")
+        _assert(int(lock.get("until", 0)) >= 20, "truce lock should last ~10+ days, got until=%d" % int(lock.get("until", 0)))
+        _assert(StringName(lock.get("reason", &"")) == &"COALITION_TRUCE", "lock reason should be COALITION_TRUCE")
+        print("  ✓ Pair lock A|B exists until day %d with reason %s" % [lock.get("until", 0), lock.get("reason", "")])
 
-    # Verify pair lock truce between members (A|B in particular)
-    var pair_key_ab := Utils.pair_key(A, B)
-    _assert(notebook.pair_locks.has(pair_key_ab), "expected pair lock for A|B to exist (temporary coalition truce)")
-    
-    var lock: Dictionary = notebook.pair_locks.get(pair_key_ab, {})
-    _assert(not lock.is_empty(), "lock should not be empty")
-    _assert(int(lock.get("until", 0)) >= 20, "truce lock should last ~10+ days, got until=%d" % int(lock.get("until", 0)))
-    _assert(StringName(lock.get("reason", &"")) == &"COALITION_TRUCE", "lock reason should be COALITION_TRUCE")
-    print("  ✓ Pair lock A|B exists until day %d with reason %s" % [lock.get("until", 0), lock.get("reason", "")])
+        # Ensure a JOINT OP offer exists (spawned by tick_day after lock_until_day)
+        # Note: lock_until_day = day + 2 = 12, so offers won't spawn until day 12+
+        # Let's advance to day 15 to trigger offer spawning
+        CoalitionManager.tick_day(15, world)
 
-    # Ensure a JOINT OP offer exists (spawned by tick_day after lock_until_day)
-    # Note: lock_until_day = day + 2 = 12, so offers won't spawn until day 12+
-    # Let's advance to day 15 to trigger offer spawning
-    CoalitionManager.tick_day(15, world, notebook)
+        var joint_ctx: Dictionary = {}
+        if QuestPool != null:
+            for inst in QuestPool.offers:
+                if bool(inst.context.get("is_coalition", false)) and StringName(inst.context.get("coalition_id", &"")) == coal.id:
+                    if inst.context.has("joint_op_type"):
+                        joint_ctx = inst.context
+                        break
 
-    var joint_ctx: Dictionary = {}
-    if QuestPool != null:
-        for inst in QuestPool.offers:
-            if bool(inst.context.get("is_coalition", false)) and StringName(inst.context.get("coalition_id", &"")) == coal.id:
-                if inst.context.has("joint_op_type"):
-                    joint_ctx = inst.context
-                    break
+        if joint_ctx.is_empty():
+            # Fallback: créer un contexte manuellement pour tester apply_joint_op_resolution
+            joint_ctx = {
+                "is_coalition": true,
+                "coalition_id": coal.id,
+                "coalition_kind": coal.kind,
+                "coalition_goal": coal.goal,
+                "coalition_target": coal.target_id,
+                "tier": 3,
+                "joint_op_type": &"JOINT_MILITARY"
+            }
+            print("  ⚠ No joint_op offer found in QuestPool, using manual context")
+        else:
+            print("  ✓ Joint op offer found in QuestPool")
 
-    if joint_ctx.is_empty():
-        # Fallback: créer un contexte manuellement pour tester apply_joint_op_resolution
-        joint_ctx = {
-            "is_coalition": true,
-            "coalition_id": coal.id,
-            "coalition_kind": coal.kind,
-            "coalition_goal": coal.goal,
-            "coalition_target": coal.target_id,
-            "tier": 3,
-            "joint_op_type": &"JOINT_MILITARY"
-        }
-        print("  ⚠ No joint_op offer found in QuestPool, using manual context")
-    else:
-        print("  ✓ Joint op offer found in QuestPool")
+        # Apply resolution at day 16: should cause some members to UNDERMINE and lower cohesion
+        var cohesion_before := coal.cohesion
+        var betrayals_before := 0
+        if notebook.has_method("count_events_by_action"):
+            betrayals_before = notebook.count_events_by_action(&"COALITION_BETRAYAL")
 
-    # Apply resolution at day 16: should cause some members to UNDERMINE and lower cohesion
-    var cohesion_before := coal.cohesion
-    var betrayals_before := 0
-    if notebook.has_method("count_events_by_action"):
-        betrayals_before = notebook.count_events_by_action(&"COALITION_BETRAYAL")
+        CoalitionManager.apply_joint_op_resolution(joint_ctx, &"LOYAL", 16, world)
 
-    CoalitionManager.apply_joint_op_resolution(joint_ctx, &"LOYAL", 16, profiles, relations, world, notebook)
+    # print("  [DEBUG] Cohesion: before=%d after=%d" % [cohesion_before, coal.cohesion])
 
-   # print("  [DEBUG] Cohesion: before=%d after=%d" % [cohesion_before, coal.cohesion])
+        # Note: cohesion might increase or decrease depending on stances
+        # The key test is that COALITION_BETRAYAL events are recorded when UNDERMINE happens
+        var betrayals_after := 0
+        if notebook.has_method("count_events_by_action"):
+            betrayals_after = notebook.count_events_by_action(&"COALITION_BETRAYAL")
 
-    # Note: cohesion might increase or decrease depending on stances
-    # The key test is that COALITION_BETRAYAL events are recorded when UNDERMINE happens
-    var betrayals_after := 0
-    if notebook.has_method("count_events_by_action"):
-        betrayals_after = notebook.count_events_by_action(&"COALITION_BETRAYAL")
+    # print("  [DEBUG] Betrayals: before=%d after=%d" % [betrayals_before, betrayals_after])
 
-   # print("  [DEBUG] Betrayals: before=%d after=%d" % [betrayals_before, betrayals_after])
-
-    # If B undermines (due to high opportunism + corruption affinity), there should be a betrayal event
-    # But this depends on the RNG in _decide_member_stance
-    # For a deterministic test, we'd need to override _decide_member_stance or seed the RNG
-    
-   # print("  ✓ Resolution applied, cohesion=%d, betrayals=%d" % [coal.cohesion, betrayals_after])
+        # If B undermines (due to high opportunism + corruption affinity), there should be a betrayal event
+        # But this depends on the RNG in _decide_member_stance
+        # For a deterministic test, we'd need to override _decide_member_stance or seed the RNG
+        
+    # print("  ✓ Resolution applied, cohesion=%d, betrayals=%d" % [coal.cohesion, betrayals_after])
