@@ -263,7 +263,6 @@ static func apply_arc_resolution_event(
     rel_ba: FactionRelationScore,
     profile_a: FactionProfile,
     profile_b: FactionProfile,
-    arc_notebook: ArcNotebook,
     current_day: int,
     rng: RandomNumberGenerator,
     params: Dictionary = {}
@@ -279,8 +278,8 @@ static func apply_arc_resolution_event(
     # 2) cap% issu de l’historique (10%..30%) + policy de type
     var pol := _policy(action)
 
-    var hist_a := arc_notebook.get_history(giver_id)
-    var hist_b := arc_notebook.get_history(ant_id)
+    var hist_a := ArcManagerRunner.arc_notebook.get_history(giver_id)
+    var hist_b := ArcManagerRunner.arc_notebook.get_history(ant_id)
 
     var base_cap_pct := compute_relation_cap_pct_from_histories(
         hist_a, hist_b, giver_id, ant_id, action, current_day, params
@@ -296,16 +295,16 @@ static func apply_arc_resolution_event(
     # 3) cap absolu (min 10 points, sinon % du score actuel)
     var min_abs := int(params.get("min_abs_cap", 10))
 
-    var cap_ab_rel :int = max(min_abs, int(round(abs(rel_ab.relation) * cap_pct_rel)))
-    var cap_ba_rel :int = max(min_abs, int(round(abs(rel_ba.relation) * cap_pct_rel)))
+    var cap_ab_rel :int = max(min_abs, int(round(abs(rel_ab.get_score(FactionRelationScore.REL_RELATION)) * cap_pct_rel)))
+    var cap_ba_rel :int = max(min_abs, int(round(abs(rel_ba.get_score(FactionRelationScore.REL_RELATION)) * cap_pct_rel)))
 
     ab_scaled[FactionRelationScore.REL_RELATION] = clampi(int(ab_scaled[FactionRelationScore.REL_RELATION]), -cap_ab_rel, cap_ab_rel)
     ba_scaled[FactionRelationScore.REL_RELATION] = clampi(int(ba_scaled[FactionRelationScore.REL_RELATION]), -cap_ba_rel, cap_ba_rel)
 
     # Trust cap (souvent utile)
     if bool(params.get("cap_trust_too", true)):
-        var cap_ab_tr :int = max(min_abs, int(round(abs(rel_ab.trust) * cap_pct_trust)))
-        var cap_ba_tr :int = max(min_abs, int(round(abs(rel_ba.trust) * cap_pct_trust)))
+        var cap_ab_tr :int = max(min_abs, int(round(abs(rel_ab.get_score(FactionRelationScore.REL_TRUST)) * cap_pct_trust)))
+        var cap_ba_tr :int = max(min_abs, int(round(abs(rel_ba.get_score(FactionRelationScore.REL_TRUST)) * cap_pct_trust)))
         ab_scaled[FactionRelationScore.REL_TRUST] = clampi(int(ab_scaled[FactionRelationScore.REL_TRUST]), -cap_ab_tr, cap_ab_tr)
         ba_scaled[FactionRelationScore.REL_TRUST] = clampi(int(ba_scaled[FactionRelationScore.REL_TRUST]), -cap_ba_tr, cap_ba_tr)
 

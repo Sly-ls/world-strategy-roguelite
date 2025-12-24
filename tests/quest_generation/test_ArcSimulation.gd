@@ -1,7 +1,7 @@
 extends BaseTest
 class_name TestArcSimulation
 
-const GOLDEN_PATH := "user://golden_faction_profiles.json"
+const GOLDEN_PATH := "res://assets/profiles/golden_faction_profiles.json"
 
 @export var days_to_simulate: int = 30
 @export var max_events_per_day: int = 6
@@ -46,36 +46,8 @@ func run(days: int) -> void:
         ids.append(StringName(fid))
 
     # 2) Init relations world
-    var world_rel := FactionRelationsUtil.initialize_relations_world(
-        faction_profiles,
-        rng,
-        {
-            "apply_reciprocity": true,
-            "reciprocity_strength": 0.70,
-            "keep_asymmetry": 0.30,
-            "reciprocity_noise": 2,
-            "max_change_per_pair": 18,
-            "final_global_sanity": true,
-            "max_extremes_per_faction": 2
-        },
-        {
-            "desired_mean": 0.0,
-            "desired_std": 22.0,
-            "enemy_min": 1, "enemy_max": 2,
-            "ally_min": 1, "ally_max": 2,
-            "noise": 3,
-            "tension_cap": 40.0,
-            "final_recenter": true
-        },
-        {
-            "w_axis_similarity": 80.0,
-            "w_cross_conflict": 55.0,
-            "tension_cap": 40.0
-        }
-    )
-
-    # 3) Notebook (historique arcs) — ton ArcNotebook par faction
-    var arc_notebook := ArcNotebook.new()
+    var params :Dictionary = TestUtils.init_params()
+    FactionRelationsUtil.initialize_relations_world(1, 12345, params)
 
     # 4) Stats time-series + compteurs
     var stats := {
@@ -90,7 +62,7 @@ func run(days: int) -> void:
         "avg_weariness_series": [],
     }
 
-    var snap0 := _snapshot_metrics(ids, world_rel)
+    var snap0 := TestUtils.snapshot_metrics()
     stats["avg_tension_series"].append(snap0["avg_tension"])
     stats["avg_relation_series"].append(snap0["avg_relation"])
     stats["avg_weariness_series"].append(snap0["avg_weariness"])
@@ -98,21 +70,22 @@ func run(days: int) -> void:
     # 5) Simulation days
     for day in range(1, days + 1):
         # a) cooling passif (important pour casser l’escalade “auto”)
-        _daily_decay(ids, world_rel, faction_profiles)
+        #_daily_decay(ids, world_rel, faction_profiles)
+        FactionManager.daily_decay()
 
         # b) collect candidates (A->B directionnel)
+        var all_factions = FactionManager.get_all_factions()
         var candidates: Array = []
-        for a_id in ids:
-            var map_a: Dictionary = world_rel[a_id]
-            for b_id in map_a.keys():
-                if b_id == a_id:
-                    continue
-                var rel_ab: FactionRelationScore = map_a[b_id]
+        
+        for faction_a in all_factions:
+            for faction_b in all_factions:
+                if faction_a == faction_b: continue
+                var rel_ab: FactionRelationScore = faction_a.get_relation_to(faction_b.id)
 
                 var p := ArcDecisionUtil.compute_arc_event_chance(
                     rel_ab,
-                    faction_profiles[a_id],
-                    faction_profiles[b_id],
+                    faction_a.profile,
+                    faction_b.profile,
                     day,
                     {"max_p": 0.35}
                 )
@@ -120,7 +93,7 @@ func run(days: int) -> void:
                     continue
                 # tirage “pré-sélection”
                 if rng.randf() < p:
-                    candidates.append({"a": a_id, "b": b_id, "p": p})
+                    candidates.append({"a": faction_a.id, "b": faction_b.id, "p": p})
 
         # c) limiter le budget d'events / jour (sinon n^2 explose la simulation)
         candidates.sort_custom(func(x, y): return float(x["p"]) > float(y["p"]))
@@ -131,8 +104,10 @@ func run(days: int) -> void:
             var a_id: StringName = c["a"]
             var b_id: StringName = c["b"]
 
-            var rel_ab: FactionRelationScore = world_rel[a_id][b_id]
-            var rel_ba: FactionRelationScore = world_rel[b_id][a_id]
+            var faction_a: Faction = FactionManager.get_faction(a_id)
+            var faction_b: Faction = FactionManager.get_faction(b_id)
+            var rel_ab: FactionRelationScore = faction_a.get_relation_to(faction_b.id)
+            var rel_ba: FactionRelationScore = faction_a.get_relation_to(faction_b.id)
 
             # d) action selection
             var action := ArcDecisionUtil.select_arc_action_type(
@@ -164,7 +139,6 @@ func run(days: int) -> void:
                 rel_ba,
                 faction_profiles[a_id],
                 faction_profiles[b_id],
-                arc_notebook,
                 day,
                 rng
             )
@@ -173,14 +147,14 @@ func run(days: int) -> void:
             _stats_add(stats, action, choice)
 
         # h) snapshot
-        var snap := _snapshot_metrics(ids, world_rel)
+        var snap := TestUtils.snapshot_metrics()
         stats["avg_tension_series"].append(snap["avg_tension"])
         stats["avg_relation_series"].append(snap["avg_relation"])
         stats["avg_weariness_series"].append(snap["avg_weariness"])
 
     # 6) Invariants anti-escalade + résumé
     _print_summary(stats, days)
-    _validate_invariants(stats, ids, world_rel, days)
+    _validate_invariants(stats, days)
 
 
 # -----------------------------
@@ -271,27 +245,7 @@ func _stats_add(stats: Dictionary, action: StringName, choice: StringName) -> vo
         stats["hostile_events"] = int(stats["hostile_events"]) + 1
 
 
-func _snapshot_metrics(ids: Array[StringName], world_rel: Dictionary) -> Dictionary:
-    var rels: Array[float] = []
-    var tens: Array[float] = []
-    var wears: Array[float] = []
-
-    for a_id in ids:
-        var map_a: Dictionary = world_rel[a_id]
-        for b_id in map_a.keys():
-            var rs: FactionRelationScore = map_a[b_id]
-            rels.append(float(rs.relation))
-            tens.append(float(rs.tension))
-            wears.append(float(rs.weariness))
-
-    return {
-        "avg_relation": _mean(rels),
-        "avg_tension": _mean(tens),
-        "avg_weariness": _mean(wears),
-    }
-
-
-func _validate_invariants(stats: Dictionary, ids: Array[StringName], world_rel: Dictionary, days: int) -> void:
+func _validate_invariants(stats: Dictionary, days: int) -> void:
     var events_total := int(stats["events_total"])
     _assert(events_total >= min(5, days), "Too few events produced: %d over %d days" % [events_total, days])
 
@@ -314,20 +268,25 @@ func _validate_invariants(stats: Dictionary, ids: Array[StringName], world_rel: 
     _assert(t_end <= t0 + 35.0, "Avg tension increased too much: %f -> %f" % [t0, t_end])
 
     # Un petit nombre de paires “ultra chaudes” max
-    var hot_pairs := _count_hot_pairs(ids, world_rel)
+    var hot_pairs := _count_hot_pairs()
     _assert(hot_pairs <= 3, "Too many hot pairs (tension>=80 and mean relation<=-70): %d" % hot_pairs)
 
 
-func _count_hot_pairs(ids: Array[StringName], world_rel: Dictionary) -> int:
+func _count_hot_pairs() -> int:
+    var all_factions = FactionManager.get_all_factions()
     var c := 0
-    for i in range(ids.size()):
-        for j in range(i + 1, ids.size()):
-            var a := ids[i]
-            var b := ids[j]
-            var ab: FactionRelationScore = world_rel[a][b]
-            var ba: FactionRelationScore = world_rel[b][a]
-            var mean_rel := 0.5 * (float(ab.relation) + float(ba.relation))
-            var mean_t := 0.5 * (ab.get_score(FactionRelationScore.REL_TENSION) + ba.get_score(FactionRelationScore.REL_TENSION))
+    for i in range(all_factions.size()):
+        for j in range(i + 1, all_factions.size()):
+            var faction_a :Faction= all_factions[i]
+            var faction_b :Faction= all_factions[j]
+            var rel_ab: FactionRelationScore = faction_a.get_relation_to(faction_b.id)
+            var rel_ba: FactionRelationScore = faction_b.get_relation_to(faction_a.id)
+            var rel_score_a :float = rel_ab.get_score(FactionRelationScore.REL_RELATION)
+            var rel_score_b :float = rel_ba.get_score(FactionRelationScore.REL_RELATION)
+            var ten_score_a :float = rel_ab.get_score(FactionRelationScore.REL_TENSION)
+            var ten_score_b :float = rel_ba.get_score(FactionRelationScore.REL_TENSION)
+            var mean_rel :float = 0.5 * (float(rel_score_a) + float(rel_score_b))
+            var mean_t :float = 0.5 * (ten_score_a + ten_score_b)
             if mean_t >= 80.0 and mean_rel <= -70.0:
                 c += 1
     return c
@@ -353,6 +312,7 @@ func _print_summary(stats: Dictionary, days: int) -> void:
 # -----------------------------
 func _load_golden_profiles() -> Array[FactionProfile]:
     if not FileAccess.file_exists(GOLDEN_PATH):
+        print("Golden profiles not found at %s, generating 10 fallback profiles." % GOLDEN_PATH)
         push_warning("Golden profiles not found at %s, generating 10 fallback profiles." % GOLDEN_PATH)
         return _generate_fallback_profiles(10)
 

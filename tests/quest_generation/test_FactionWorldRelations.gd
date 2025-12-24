@@ -6,8 +6,6 @@ const GOLDEN_PATH := "user://golden_faction_profiles.json"
 var rng := RandomNumberGenerator.new()
 
 func _ready() -> void:
-    rng.seed = 424242 # reproductible
-
     # 1) Charger 10 profils différents (golden) ou fallback
     var profiles_list := _load_golden_profiles()
     _assert(profiles_list.size() >= 2, "Need at least 2 profiles to test relations")
@@ -19,38 +17,14 @@ func _ready() -> void:
         faction_profiles[id] = profiles_list[i]
 
     # 3) Générer le monde des relations
-    var world_rel := FactionRelationsUtil.initialize_relations_world(
-        faction_profiles,
-        rng,
-        {
-            "apply_reciprocity": true,
-            "reciprocity_strength": 0.70,
-            "keep_asymmetry": 0.30,
-            "reciprocity_noise": 2,
-            "max_change_per_pair": 18,
-            "final_global_sanity": true,
-            "max_extremes_per_faction": 2
-        },
-        {
-            # per-faction params (init directionnel)
-            "desired_mean": 0.0,
-            "desired_std": 22.0,
-            "enemy_min": 1, "enemy_max": 2,
-            "ally_min": 1, "ally_max": 2,
-            "noise": 3,
-            "tension_cap": 40.0,
-            "final_recenter": true
-        },
-        {
-            # baseline relation tuning forwarded to compute_baseline_relation()
-            "w_axis_similarity": 80.0,
-            "w_cross_conflict": 55.0,
-            "tension_cap": 40.0
-        }
+    FactionRelationsUtil.initialize_relations_world(
+        20,
+        424242,
+       TestUtils.init_params()
     )
 
     # 4) Vérifs
-    _validate_world_relations(faction_profiles, world_rel)
+    _validate_world_relations()
 
     pass_test("\n✅ World relations initialization tests: OK\n")
 
@@ -59,67 +33,63 @@ func _ready() -> void:
 # Validation
 # -------------------------
 
-func _validate_world_relations(faction_profiles: Dictionary, world_rel: Dictionary) -> void:
-    var ids: Array[StringName] = []
-    for fid in faction_profiles.keys():
-        ids.append(StringName(fid))
-
-    # Structure: world_rel[A][B] existe pour tous A!=B
-    for a in ids:
-        _assert(world_rel.has(a), "Missing relations map for %s" % a)
-        var map_a: Dictionary = world_rel[a]
-        for b in ids:
-            if b == a:
-                _assert(not map_a.has(b), "Self relation should not exist: %s->%s" % [a, b])
+func _validate_world_relations() -> void:
+    var all_factions = FactionManager.get_all_factions()
+    for faction_a in all_factions:
+        for faction_b in all_factions:
+            if faction_a == faction_b:
+                _assert(not faction_a.relations.has(faction_a.id), "Self relation should not exist: %s->%s" % [faction_a.id, faction_a.id])
                 continue
-            _assert(map_a.has(b), "Missing relation score: %s->%s" % [a, b])
-            _validate_score_bounds(a, b, map_a[b])
+            _assert(faction_a.relations.has(faction_b.id), "Missing relation score: %s->%s" % [faction_a.id, faction_b.id])
+            _validate_score_bounds(faction_a, faction_b)
 
     # Qualité globale: moyenne centrée + variance raisonnable + allies/enemies
-    _validate_centering_and_spread(ids, world_rel)
-    _validate_allies_enemies(ids, world_rel)
-    _validate_reciprocity(ids, world_rel)
+    _validate_centering_and_spread()
+    _validate_allies_enemies()
+    _validate_reciprocity()
 
 
-func _validate_score_bounds(a: StringName, b: StringName, rs) -> void:
+func _validate_score_bounds(faction_a: Faction, faction_b: Faction) -> void:
     # rs est un FactionRelationScore
-    _assert(rs != null, "Null score for %s->%s" % [a, b])
+    var relation = faction_a.get_relation_to(faction_b.id)
+    _assert(relation != null, "Null score for %s->%s" % [faction_a.id, faction_b.id])
+    var relation_score = relation.get_score(FactionRelationScore.REL_RELATION)
+    var trust_score = relation.get_score(FactionRelationScore.REL_TRUST)
+    var tension_score = relation.get_score(FactionRelationScore.REL_TENSION)
+    var friction_score = relation.get_score(FactionRelationScore.REL_FRICTION)
+    var grievance_score = relation.get_score(FactionRelationScore.REL_GRIEVANCE)
+    var weariness_score = relation.get_score(FactionRelationScore.REL_WEARINESS)
+    _assert(relation_score >= -100 and relation_score <= 100, "relation out of range %s->%s = %d" % [faction_a.id, faction_b.id, relation_score])
+    _assert(trust_score >= -100 and trust_score <= 100, "trust out of range %s->%s = %d" % [faction_a.id, faction_b.id, trust_score])
+    _assert(tension_score >= 0.0 and tension_score <= 100.0, "tension out of range %s->%s = %f" % [faction_a.id, faction_b.id, tension_score])
+    _assert(friction_score >= 0.0 and friction_score <= 100.0, "friction out of range %s->%s = %f" % [faction_a.id, faction_b.id, friction_score])
+    _assert(grievance_score >= 0.0 and grievance_score <= 100.0, "grievance out of range %s->%s = %f" % [faction_a.id, faction_b.id, grievance_score])
+    _assert(weariness_score >= 0.0 and weariness_score <= 100.0, "weariness out of range %s->%s = %f" % [faction_a.id, faction_b.id, weariness_score])
 
-    _assert(rs.relation >= -100 and rs.relation <= 100, "relation out of range %s->%s = %d" % [a, b, rs.relation])
-    _assert(rs.trust >= -100 and rs.trust <= 100, "trust out of range %s->%s = %d" % [a, b, rs.trust])
-    _assert(rs.tension >= 0.0 and rs.tension <= 100.0, "tension out of range %s->%s = %f" % [a, b, rs.tension])
-    # friction optionnel mais fortement recommandé
-    if "friction" in rs:
-        _assert(rs.friction >= 0.0 and rs.friction <= 100.0, "friction out of range %s->%s = %f" % [a, b, rs.friction])
-    _assert(rs.grievance >= 0.0 and rs.grievance <= 100.0, "grievance out of range %s->%s = %f" % [a, b, rs.grievance])
-    _assert(rs.weariness >= 0.0 and rs.weariness <= 100.0, "weariness out of range %s->%s = %f" % [a, b, rs.weariness])
 
-
-func _validate_centering_and_spread(ids: Array[StringName], world_rel: Dictionary) -> void:
+func _validate_centering_and_spread() -> void:
     # global mean / std
-    var all_vals: Array[float] = []
-    for a in ids:
-        var map_a: Dictionary = world_rel[a]
-        for b in map_a.keys():
-            all_vals.append(float(map_a[b].relation))
+    var all_vals :Array[float] = []
+    var all_factions = FactionManager.get_all_factions()
+    for faction_a in all_factions:
+        var vals: Array[float] = []
+        for faction_b in all_factions:
+            if faction_a == faction_b: continue
+            var relation = faction_a.get_relation_to(faction_b.id)
+            all_vals.append(float(relation.get_score(FactionRelationScore.REL_RELATION)))
+            vals.append(float(relation.get_score(FactionRelationScore.REL_RELATION)))
+        var m := TestUtils.mean(vals)
+        # per-faction mean not too extreme (cohérence globale)
+        _assert(abs(m) <= 20.0, "Faction %s mean too extreme: %f" % [faction_a.id, m])
 
-    var mean := _mean(all_vals)
-    var std := _std(all_vals, mean)
+    var mean := TestUtils.mean(all_vals)
+    var std := TestUtils.std(all_vals, mean)
 
+    # global mean / std
     _assert(abs(mean) <= 6.0, "Global mean too far from 0: mean=%f" % mean)
     _assert(std >= 12.0 and std <= 35.0, "Global std unexpected: std=%f (expect ~[12..35])" % std)
 
-    # per-faction mean not too extreme (cohérence globale)
-    for a in ids:
-        var vals: Array[float] = []
-        var map_a: Dictionary = world_rel[a]
-        for b in map_a.keys():
-            vals.append(float(map_a[b].relation))
-        var m := _mean(vals)
-        _assert(abs(m) <= 20.0, "Faction %s mean too extreme: %f" % [a, m])
-
-
-func _validate_allies_enemies(ids: Array[StringName], world_rel: Dictionary) -> void:
+func _validate_allies_enemies() -> void:
     # On veut "quelques ennemis naturels, quelques alliés naturels"
     # Avec ally/enemy min/max, la plupart des factions devraient en avoir.
     var need_ratio := 0.70 # au moins 70% des factions
@@ -127,42 +97,47 @@ func _validate_allies_enemies(ids: Array[StringName], world_rel: Dictionary) -> 
     var with_ally := 0
     var with_enemy := 0
 
-    for a in ids:
-        var map_a: Dictionary = world_rel[a]
+    var all_factions = FactionManager.get_all_factions()
+    for faction_a in all_factions:
         var has_ally := false
         var has_enemy := false
-        for b in map_a.keys():
-            var r := int(map_a[b].relation)
-            if r >= 30:
+        for faction_b in all_factions:
+            if faction_a == faction_b: continue
+            var relation = faction_a.get_relation_to(faction_b.id)
+            var relation_score = relation.get_score(FactionRelationScore.REL_RELATION)
+            if relation_score >= 30:
                 has_ally = true
-            if r <= -30:
+            if relation_score <= -30:
                 has_enemy = true
         if has_ally: with_ally += 1
         if has_enemy: with_enemy += 1
 
-    _assert(float(with_ally) / float(ids.size()) >= need_ratio,
-        "Not enough factions with an ally (>=30): %d/%d" % [with_ally, ids.size()])
-    _assert(float(with_enemy) / float(ids.size()) >= need_ratio,
-        "Not enough factions with an enemy (<=-30): %d/%d" % [with_enemy, ids.size()])
+    _assert(float(with_ally) / float(all_factions.size()) >= need_ratio,
+        "Not enough factions with an ally (>=30): %d/%d" % [with_ally, all_factions.size()])
+    _assert(float(with_enemy) / float(all_factions.size()) >= need_ratio,
+        "Not enough factions with an enemy (<=-30): %d/%d" % [with_enemy, all_factions.size()])
 
 
-func _validate_reciprocity(ids: Array[StringName], world_rel: Dictionary) -> void:
+func _validate_reciprocity() -> void:
     # Réciprocité légère: AB et BA convergent, mais restent différents.
     var diffs: Array[float] = []
     var ab_vals: Array[float] = []
     var ba_vals: Array[float] = []
 
-    for i in range(ids.size()):
-        for j in range(i + 1, ids.size()):
-            var a := ids[i]
-            var b := ids[j]
-            var ab := float(world_rel[a][b].relation)
-            var ba := float(world_rel[b][a].relation)
-            ab_vals.append(ab)
-            ba_vals.append(ba)
-            diffs.append(abs(ab - ba))
+    var all_factions = FactionManager.get_all_factions()
+    for i in range(all_factions.size()):
+        for j in range(i + 1, all_factions.size()):
+            var faction_a :Faction = all_factions[i]
+            var faction_b :Faction = all_factions[j]
+            var relation_ab = faction_a.get_relation_to(faction_b.id)
+            var relation_ba = faction_b.get_relation_to(faction_a.id)
+            var relation_score_ab = relation_ab.get_score(FactionRelationScore.REL_RELATION)
+            var relation_score_ba = relation_ba.get_score(FactionRelationScore.REL_RELATION)
+            ab_vals.append(relation_score_ab)
+            ba_vals.append(relation_score_ba)
+            diffs.append(abs(relation_score_ab - relation_score_ba))
 
-    var mean_diff := _mean(diffs)
+    var mean_diff := TestUtils.mean(diffs)
     # Trop bas => presque symétrique (pas voulu), trop haut => pas de convergence
     _assert(mean_diff >= 4.0 and mean_diff <= 35.0, "Reciprocity diff mean unexpected: %f" % mean_diff)
 
@@ -227,28 +202,11 @@ func _generate_fallback_profiles(n: int) -> Array[FactionProfile]:
 # Math helpers
 # -------------------------
 
-func _mean(arr: Array[float]) -> float:
-    if arr.is_empty():
-        return 0.0
-    var s := 0.0
-    for v in arr:
-        s += v
-    return s / float(arr.size())
-
-func _std(arr: Array[float], mean: float) -> float:
-    if arr.size() <= 1:
-        return 0.0
-    var s := 0.0
-    for v in arr:
-        var d := v - mean
-        s += d * d
-    return sqrt(s / float(arr.size()))
-
 func _pearson(x: Array[float], y: Array[float]) -> float:
     if x.size() != y.size() or x.is_empty():
         return 0.0
-    var mx := _mean(x)
-    var my := _mean(y)
+    var mx := TestUtils.mean(x)
+    var my := TestUtils.mean(y)
     var num := 0.0
     var dx := 0.0
     var dy := 0.0

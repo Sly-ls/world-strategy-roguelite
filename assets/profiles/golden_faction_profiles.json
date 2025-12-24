@@ -1,0 +1,226 @@
+{
+  "version": 1,
+  "notes": "10 profils 'golden' stables pour tests (axes + personnalité). Les clés sont stockées en string ; côté Godot tu peux les convertir en StringName.",
+  "profiles": [
+    {
+      "id": "golden_01_tech_pragmatic",
+      "axis_affinity": {
+        "axis.tech": 70,
+        "axis.magic": -40,
+        "axis.nature": 15,
+        "axis.divine": -5,
+        "axis.corruption": -10
+      },
+      "personality": {
+        "pers.aggression": 0.45,
+        "pers.vengefulness": 0.4,
+        "pers.diplomacy": 0.55,
+        "pers.risk_aversion": 0.55,
+        "pers.expansionism": 0.45,
+        "pers.integrationism": 0.45,
+        "greed": 0.55,
+        "opportunism": 0.35,
+        "discipline": 0.7,
+        "honor": 0.55
+      }
+    },
+    {
+      "id": "golden_02_magic_fanatic",
+      "axis_affinity": {
+        "axis.magic": 85,
+        "axis.tech": -35,
+        "axis.nature": 20,
+        "axis.divine": 5,
+        "axis.corruption": -15
+      },
+      "personality": {
+        "pers.aggression": 0.75,
+        "pers.vengefulness": 0.85,
+        "pers.diplomacy": 0.15,
+        "pers.risk_aversion": 0.4,
+        "pers.expansionism": 0.55,
+        "pers.integrationism": 0.1,
+        "greed": 0.35,
+        "opportunism": 0.4,
+        "discipline": 0.55,
+        "honor": 0.2
+      }
+    },
+    {
+      "id": "golden_03_nature_pacifist",
+      "axis_affinity": {
+        "axis.nature": 75,
+        "axis.corruption": -45,
+        "axis.magic": 12,
+        "axis.tech": -5,
+        "axis.divine": -2
+      },
+      "personality": {
+        "pers.aggression": 0.15,
+        "pers.vengefulness": 0.2,
+        "pers.diplomacy": 0.85,
+        "pers.risk_aversion": 0.75,
+        "pers.expansionism": 0.2,
+        "pers.integrationism": 0.7,
+        "greed": 0.25,
+        "opportunism": 0.15,
+        "discipline": 0.65,
+        "honor": 0.75
+      }
+    },
+    {
+      "id": "golden_04_divine_pragmatic_order",
+      "axis_affinity": {
+        "axis.divine": 80,
+        "axis.corruption": -30,
+        "axis.magic": -10,
+        "axis.tech": 5,
+        "axis.nature": -15
+      },
+      "personality": {
+        "pers.aggression": 0.35,
+        "pers.vengefulness": 0.55,
+        "pers.diplomacy": 0.55,
+        "pers.risk_aversion": 0.65,
+        "pers.expansionism": 0.25,
+        "pers.integrationism": 0.5,
+        "greed": 0.3,
+        "opportunism": 0.25,
+        "discipline": 0.85,
+        "honor": 0.7
+      }
+    },
+    {
+      "id": "golden_05_corruption_warlike",
+      "axis_affinity": {
+        "axis.corruption": 78,
+        "axis.divine": -40,
+        "axis.magic": 20,
+        "axis.tech": -10,
+        "axis.nature": -5
+      },
+      "personality": {
+        "pers.aggression": 0.85,
+        "pers.vengefulness": 0.75,
+        "pers.diplomacy": 0.2,
+        "pers.risk_aversion": 0.25,
+        "pers.expansionism": 0.75,
+        "pers.integrationism": 0.2,
+        "greed": 0.8,
+        "opportunism": 0.75,
+        "discipline": 0.35,
+        "honor": 0.2
+      }
+    },
+    {
+      "id": "golden_06_tech_assimilator",
+      "axis_affinity": {
+        "axis.tech": 60,
+        "axis.nature": -35,
+        "axis.magic": 25,
+        "axis.divine": 20,
+        "axis.corruption": -10
+      },
+      "personality": {
+        "pers.aggression": 0.45,
+        "pers.vengefulness": 0.3,
+        "pers.diplomacy": 0.65,
+        "pers.risk_aversion": 0.55,
+        "pers.expansionism": 0.4,
+        "pers.integrationism": 0.9,
+        "greed": 0.45,
+        "opportunism": 0.3,
+        "discipline": 0.75,
+        "honor": 0.55
+      }
+    },
+    {
+      "id": "golden_07_magic_expansionist",
+      "axis_affinity": {
+        "axis.magic": 65,
+        "axis.divine": 30,
+        "axis.tech": -25,
+        "axis.nature": -5,
+        "axis.corruption": -10
+      },
+      "personality": {
+        "pers.aggression": 0.7,
+        "pers.vengefulness": 0.55,
+        "pers.diplomacy": 0.35,
+        "pers.risk_aversion": 0.35,
+        "pers.expansionism": 0.9,
+        "pers.integrationism": 0.3,
+        "greed": 0.6,
+        "opportunism": 0.55,
+        "discipline": 0.4,
+        "honor": 0.35
+      }
+    },
+    {
+      "id": "golden_08_nature_integrationist",
+      "axis_affinity": {
+        "axis.nature": 55,
+        "axis.divine": 25,
+        "axis.corruption": -25,
+        "axis.magic": 15,
+        "axis.tech": -10
+      },
+      "personality": {
+        "pers.aggression": 0.3,
+        "pers.vengefulness": 0.25,
+        "pers.diplomacy": 0.75,
+        "pers.risk_aversion": 0.55,
+        "pers.expansionism": 0.3,
+        "pers.integrationism": 0.85,
+        "greed": 0.35,
+        "opportunism": 0.25,
+        "discipline": 0.6,
+        "honor": 0.7
+      }
+    },
+    {
+      "id": "golden_09_tech_dominant_hardline",
+      "axis_affinity": {
+        "axis.tech": 90,
+        "axis.corruption": -50,
+        "axis.magic": 20,
+        "axis.nature": 10,
+        "axis.divine": 5
+      },
+      "personality": {
+        "pers.aggression": 0.65,
+        "pers.vengefulness": 0.6,
+        "pers.diplomacy": 0.35,
+        "pers.risk_aversion": 0.45,
+        "pers.expansionism": 0.7,
+        "pers.integrationism": 0.35,
+        "greed": 0.7,
+        "opportunism": 0.55,
+        "discipline": 0.55,
+        "honor": 0.35
+      }
+    },
+    {
+      "id": "golden_10_divine_anti_magic",
+      "axis_affinity": {
+        "axis.divine": 65,
+        "axis.magic": -60,
+        "axis.nature": 40,
+        "axis.tech": 10,
+        "axis.corruption": 5
+      },
+      "personality": {
+        "pers.aggression": 0.55,
+        "pers.vengefulness": 0.7,
+        "pers.diplomacy": 0.4,
+        "pers.risk_aversion": 0.6,
+        "pers.expansionism": 0.35,
+        "pers.integrationism": 0.25,
+        "greed": 0.3,
+        "opportunism": 0.25,
+        "discipline": 0.8,
+        "honor": 0.85
+      }
+    }
+  ]
+}

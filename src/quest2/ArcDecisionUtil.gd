@@ -61,7 +61,9 @@ static func compute_arc_event_chance(
     var friction := rel.get_score(FactionRelationScore.REL_FRICTION) / 100.0
     var grievance := rel.get_score(FactionRelationScore.REL_GRIEVANCE) / 100.0
     var weariness := rel.get_score(FactionRelationScore.REL_WEARINESS) / 100.0
-    var negrel :float= max(0.0, -float(rel.relation) / 100.0)
+    var relation := rel.get_score(FactionRelationScore.REL_RELATION)
+    var negrel :float= max(0.0, -float(relation) / 100.0)
+    var trust := rel.get_score(FactionRelationScore.REL_TRUST)
 
     p += tension * tension_w
     p += friction * friction_w
@@ -77,8 +79,8 @@ static func compute_arc_event_chance(
     p -= (risk - 0.5) * float(params.get("risk_w", 0.05))
 
     # amortisseur : si relation et trust déjà bons, on coupe beaucoup
-    var trust_pos :float= max(0.0, float(rel.trust) / 100.0)
-    var rel_pos :float= max(0.0, float(rel.relation) / 100.0)
+    var trust_pos :float= max(0.0, float(trust) / 100.0)
+    var rel_pos :float= max(0.0, float(relation) / 100.0)
     var goodwill := 0.5 * trust_pos + 0.5 * rel_pos
     p *= (1.0 - goodwill * float(params.get("goodwill_damp", 0.55)))
 
@@ -102,9 +104,11 @@ static func select_arc_action_type(
     var friction := rel.get_score(FactionRelationScore.REL_FRICTION) / 100.0
     var grievance := rel.get_score(FactionRelationScore.REL_GRIEVANCE) / 100.0
     var weariness := rel.get_score(FactionRelationScore.REL_WEARINESS) / 100.0
-    var negrel :float = max(0.0, -float(rel.relation) / 100.0)
-    var posrel :float = max(0.0, float(rel.relation) / 100.0)
-    var trust_pos :float = max(0.0, float(rel.trust) / 100.0)
+    var relation := rel.get_score(FactionRelationScore.REL_RELATION)
+    var trust := rel.get_score(FactionRelationScore.REL_TRUST)
+    var negrel :float = max(0.0, -float(relation) / 100.0)
+    var posrel :float = max(0.0, float(relation) / 100.0)
+    var trust_pos :float = max(0.0, float(trust) / 100.0)
 
     # personnalité A
     var aggr := a_profile.get_personality(FactionProfile.PERS_AGGRESSION)
@@ -155,7 +159,7 @@ static func select_arc_action_type(
     s_rep -= 0.55 * negrel
     s_rep -= 0.40 * grievance
     # précondition douce
-    if rel.relation > -60:
+    if relation > -60:
         candidates.append({"type": ARC_REPARATIONS, "s": max(0.0, s_rep)})
 
     # TRUCE_TALKS : fatigue haute + tension haute => sortie
@@ -206,7 +210,7 @@ static func select_arc_action_type(
     s_war += 0.30 * aggr
     s_war -= 1.00 * weariness
     s_war -= 0.25 * external_threat # si menace externe, moins envie de guerre interne
-    if rel.relation <= -55 and rel.tension >= 65.0 and rel.weariness <= 55.0:
+    if relation <= -55 and tension >= 65.0 and weariness <= 55.0:
         candidates.append({"type": ARC_DECLARE_WAR, "s": max(0.0, s_war)})
 
     # ALLIANCE_OFFER : si menace externe + relation pas trop négative
@@ -218,7 +222,7 @@ static func select_arc_action_type(
     s_alliance += 0.15 * posrel
     s_alliance -= 0.55 * negrel
     s_alliance -= 0.25 * grievance
-    if external_threat >= 0.35 and rel.relation > -35:
+    if external_threat >= 0.35 and relation > -35:
         candidates.append({"type": ARC_ALLIANCE_OFFER, "s": max(0.0, s_alliance)})
 
     # --- Weighted random via softmax-like ---

@@ -49,7 +49,7 @@ func _test_crisis_coalition_truce_then_undermine_creates_suspicion() -> void:
     FactionManager.register_faction(faction_b)
     FactionManager.register_faction(faction_c)
     FactionManager.register_faction(faction_d)
-    FactionManager.initialize_relations_world()
+    FactionRelationsUtil.initialize_relations_world()
     
     var all_factions :Array[Faction] = FactionManager.get_all_factions()
     # init relation

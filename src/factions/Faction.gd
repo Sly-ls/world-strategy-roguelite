@@ -46,7 +46,7 @@ var profile: FactionProfile = FactionProfile.new()
 
 ## Relations avec les autres factions (directionnelles, asymétriques)
 ## other_faction_id -> FactionRelationScore
-var relations: Dictionary = {}
+var relations: Dictionary[StringName, FactionRelationScore] = {}
 
 # ========================================
 # MÉTHODES - RELATIONS INTER-FACTIONS
@@ -71,7 +71,7 @@ func has_relation_to(other_faction_id) -> bool:
     return relations.has(other_id)
 
 ## Retourne toutes les relations de cette faction
-func get_all_relations() -> Dictionary:
+func get_all_relations() -> Dictionary[StringName, FactionRelationScore]:
     return relations
 
 
@@ -85,12 +85,13 @@ func get_related_faction_ids() -> Array[String]:
 # ========================================
 # MÉTHODES - RELATION 
 # ========================================
-func init_relation(target_id: StringName, params: Dictionary = {}) -> void:
+func init_relation(target_id: StringName, params: Dictionary = {}) -> FactionRelationScore:
     var target_faction :Faction = FactionManager.get_faction(target_id)
-    var init_rel :Dictionary = compute_baseline_relation(target_faction.profile)
+    var init_rel :Dictionary = compute_baseline_relation(target_faction.profile, params)
     var target_relation = FactionRelationScore.new(target_id)
     target_relation.init(init_rel)
     relations[target_id] = target_relation
+    return target_relation
     
 func compute_baseline_relation(b: FactionProfile, params: Dictionary = {}) -> Dictionary:
     # ---- Tunables ----
@@ -139,6 +140,7 @@ func compute_baseline_relation(b: FactionProfile, params: Dictionary = {}) -> Di
     ) / 5.0
 
     # Cross-conflicts (abs-products) in [0..~1]
+    #TODO revoir cette partie là car j'ai rajouté toutes les cross possible
     var cross := 0.0
     cross += w_tech_nature * (abs(aT) * abs(bN) + abs(aN) * abs(bT)) / 2.0
     cross += w_divine_corruption * (abs(aD) * abs(bC) + abs(aC) * abs(bD)) / 2.0
@@ -204,8 +206,8 @@ func compute_baseline_relation(b: FactionProfile, params: Dictionary = {}) -> Di
 
 func apply_reciprocity(fb :Faction, rng: RandomNumberGenerator, params: Dictionary = {}) -> void:
     # --- get parameter ---
-    var reciprocity_strength = params.get("reciprocity_strength", 0.5)
-    var keep_asymmetry = params.get("keep_asymmetry", 0)
+    var reciprocity_strength = params.get("reciprocity_strength", 0.7)
+    var keep_asymmetry = params.get("keep_asymmetry", 30)
     var reciprocity_noise = params.get("reciprocity_noise", 2)
     var max_change_per_pair = params.get("max_change_per_pair", 18)
     reciprocity_strength = clampf(reciprocity_strength, 0.0, 1.0)
