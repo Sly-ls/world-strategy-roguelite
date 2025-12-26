@@ -7,30 +7,32 @@ func _ready() -> void:
 
 
 func _test_two_non_payments_break_treaty_and_escalate_state() -> void:
-    var winner := &"A"
-    var loser := &"B"
 
+
+    # ids
+    FactionManager.generate_factions(2)
+    var ids :Array[String]= FactionManager.get_all_faction_ids()
+    var winner = ids[0]
+    var loser = ids[1]
+    
     # --- economies ---
     var economies := {}
     economies[winner] = FactionEconomy.new()
     economies[loser]  = FactionEconomy.new()
     economies[winner].gold = 0
-    economies[loser].gold = 0  # always non-payment
+    economies[loser].gold = 0  # non-payment
 
     # --- relations ---
-    var relations := {}
-    relations[winner] = {}
-    relations[loser] = {}
-    relations[winner][loser] = FactionRelationScore.new()
-    relations[loser][winner] = FactionRelationScore.new()
+    var rel_winner_loser = FactionManager.get_relation(winner,loser)
+    var rel_loser_winner = FactionManager.get_relation(loser,winner)
+    # some baseline values
+    rel_winner_loser.set_score(FactionRelationScore.REL_TRUST, 40)
+    rel_winner_loser.set_score(FactionRelationScore.REL_TENSION, 20)
+    rel_winner_loser.set_score(FactionRelationScore.REL_GRIEVANCE, 10)
 
-    relations[winner][loser].trust = 40
-    relations[winner][loser].tension = 20
-    relations[winner][loser].grievance = 10
-
-    relations[loser][winner].trust = 35
-    relations[loser][winner].tension = 25
-    relations[loser][winner].grievance = 15
+    rel_loser_winner.set_score(FactionRelationScore.REL_TRUST, 35)
+    rel_loser_winner.set_score(FactionRelationScore.REL_TENSION, 25)
+    rel_loser_winner.set_score(FactionRelationScore.REL_GRIEVANCE, 15)
 
     # --- arc + treaty ---
     var arc := ArcState.new()
@@ -59,7 +61,6 @@ func _test_two_non_payments_break_treaty_and_escalate_state() -> void:
     }
 
     # --- notebook + spawn fn stub ---
-    var notebook := ArcNotebook.new()
     var spawn_calls := 0
 
     var spawn_fn := func(w: StringName, l: StringName, day: int, tier: int) -> QuestInstance:
@@ -70,8 +71,6 @@ func _test_two_non_payments_break_treaty_and_escalate_state() -> void:
     ArcStateMachine.tick_tribute_if_any(
         arc, 7,
         economies,
-        relations,
-        notebook,
         Callable(spawn_fn)
     )
 
@@ -82,8 +81,6 @@ func _test_two_non_payments_break_treaty_and_escalate_state() -> void:
     ArcStateMachine.tick_tribute_if_any(
         arc, 14,
         economies,
-        relations,
-        notebook,
         Callable(spawn_fn)
     )
 

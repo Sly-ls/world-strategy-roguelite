@@ -13,13 +13,9 @@ func _test_rich_greedy_has_higher_gold_proportion_than_honorable() -> void:
     var action := &"arc.truce_talks"
     var n := 200
 
-    var param_greedy := {"personality": {FactionProfile.PERS_GREED: 0.95, FactionProfile.PERS_OPPORTUNISM: 0.85, FactionProfile.PERS_DISCIPLINE: 0.30, FactionProfile.PERS_HONOR: 0.25}}
-    var param_honorable := {"personality": {FactionProfile.PERS_GREED: 0.10, FactionProfile.PERS_OPPORTUNISM: 0.20, FactionProfile.PERS_DISCIPLINE: 0.85, FactionProfile.PERS_HONOR: 0.90}}
+    var prof_greedy := FactionProfile.new({FactionProfile.PERS_GREED: 0.95, FactionProfile.PERS_OPPORTUNISM: 0.85, FactionProfile.PERS_DISCIPLINE: 0.30, FactionProfile.PERS_HONOR: 0.25})
+    var prof_honorable := FactionProfile.new({FactionProfile.PERS_GREED: 0.10, FactionProfile.PERS_OPPORTUNISM: 0.20, FactionProfile.PERS_DISCIPLINE: 0.85, FactionProfile.PERS_HONOR: 0.90})
 
-    var prof_greedy :FactionProfile = FactionProfile.new()
-    prof_greedy.apply_personality_template(param_greedy)
-    var prof_honorable :FactionProfile = FactionProfile.new()
-    prof_honorable.apply_personality_template(param_honorable)
     # sanity: dw signs
     var s_g := RewardEconomyUtil.compute_reward_style(econ_rich, tier, prof_greedy)
     var s_h := RewardEconomyUtil.compute_reward_style(econ_rich, tier, prof_honorable)

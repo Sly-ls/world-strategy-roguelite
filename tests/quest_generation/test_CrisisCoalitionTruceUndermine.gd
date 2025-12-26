@@ -21,29 +21,24 @@ func _test_crisis_coalition_truce_then_undermine_creates_suspicion() -> void:
 
     # Profiles - utiliser les vraies constantes FactionProfile.AXIS_CORRUPTION
     var faction_a = Faction.new()
-    faction_a.id = A
-    faction_a.profile = FactionProfile.from_profile_and_axis(
-            {FactionProfile.PERS_HONOR: 0.8, FactionProfile.PERS_DIPLOMACY: 0.7, FactionProfile.PERS_OPPORTUNISM: 0.2, FactionProfile.PERS_FEAR: 0.3},
-            {FactionProfile.AXIS_CORRUPTION: -80}
+    faction_a.profile = FactionProfile.new(
+            {FactionProfile.PERS_HONOR: 0.8, FactionProfile.PERS_DIPLOMACY: 0.7, FactionProfile.PERS_OPPORTUNISM: 0.2, FactionProfile.PERS_FEAR: 0.3, FactionProfile.AXIS_CORRUPTION: -80}
         )
+    faction_a.id = A
     var faction_b = Faction.new()
     faction_b.id = B
-    faction_b.profile = FactionProfile.from_profile_and_axis(
-            {FactionProfile.PERS_HONOR: 0.75, FactionProfile.PERS_DIPLOMACY: 0.80, FactionProfile.PERS_OPPORTUNISM: 0.5, FactionProfile.PERS_FEAR: 0.9},
-            {FactionProfile.AXIS_CORRUPTION: -10}  # légèrement anti-corruption pour axis_resist > 0
+    faction_b.profile = FactionProfile.new(
+            {FactionProfile.PERS_HONOR: 0.75, FactionProfile.PERS_DIPLOMACY: 0.80, FactionProfile.PERS_OPPORTUNISM: 0.5, FactionProfile.PERS_FEAR: 0.9, FactionProfile.AXIS_CORRUPTION: -10}  # légèrement anti-corruption pour axis_resist > 0
         )
     var faction_c = Faction.new()
     faction_c.id = C
-    faction_c.profile = FactionProfile.from_profile_and_axis(
-            {FactionProfile.PERS_HONOR: 0.3, FactionProfile.PERS_DIPLOMACY: 0.2, FactionProfile.PERS_OPPORTUNISM: 0.7, FactionProfile.PERS_FEAR: 0.4},
-            {FactionProfile.AXIS_CORRUPTION: 90}
+    faction_c.profile = FactionProfile.new(
+            {FactionProfile.PERS_HONOR: 0.3, FactionProfile.PERS_DIPLOMACY: 0.2, FactionProfile.PERS_OPPORTUNISM: 0.7, FactionProfile.PERS_FEAR: 0.4, FactionProfile.AXIS_CORRUPTION: 90}
         )
     var faction_d = Faction.new()
     faction_d.id = D
-    faction_d.profile = FactionProfile.from_profile_and_axis(
-            {FactionProfile.PERS_HONOR: 0.7, FactionProfile.PERS_DIPLOMACY: 0.65, FactionProfile.PERS_OPPORTUNISM: 0.35, FactionProfile.PERS_FEAR: 0.35},
-            {FactionProfile.AXIS_CORRUPTION: -40}
-        )
+    faction_d.profile = FactionProfile.new(
+            {FactionProfile.PERS_HONOR: 0.7, FactionProfile.PERS_DIPLOMACY: 0.65, FactionProfile.PERS_OPPORTUNISM: 0.35, FactionProfile.PERS_FEAR: 0.35 } )
 
     FactionManager.register_faction(faction_a)
     FactionManager.register_faction(faction_b)

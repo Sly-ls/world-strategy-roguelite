@@ -1,4 +1,4 @@
-# res://src/factions/Faction.gd
+# res://src/factions/FStringaction.gd
 extends Resource
 class_name Faction
 

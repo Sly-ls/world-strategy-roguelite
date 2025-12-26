@@ -86,19 +86,23 @@ var personality: Dictionary[StringName, float] = {}
 
  
 # ---- CONSTRUCTOR ----   
-func _init() -> void:
+func _init(profile_values :Dictionary[StringName, float] = {}) -> void:
     # Defaults (optional): set everything to 0 / 0.5 if you want stable lookups
     for a in ALL_AXES:
         axis_affinity[a] = 0
     for k in ALL_PERSONALITY_KEYS:
         personality[k] = 0.5
+    if profile_values.keys().size() > 0:
+        from_profile_and_axis(profile_values)
 
-static func from_profile_and_axis(prof: Dictionary[StringName, float], axis: Dictionary[StringName, int] = {}) -> FactionProfile:
+func from_profile_and_axis(prof: Dictionary[StringName, float], axis: Dictionary[StringName, int] = {}) -> FactionProfile:
     var profile = FactionProfile.new()
     for key in prof.keys():
-        profile.personality[key] = float(prof[key])
+        if ALL_PERSONALITY_KEYS.has(key):
+            set_personality(key, prof[key])
     for key in axis.keys():
-        profile.axis_affinity[key] = int(axis[key])
+        if ALL_AXES.has(key):
+            profile.axis_affinity[key] = int(axis[key])
     return profile
 # ---- Axis helpers ----
 func set_axis_affinity(axis: StringName, value: int) -> void:

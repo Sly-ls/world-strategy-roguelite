@@ -7,9 +7,11 @@ func _ready() -> void:
 
 
 func _test_non_payment_spawns_collect_offer_then_payment_succeeds() -> void:
-    var winner := &"A"
-    var loser := &"B"
-
+    # ids
+    FactionManager.generate_factions(2)
+    var ids :Array[String]= FactionManager.get_all_faction_ids()
+    var winner = ids[0]
+    var loser = ids[1]
     # --- economies ---
     var economies := {}
     economies[winner] = FactionEconomy.new()
@@ -18,21 +20,17 @@ func _test_non_payment_spawns_collect_offer_then_payment_succeeds() -> void:
     economies[loser].gold = 0  # non-payment
 
     # --- relations ---
-    var relations := {}
-    relations[winner] = {}
-    relations[loser] = {}
-    relations[winner][loser] = FactionRelationScore.new()
-    relations[loser][winner] = FactionRelationScore.new()
-
+    var rel_winner_loser = FactionManager.get_relation(winner,loser)
+    var rel_loser_winner = FactionManager.get_relation(loser,winner)
     # some baseline values
-    relations[winner][loser].trust = 40
-    relations[winner][loser].tension = 20
-    relations[winner][loser].grievance = 10
+    rel_winner_loser.set_score(FactionRelationScore.REL_TRUST, 40)
+    rel_winner_loser.set_score(FactionRelationScore.REL_TENSION, 20)
+    rel_winner_loser.set_score(FactionRelationScore.REL_GRIEVANCE, 10)
 
-    relations[loser][winner].trust = 35
-    relations[loser][winner].tension = 25
-    relations[loser][winner].grievance = 15
-
+    rel_loser_winner.set_score(FactionRelationScore.REL_TRUST, 35)
+    rel_loser_winner.set_score(FactionRelationScore.REL_TENSION, 25)
+    rel_loser_winner.set_score(FactionRelationScore.REL_GRIEVANCE, 15)
+    
     # --- arc + treaty + tribute schedule ---
     var arc := ArcState.new()
     arc.state = &"TRUCE"
@@ -59,7 +57,6 @@ func _test_non_payment_spawns_collect_offer_then_payment_succeeds() -> void:
     }
 
     # --- notebook + stub spawn fn ---
-    var notebook := ArcNotebook.new()
     var spawn_called := false
     var spawn_args := {}
 
@@ -74,8 +71,6 @@ func _test_non_payment_spawns_collect_offer_then_payment_succeeds() -> void:
     ArcStateMachine.tick_tribute_if_any(
         arc, 7,
         economies,
-        relations,
-        notebook,
         Callable(spawn_fn)
     )
 
@@ -101,8 +96,6 @@ func _test_non_payment_spawns_collect_offer_then_payment_succeeds() -> void:
     ArcStateMachine.tick_tribute_if_any(
         arc, 14,
         economies,
-        relations,
-        notebook,
         Callable(spawn_fn)
     )
 

@@ -77,7 +77,6 @@ static func canonical_arc_action(role: StringName, tp_action: StringName) -> Str
     return tp_action
 
 static func apply(
-    relations: Dictionary, # relations[X][Y] -> FactionRelationScore
     a_id: StringName,
     b_id: StringName,
     c_id: StringName,
@@ -100,16 +99,15 @@ static func apply(
 
         match pair:
             "AB":
-                _apply_pair(relations, a_id, b_id, field, delta, max_change_ratio)
+                _apply_pair(a_id, b_id, field, delta, max_change_ratio)
             "AC":
-                _apply_pair(relations, a_id, c_id, field, delta, max_change_ratio)
+                _apply_pair(a_id, c_id, field, delta, max_change_ratio)
             "BC":
-                _apply_pair(relations, b_id, c_id, field, delta, max_change_ratio)
+                _apply_pair(b_id, c_id, field, delta, max_change_ratio)
             _:
                 pass
 
 static func apply_for_opportunist(
-    relations: Dictionary,
     beneficiary_id: StringName,  # ex: A
     victim_id: StringName,       # ex: B
     c_id: StringName,
@@ -135,25 +133,24 @@ static func apply_for_opportunist(
 
         match pair:
             "AB":
-                _apply_pair(relations, c_id, victim_id, field, delta, max_change_ratio)
+                _apply_pair(c_id, victim_id, field, delta, max_change_ratio)
             "AC":
-                _apply_pair(relations, beneficiary_id, c_id, field, delta, max_change_ratio)
+                _apply_pair(beneficiary_id, c_id, field, delta, max_change_ratio)
             "BC":
-                _apply_pair(relations, beneficiary_id, victim_id, field, delta, max_change_ratio)
+                _apply_pair(beneficiary_id, victim_id, field, delta, max_change_ratio)
             _:
                 pass
 
-static func _apply_pair(relations: Dictionary, x_id: StringName, y_id: StringName, field: String, delta: float, max_change_ratio: float) -> void:
-    if not relations.has(x_id): return
-    if not relations.has(y_id): return
-    if not relations[x_id].has(y_id): return
-    if not relations[y_id].has(x_id): return
-
-    var xy: FactionRelationScore = relations[x_id][y_id]
-    var yx: FactionRelationScore = relations[y_id][x_id]
-
-    _apply_field(xy, field, delta, max_change_ratio)
-    _apply_field(yx, field, delta, max_change_ratio)
+static func _apply_pair(faction_a_id: StringName, faction_b_id: StringName, field: String, delta: float, max_change_ratio: float) -> void:
+    
+    #get relation
+    var faction_a = FactionManager.get_faction(faction_a_id)
+    var faction_b = FactionManager.get_faction(faction_b_id)
+    var rel_ab :FactionRelationScore = faction_a.get_relation_to(faction_b_id)
+    var rel_ba :FactionRelationScore = faction_b.get_relation_to(faction_a_id)
+    
+    _apply_field(rel_ab, field, delta, max_change_ratio)
+    _apply_field(rel_ba, field, delta, max_change_ratio)
 
 static func _apply_field(r: FactionRelationScore, field: String, delta: float, max_change_ratio: float) -> void:
     var minv := 0.0
@@ -163,26 +160,31 @@ static func _apply_field(r: FactionRelationScore, field: String, delta: float, m
     match field:
         "relation":
             minv = -100.0; maxv = 100.0
-            cur = float(r.relation)
-            r.relation = int(round(_apply_limited(cur, delta, minv, maxv, max_change_ratio)))
+            cur = float(r.get_score(FactionRelationScore.REL_RELATION))
+            cur = int(round(_apply_limited(cur, delta, minv, maxv, max_change_ratio)))
+            r.set_score(FactionRelationScore.REL_RELATION, cur)
         "trust":
-            cur = float(r.trust)
-            r.trust = int(round(_apply_limited(cur, delta, minv, maxv, max_change_ratio)))
+            cur = float(r.get_score(FactionRelationScore.REL_TRUST))
+            cur = int(round(_apply_limited(cur, delta, minv, maxv, max_change_ratio)))
+            r.set_score(FactionRelationScore.REL_TRUST, cur)
         "tension":
-            cur = float(r.tension)
-            r.tension = int(round(_apply_limited(cur, delta, minv, maxv, max_change_ratio)))
+            cur = float(r.get_score(FactionRelationScore.REL_TENSION))
+            cur = int(round(_apply_limited(cur, delta, minv, maxv, max_change_ratio)))
+            r.set_score(FactionRelationScore.REL_TENSION, cur)
         "grievance":
-            cur = float(r.grievance)
-            r.grievance = int(round(_apply_limited(cur, delta, minv, maxv, max_change_ratio)))
+            cur = float(r.get_score(FactionRelationScore.REL_GRIEVANCE))
+            cur = int(round(_apply_limited(cur, delta, minv, maxv, max_change_ratio)))
+            r.set_score(FactionRelationScore.REL_GRIEVANCE, cur)
         "weariness":
-            cur = float(r.weariness)
-            r.weariness = int(round(_apply_limited(cur, delta, minv, maxv, max_change_ratio)))
+            cur = float(r.get_score(FactionRelationScore.REL_WEARINESS))
+            cur = int(round(_apply_limited(cur, delta, minv, maxv, max_change_ratio)))
+            r.set_score(FactionRelationScore.REL_WEARINESS, cur)
         _:
             pass
 
 static func _apply_limited(cur: float, delta: float, minv: float, maxv: float, max_change_ratio: float) -> float:
     # limite “10..30% du score actuel” version générique:
     # clamp(delta) par abs(cur)*ratio, avec un minimum de pas.
-    var cap := max(3.0, abs(cur) * clampf(max_change_ratio, 0.0, 1.0))
+    var cap :float = max(3.0, abs(cur) * clampf(max_change_ratio, 0.0, 1.0))
     var d := clampf(delta, -cap, cap)
     return clampf(cur + d, minv, maxv)

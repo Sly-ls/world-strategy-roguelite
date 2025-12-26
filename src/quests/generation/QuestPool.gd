@@ -317,3 +317,17 @@ func print_pool() -> void:
 
 func get_offers() -> Array[QuestInstance]:
     return offers
+
+# ========================================
+# FOR TEST PURPOSE
+# ========================================
+func _test_snapshot_offers() -> Array:
+    return offers.duplicate(true)
+
+func _test_clear_offers() -> void:
+    offers.clear()
+
+func _test_restore_offers(prev: Array) -> void:
+    offers.clear()
+    for o in prev:
+        offers.append(o)

@@ -10,34 +10,42 @@ func _test_repeated_mediation_converges() -> void:
     rng.seed = 202501
 
     # ids
-    var A := &"A"
-    var B := &"B"
-    var C := &"C"
-
-    # relations dict
-    var relations := {}
-    relations[A] = {}; relations[B] = {}; relations[C] = {}
-
-    relations[A][B] = FactionRelationScore.new()
-    relations[B][A] = FactionRelationScore.new()
-    relations[A][C] = FactionRelationScore.new()
-    relations[C][A] = FactionRelationScore.new()
-    relations[B][C] = FactionRelationScore.new()
-    relations[C][B] = FactionRelationScore.new()
-
+    FactionManager.generate_factions(3)
+    var ids :Array[String]= FactionManager.get_all_faction_ids()
+    var A = ids[0]
+    var B = ids[1]
+    var C = ids[2]
+    
+    var rel_ab = FactionManager.get_relation(A,B)
+    var rel_ba = FactionManager.get_relation(B,A)
+    var rel_ac = FactionManager.get_relation(A,C)
+    var rel_bc = FactionManager.get_relation(B,C)
+    var rel_ca = FactionManager.get_relation(C,A)
+    var rel_cb = FactionManager.get_relation(C,B)
     # init A<->B hostile conflict
-    relations[A][B].relation = -50; relations[B][A].relation = -52
-    relations[A][B].trust = 20;     relations[B][A].trust = 18
-    relations[A][B].tension = 70;   relations[B][A].tension = 72
-    relations[A][B].grievance = 60; relations[B][A].grievance = 58
-    relations[A][B].weariness = 30; relations[B][A].weariness = 28
+    rel_ab.set_score(FactionRelationScore.REL_RELATION, -50)
+    rel_ab.set_score(FactionRelationScore.REL_TRUST, 20)
+    rel_ab.set_score(FactionRelationScore.REL_TENSION, 70)
+    rel_ab.set_score(FactionRelationScore.REL_GRIEVANCE, 60)
+    rel_ab.set_score(FactionRelationScore.REL_WEARINESS, 30)
+    
+    rel_ba.set_score(FactionRelationScore.REL_RELATION, -52)
+    rel_ba.set_score(FactionRelationScore.REL_TRUST, 18)
+    rel_ba.set_score(FactionRelationScore.REL_TENSION, 72)
+    rel_ba.set_score(FactionRelationScore.REL_GRIEVANCE, 58)
+    rel_ba.set_score(FactionRelationScore.REL_WEARINESS, 28)
 
     # init C neutral/good with both
-    relations[A][C].relation = 10; relations[C][A].relation = 8
-    relations[B][C].relation = 5;  relations[C][B].relation = 6
-    relations[A][C].trust = 35;    relations[C][A].trust = 30
-    relations[B][C].trust = 30;    relations[C][B].trust = 32
-
+    rel_ac.set_score(FactionRelationScore.REL_RELATION, 10)
+    rel_bc.set_score(FactionRelationScore.REL_RELATION, 5)
+    rel_ca.set_score(FactionRelationScore.REL_RELATION, 8)
+    rel_cb.set_score(FactionRelationScore.REL_RELATION, 6)
+    
+    rel_ac.set_score(FactionRelationScore.REL_TRUST, 35)
+    rel_bc.set_score(FactionRelationScore.REL_TRUST, 30)
+    rel_ca.set_score(FactionRelationScore.REL_TRUST, 30)
+    rel_cb.set_score(FactionRelationScore.REL_TRUST, 32)
+    
     # arc state A<->B
     var arc := ArcState.new()
     arc.state = &"CONFLICT"
@@ -48,19 +56,21 @@ func _test_repeated_mediation_converges() -> void:
     arc.stable_low_tension_days = 0
     arc.stable_high_trust_days = 0
 
-    var initial_tension :float = 0.5 * (relations[A][B].tension + relations[B][A].tension)
-    var initial_rel :float = 0.5 * (relations[A][B].relation + relations[B][A].relation)
+    rel_ab.get_score(FactionRelationScore.REL_RELATION)
+    var initial_tension :float = 0.5 * (rel_ab.get_score(FactionRelationScore.REL_TENSION) + rel_ba.get_score(FactionRelationScore.REL_TENSION))
+    var initial_rel :float = 0.5 * (rel_ab.get_score(FactionRelationScore.REL_RELATION) + rel_ba.get_score(FactionRelationScore.REL_RELATION))
+    var initial_trust :float = 0.5 * (rel_ab.get_score(FactionRelationScore.REL_TRUST) + rel_ba.get_score(FactionRelationScore.REL_TRUST))
 
     var mediation_days := {2:true, 4:true, 6:true}
 
     for day in range(1, 31):
         # daily stability counters
-        ArcStateMachine.tick_day_for_pair(arc, relations[A][B], relations[B][A])
+        
+        ArcStateMachine.tick_day_for_pair(arc, A, B)
 
         # Apply mediated event on some days
         if mediation_days.has(day):
             ThirdPartyEffectTable.apply(
-                relations,
                 A, B, C,
                 &"MEDIATOR",
                 &"tp.mediation.truce",
@@ -70,7 +80,7 @@ func _test_repeated_mediation_converges() -> void:
 
             # Feed arc state machine with canonical peace action
             ArcStateMachine.update_arc_state(
-                arc, relations[A][B], relations[B][A],
+                arc, rel_ab, rel_ba,
                 day, rng,
                 ArcDecisionUtil.ARC_TRUCE_TALKS,
                 ThirdPartyEffectTable.CHOICE_LOYAL
@@ -78,19 +88,20 @@ func _test_repeated_mediation_converges() -> void:
         else:
             # passive update to allow transitions “après Y jours”
             ArcStateMachine.update_arc_state(
-                arc, relations[A][B], relations[B][A],
+                arc, rel_ab, rel_ba,
                 day, rng,
                 &"", &""
             )
 
     # Final metrics
-    var final_tension :float = 0.5 * (relations[A][B].tension + relations[B][A].tension)
-    var final_rel :float = 0.5 * (relations[A][B].relation + relations[B][A].relation)
-    var final_trust :float = 0.5 * (relations[A][B].trust + relations[B][A].trust)
+    var final_tension :float = 0.5 * (rel_ab.get_score(FactionRelationScore.REL_TENSION) + rel_ba.get_score(FactionRelationScore.REL_TENSION))
+    var final_rel :float = 0.5 * (rel_ab.get_score(FactionRelationScore.REL_RELATION) + rel_ba.get_score(FactionRelationScore.REL_RELATION))
+    var final_trust :float = 0.5 * (rel_ab.get_score(FactionRelationScore.REL_TRUST) + rel_ba.get_score(FactionRelationScore.REL_TRUST))
 
     # Convergence checks (no escalation)
     _assert(final_tension < initial_tension, "tension should decrease (%.1f -> %.1f)" % [initial_tension, final_tension])
     _assert(final_rel > initial_rel, "relation should increase (%.1f -> %.1f)" % [initial_rel, final_rel])
+    _assert(final_trust > initial_trust, "trust should increase (%.1f -> %.1f)" % [initial_trust, final_trust])
 
     # Outcome: TRUCE or ALLIANCE (ALLIANCE expected often)
     _assert(arc.state == &"TRUCE" or arc.state == &"ALLIANCE",

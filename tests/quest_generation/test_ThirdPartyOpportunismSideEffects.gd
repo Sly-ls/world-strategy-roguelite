@@ -10,46 +10,67 @@ func _test_opportunism_improves_A_C_and_does_not_touch_A_B() -> void:
     var rng := RandomNumberGenerator.new()
     rng.seed = 919191
 
-    var A := &"A"
-    var B := &"B"
-    var C := &"C"
-
     # -----------------------------
     # Relations world
     # -----------------------------
-    var relations := {}
-    relations[A] = {}; relations[B] = {}; relations[C] = {}
-
-    relations[A][B] = FactionRelationScore.new()
-    relations[B][A] = FactionRelationScore.new()
-    relations[A][C] = FactionRelationScore.new()
-    relations[C][A] = FactionRelationScore.new()
-    relations[B][C] = FactionRelationScore.new()
-    relations[C][B] = FactionRelationScore.new()
-
+    
+    # ids
+    FactionManager.generate_factions(3)
+    var ids :Array[String]= FactionManager.get_all_faction_ids()
+    var A = ids[0]
+    var B = ids[1]
+    var C = ids[2]
+    
+    var rel_ab = FactionManager.get_relation(A,B)
+    var rel_ba = FactionManager.get_relation(B,A)
+    var rel_ac = FactionManager.get_relation(A,C)
+    var rel_bc = FactionManager.get_relation(B,C)
+    var rel_ca = FactionManager.get_relation(C,A)
+    var rel_cb = FactionManager.get_relation(C,B)
+    
     # A<->B : conflict hot, but should NOT be modified by opportunism effects
-    relations[A][B].relation = -65; relations[B][A].relation = -60
-    relations[A][B].trust = 18;     relations[B][A].trust = 22
-    relations[A][B].tension = 75;   relations[B][A].tension = 70
-    relations[A][B].grievance = 55; relations[B][A].grievance = 50
-    relations[A][B].weariness = 25; relations[B][A].weariness = 22
+    rel_ab.set_score(FactionRelationScore.REL_RELATION, -65)
+    rel_ab.set_score(FactionRelationScore.REL_TRUST, 18)
+    rel_ab.set_score(FactionRelationScore.REL_TENSION, 75)
+    rel_ab.set_score(FactionRelationScore.REL_GRIEVANCE, 55)
+    rel_ab.set_score(FactionRelationScore.REL_WEARINESS, 25)
+    
+    rel_ba.set_score(FactionRelationScore.REL_RELATION, -60)
+    rel_ba.set_score(FactionRelationScore.REL_TRUST, 22)
+    rel_ba.set_score(FactionRelationScore.REL_TENSION, 70)
+    rel_ba.set_score(FactionRelationScore.REL_GRIEVANCE, 50)
+    rel_ba.set_score(FactionRelationScore.REL_WEARINESS, 22)
+
 
     # A<->C : already friendly, should improve a bit (beneficiary likes C)
-    relations[A][C].relation = 20; relations[C][A].relation = 18
-    relations[A][C].trust = 45;    relations[C][A].trust = 40
-    relations[A][C].tension = 10;  relations[C][A].tension = 10
-    relations[A][C].grievance = 5; relations[C][A].grievance = 5
+    rel_ac.set_score(FactionRelationScore.REL_RELATION, 20)
+    rel_ac.set_score(FactionRelationScore.REL_TRUST, 45)
+    rel_ac.set_score(FactionRelationScore.REL_TENSION, 10)
+    rel_ac.set_score(FactionRelationScore.REL_GRIEVANCE, 5)
+    
+    rel_ca.set_score(FactionRelationScore.REL_RELATION, 18)
+    rel_ca.set_score(FactionRelationScore.REL_TRUST, 40)
+    rel_ca.set_score(FactionRelationScore.REL_TENSION, 10)
+    rel_ca.set_score(FactionRelationScore.REL_GRIEVANCE, 5)
 
+    
     # C<->B : neutral-ish, will escalate
-    relations[C][B].relation = -10; relations[B][C].relation = -8
-    relations[C][B].trust = 35;     relations[B][C].trust = 38
-    relations[C][B].tension = 20;   relations[B][C].tension = 22
-    relations[C][B].grievance = 18; relations[B][C].grievance = 16
-    relations[C][B].weariness = 10; relations[B][C].weariness = 10
+    rel_cb.set_score(FactionRelationScore.REL_RELATION, -10)
+    rel_cb.set_score(FactionRelationScore.REL_TRUST, 35)
+    rel_cb.set_score(FactionRelationScore.REL_TENSION, 20)
+    rel_cb.set_score(FactionRelationScore.REL_GRIEVANCE, 18)
+    rel_cb.set_score(FactionRelationScore.REL_WEARINESS, 10)
+    
+    rel_bc.set_score(FactionRelationScore.REL_RELATION, -8)
+    rel_bc.set_score(FactionRelationScore.REL_TRUST, 38)
+    rel_bc.set_score(FactionRelationScore.REL_TENSION, 22)
+    rel_bc.set_score(FactionRelationScore.REL_GRIEVANCE, 16)
+    rel_bc.set_score(FactionRelationScore.REL_WEARINESS, 10)
+
 
     # Baselines to compare
-    var ab_before := _snapshot(relations[A][B], relations[B][A])
-    var ac_before := _snapshot(relations[A][C], relations[C][A])
+    var ab_before := _snapshot(rel_ab, rel_ba)
+    var ac_before := _snapshot(rel_ac, rel_ca)
 
     # Arc C<->B (target of opportunism)
     var arc_cb := ArcState.new()
@@ -59,11 +80,10 @@ func _test_opportunism_improves_A_C_and_does_not_touch_A_B() -> void:
     var opportunism_days := {2:true, 4:true, 6:true}
 
     for day in range(1, 21):
-        ArcStateMachine.tick_day_for_pair(arc_cb, relations[C][B], relations[B][C])
+        ArcStateMachine.tick_day_for_pair(arc_cb, C, B)
 
         if opportunism_days.has(day):
             ThirdPartyEffectTable.apply_for_opportunist(
-                relations,
                 A, B, C,
                 &"OPPORTUNIST",
                 &"tp.opportunist.raid",
@@ -72,21 +92,21 @@ func _test_opportunism_improves_A_C_and_does_not_touch_A_B() -> void:
             )
 
             ArcStateMachine.update_arc_state(
-                arc_cb, relations[C][B], relations[B][C],
+                arc_cb, rel_bc, rel_cb,
                 day, rng,
                 ArcDecisionUtil.ARC_RAID,
                 ThirdPartyEffectTable.CHOICE_LOYAL
             )
         else:
             ArcStateMachine.update_arc_state(
-                arc_cb, relations[C][B], relations[B][C],
+                arc_cb, rel_bc, rel_cb,
                 day, rng,
                 &"", &""
             )
 
     # After
-    var ab_after := _snapshot(relations[A][B], relations[B][A])
-    var ac_after := _snapshot(relations[A][C], relations[C][A])
+    var ab_after := _snapshot(rel_ab, rel_ba)
+    var ac_after := _snapshot(rel_ac, rel_ca)
 
     # -----------------------------
     # Assertions 1) A<->C improves
@@ -111,10 +131,10 @@ func _test_opportunism_improves_A_C_and_does_not_touch_A_B() -> void:
     _assert(arc_cb.state != &"NEUTRAL", "C<->B arc should no longer be NEUTRAL after opportunism (got %s)" % String(arc_cb.state))
 
 
-func _snapshot(xy: FactionRelationScore, yx: FactionRelationScore) -> Dictionary:
+func _snapshot(rel_ab: FactionRelationScore, rel_ba: FactionRelationScore) -> Dictionary:
     return {
-        "rel_mean": 0.5 * (xy.relation + yx.relation),
-        "trust_mean": 0.5 * (xy.trust + yx.trust),
-        "tension_mean": 0.5 * (xy.tension + yx.tension),
-        "griev_mean": 0.5 * (xy.grievance + yx.grievance),
+        "rel_mean": 0.5 * (rel_ab.get_score(FactionRelationScore.REL_TENSION) + rel_ba.get_score(FactionRelationScore.REL_TENSION)),
+        "trust_mean": 0.5 * (rel_ab.get_score(FactionRelationScore.REL_TRUST) + rel_ba.get_score(FactionRelationScore.REL_TRUST)),
+        "tension_mean": 0.5 * (rel_ab.get_score(FactionRelationScore.REL_TENSION) + rel_ba.get_score(FactionRelationScore.REL_TENSION)),
+        "griev_mean": 0.5 * (rel_ab.get_score(FactionRelationScore.REL_GRIEVANCE) + rel_ba.get_score(FactionRelationScore.REL_GRIEVANCE)),
     }

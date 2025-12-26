@@ -10,46 +10,64 @@ func _test_opportunism_creates_new_arc_between_C_and_victim() -> void:
     var rng := RandomNumberGenerator.new()
     rng.seed = 909090
 
-    var A := &"A"
-    var B := &"B"
-    var C := &"C"
-
     # -----------------------------
     # Relations world: relations[X][Y] -> FactionRelationScore
     # -----------------------------
-    var relations := {}
-    relations[A] = {}; relations[B] = {}; relations[C] = {}
-
-    relations[A][B] = FactionRelationScore.new()
-    relations[B][A] = FactionRelationScore.new()
-    relations[A][C] = FactionRelationScore.new()
-    relations[C][A] = FactionRelationScore.new()
-    relations[B][C] = FactionRelationScore.new()
-    relations[C][B] = FactionRelationScore.new()
+   
+    # ids
+    FactionManager.generate_factions(3)
+    var ids :Array[String]= FactionManager.get_all_faction_ids()
+    var A = ids[0]
+    var B = ids[1]
+    var C = ids[2]
+    
+    var rel_ab = FactionManager.get_relation(A,B)
+    var rel_ba = FactionManager.get_relation(B,A)
+    var rel_ac = FactionManager.get_relation(A,C)
+    var rel_bc = FactionManager.get_relation(B,C)
+    var rel_ca = FactionManager.get_relation(C,A)
+    var rel_cb = FactionManager.get_relation(C,B)
 
     # A<->B : conflit "chaud" (contexte qui motive l'opportunisme)
-    relations[A][B].relation = -65; relations[B][A].relation = -60
-    relations[A][B].trust = 18;     relations[B][A].trust = 22
-    relations[A][B].tension = 75;   relations[B][A].tension = 70
-    relations[A][B].grievance = 55; relations[B][A].grievance = 50
-    relations[A][B].weariness = 25; relations[B][A].weariness = 22
+    rel_ab.set_score(FactionRelationScore.REL_RELATION, -65)
+    rel_ab.set_score(FactionRelationScore.REL_TRUST, 18)
+    rel_ab.set_score(FactionRelationScore.REL_TENSION, 75)
+    rel_ab.set_score(FactionRelationScore.REL_GRIEVANCE, 55)
+    rel_ab.set_score(FactionRelationScore.REL_WEARINESS, 25)
+    
+    rel_ba.set_score(FactionRelationScore.REL_RELATION, -60)
+    rel_ba.set_score(FactionRelationScore.REL_TRUST, 22)
+    rel_ba.set_score(FactionRelationScore.REL_TENSION, 70)
+    rel_ba.set_score(FactionRelationScore.REL_GRIEVANCE, 50)
+    rel_ba.set_score(FactionRelationScore.REL_WEARINESS, 22)
 
     # A<->C : plutôt positif (C "profite" pour aider A implicitement)
-    relations[A][C].relation = 20; relations[C][A].relation = 18
-    relations[A][C].trust = 45;    relations[C][A].trust = 40
-    relations[A][C].tension = 10;  relations[C][A].tension = 10
-    relations[A][C].grievance = 5; relations[C][A].grievance = 5
+    rel_ac.set_score(FactionRelationScore.REL_RELATION, 20)
+    rel_ac.set_score(FactionRelationScore.REL_TRUST, 45)
+    rel_ac.set_score(FactionRelationScore.REL_TENSION, 10)
+    rel_ac.set_score(FactionRelationScore.REL_GRIEVANCE, 5)
+    
+    rel_ca.set_score(FactionRelationScore.REL_RELATION, 18)
+    rel_ca.set_score(FactionRelationScore.REL_TRUST, 40)
+    rel_ca.set_score(FactionRelationScore.REL_TENSION, 10)
+    rel_ca.set_score(FactionRelationScore.REL_GRIEVANCE, 5)
 
     # C<->B : NEUTRAL au départ (cible = victim)
     # Important: tension/grievance pas trop bas sinon ta limite "max_change_ratio" bride trop.
-    relations[C][B].relation = -10; relations[B][C].relation = -8
-    relations[C][B].trust = 35;     relations[B][C].trust = 38
-    relations[C][B].tension = 20;   relations[B][C].tension = 22
-    relations[C][B].grievance = 18; relations[B][C].grievance = 16
-    relations[C][B].weariness = 10; relations[B][C].weariness = 10
+    rel_bc.set_score(FactionRelationScore.REL_RELATION, -8)
+    rel_bc.set_score(FactionRelationScore.REL_TRUST, 38)
+    rel_bc.set_score(FactionRelationScore.REL_TENSION, 22)
+    rel_bc.set_score(FactionRelationScore.REL_GRIEVANCE, 16)
+    rel_bc.set_score(FactionRelationScore.REL_WEARINESS, 10)
+    
+    rel_cb.set_score(FactionRelationScore.REL_RELATION, -10)
+    rel_cb.set_score(FactionRelationScore.REL_TRUST, 35)
+    rel_cb.set_score(FactionRelationScore.REL_TENSION, 20)
+    rel_cb.set_score(FactionRelationScore.REL_GRIEVANCE, 18)
+    rel_cb.set_score(FactionRelationScore.REL_WEARINESS, 10)
 
-    var initial_cb_tension :float = 0.5 * (relations[C][B].tension + relations[B][C].tension)
-    var initial_cb_rel :float = 0.5 * (relations[C][B].relation + relations[B][C].relation)
+    var initial_cb_tension :float = 0.5 * (rel_cb.get_score(FactionRelationScore.REL_TENSION) + rel_bc.get_score(FactionRelationScore.REL_TENSION))
+    var initial_cb_rel :float = 0.5 * (rel_cb.get_score(FactionRelationScore.REL_RELATION) + rel_bc.get_score(FactionRelationScore.REL_RELATION))
 
     # -----------------------------
     # Arc states
@@ -70,11 +88,10 @@ func _test_opportunism_creates_new_arc_between_C_and_victim() -> void:
 
     for day in range(1, 21):
         # counters (même les jours sans event)
-        ArcStateMachine.tick_day_for_pair(arc_cb, relations[C][B], relations[B][C])
+        ArcStateMachine.tick_day_for_pair(arc_cb, B, C)
 
         if opportunism_days.has(day):
             ThirdPartyEffectTable.apply_for_opportunist(
-                relations,
                 A,  # beneficiary
                 B,  # victim
                 C,  # third party
@@ -87,8 +104,8 @@ func _test_opportunism_creates_new_arc_between_C_and_victim() -> void:
             # Feed the state machine with a canonical hostile action
             ArcStateMachine.update_arc_state(
                 arc_cb,
-                relations[C][B],
-                relations[B][C],
+                rel_cb,
+                rel_bc,
                 day,
                 rng,
                 ArcDecisionUtil.ARC_RAID,
@@ -97,8 +114,8 @@ func _test_opportunism_creates_new_arc_between_C_and_victim() -> void:
         else:
             ArcStateMachine.update_arc_state(
                 arc_cb,
-                relations[C][B],
-                relations[B][C],
+                rel_cb,
+                rel_bc,
                 day,
                 rng,
                 &"", &""
@@ -107,8 +124,8 @@ func _test_opportunism_creates_new_arc_between_C_and_victim() -> void:
     # -----------------------------
     # Assertions: C<->B should have escalated to at least RIVALRY/CONFLICT
     # -----------------------------
-    var final_cb_tension :float = 0.5 * (relations[C][B].tension + relations[B][C].tension)
-    var final_cb_rel :float = 0.5 * (relations[C][B].relation + relations[B][C].relation)
+    var final_cb_tension :float = 0.5 * (rel_cb.get_score(FactionRelationScore.REL_TENSION) + rel_bc.get_score(FactionRelationScore.REL_TENSION))
+    var final_cb_rel :float = 0.5 * (rel_cb.get_score(FactionRelationScore.REL_RELATION) + rel_bc.get_score(FactionRelationScore.REL_RELATION))
 
     _assert(final_cb_tension > initial_cb_tension, "C<->B tension should increase (%.1f -> %.1f)" % [initial_cb_tension, final_cb_tension])
     _assert(final_cb_rel < initial_cb_rel, "C<->B relation should decrease (%.1f -> %.1f)" % [initial_cb_rel, final_cb_rel])

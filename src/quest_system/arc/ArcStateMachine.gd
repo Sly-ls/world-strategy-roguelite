@@ -24,12 +24,13 @@ static func is_peace_action(action: StringName) -> bool:
         or action == ArcDecisionUtil.ARC_ALLIANCE_OFFER
 
 static func pair_means(rel_ab: FactionRelationScore, rel_ba: FactionRelationScore) -> Dictionary:
+    
     return {
-        "rel": 0.5 * (float(rel_ab.relation) + float(rel_ba.relation)),
-        "trust": 0.5 * (float(rel_ab.trust) + float(rel_ba.trust)),
-        "tension": 0.5 * (rel_ab.tension + rel_ba.tension),
-        "griev": 0.5 * (rel_ab.grievance + rel_ba.grievance),
-        "wear": 0.5 * (rel_ab.weariness + rel_ba.weariness),
+        "rel": 0.5 * (rel_ab.get_score(FactionRelationScore.REL_RELATION) + rel_ba.get_score(FactionRelationScore.REL_RELATION)),
+        "trust": 0.5 * (rel_ab.get_score(FactionRelationScore.REL_TRUST) + rel_ba.get_score(FactionRelationScore.REL_TRUST)),
+        "tension":  0.5 * (rel_ab.get_score(FactionRelationScore.REL_TENSION) + rel_ba.get_score(FactionRelationScore.REL_TENSION)),
+        "griev": 0.5 * (rel_ab.get_score(FactionRelationScore.REL_GRIEVANCE) + rel_ba.get_score(FactionRelationScore.REL_GRIEVANCE)),
+        "wear": 0.5 * (rel_ab.get_score(FactionRelationScore.REL_WEARINESS) + rel_ba.get_score(FactionRelationScore.REL_WEARINESS)),
     }
 
 static func _lock_days_for_state(state: StringName, rng: RandomNumberGenerator) -> int:
@@ -59,11 +60,17 @@ static func _enter_state(arc_state: ArcState, new_state: StringName, day: int, r
 # update_arc_state() (compact)
 # Appelé APRÈS résolution d’un event (donc on connaît last_action/choice)
 # -------------------------------------------------------------------
-static func tick_day_for_pair(arc_state: ArcState, rel_ab: FactionRelationScore, rel_ba: FactionRelationScore) -> void:
+static func tick_day_for_pair(arc_state: ArcState, faction_a_id: String, faction_b_id: String) -> void:
     var t_low := 25.0
     var rel_good := 35.0
     var trust_good := 55.0
-
+    
+    #get relation
+    var faction_a = FactionManager.get_faction(faction_a_id)
+    var faction_b = FactionManager.get_faction(faction_b_id)
+    var rel_ab :FactionRelationScore = faction_a.get_relation_to(faction_b_id)
+    var rel_ba :FactionRelationScore = faction_b.get_relation_to(faction_a_id)
+    
     var tension_mean := 0.5 * (rel_ab.get_score(FactionRelationScore.REL_TENSION) + rel_ba.get_score(FactionRelationScore.REL_TENSION))
     var rel_mean := 0.5 * (float(rel_ab.get_score(FactionRelationScore.REL_RELATION)) + float(rel_ba.get_score(FactionRelationScore.REL_RELATION)))
     var trust_mean := 0.5 * (float(rel_ab.get_score(FactionRelationScore.REL_TRUST)) + float(rel_ba.get_score(FactionRelationScore.REL_TRUST)))
@@ -203,17 +210,25 @@ static func apply_treaty_enforcement_resolution(
 
     # Apply small relation deltas to both directions
     if d_trust != 0:
-        rel_ab.trust = int(clampi(rel_ab.trust + d_trust, 0, 100))
-        rel_ba.trust = int(clampi(rel_ba.trust + d_trust, 0, 100))
+        var ab_score =  rel_ab.get_score(FactionRelationScore.REL_TRUST)
+        var ba_score =  rel_ba.get_score(FactionRelationScore.REL_TRUST)
+        rel_ab.set_score(FactionRelationScore.REL_TRUST, int(clampi(ab_score + d_trust, 0, 100)))
+        rel_ba.set_score(FactionRelationScore.REL_TRUST, int(clampi(ba_score + d_trust, 0, 100)))
     if d_tension != 0:
-        rel_ab.tension = int(clampi(rel_ab.tension + d_tension, 0, 100))
-        rel_ba.tension = int(clampi(rel_ba.tension + d_tension, 0, 100))
+        var ab_score =  rel_ab.get_score(FactionRelationScore.REL_TENSION)
+        var ba_score =  rel_ba.get_score(FactionRelationScore.REL_TENSION)
+        rel_ab.set_score(FactionRelationScore.REL_TENSION, int(clampi(ab_score + d_tension, 0, 100)))
+        rel_ba.set_score(FactionRelationScore.REL_TENSION, int(clampi(ba_score + d_tension, 0, 100)))
     if d_rel != 0:
-        rel_ab.relation = int(clampi(rel_ab.relation + d_rel, -100, 100))
-        rel_ba.relation = int(clampi(rel_ba.relation + d_rel, -100, 100))
+        var ab_score =  rel_ab.get_score(FactionRelationScore.REL_RELATION)
+        var ba_score =  rel_ba.get_score(FactionRelationScore.REL_RELATION)
+        rel_ab.set_score(FactionRelationScore.REL_RELATION,  int(clampi(ab_score + d_rel, -100, 100)))
+        rel_ba.set_score(FactionRelationScore.REL_RELATION, int(clampi(ba_score + d_rel, -100, 100)))
     if d_wear != 0:
-        rel_ab.weariness = int(clampi(rel_ab.weariness + d_wear, 0, 100))
-        rel_ba.weariness = int(clampi(rel_ba.weariness + d_wear, 0, 100))
+        var ab_score =  rel_ab.get_score(FactionRelationScore.REL_WEARINESS)
+        var ba_score =  rel_ba.get_score(FactionRelationScore.REL_WEARINESS)
+        rel_ab.set_score(FactionRelationScore.REL_WEARINESS, int(clampi(ab_score + d_wear, 0, 100)))
+        rel_ba.set_score(FactionRelationScore.REL_WEARINESS, int(clampi(ba_score + d_wear, 0, 100)))
 
     # Si on repasse en dessous d’un seuil => “stabilité”
     # (optionnel) si t.violation_score < 0.2: arc_state.pending_retaliation = false
@@ -267,14 +282,19 @@ static func tick_tribute_if_any(
         
         # Relation fallout: loser hates winner more (asym)
         var l2w: FactionRelationScore = FactionManager.get_relation(loser, winner)
-        l2w.grievance = int(clampi(l2w.grievance + 6, 0, 100))
-        l2w.tension = int(clampi(l2w.tension + 4, 0, 100))
-        l2w.trust = int(clampi(l2w.trust - 4, 0, 100))
+        var l2w_grievance = l2w.get_score(FactionRelationScore.REL_GRIEVANCE)
+        var l2w_tension = l2w.get_score(FactionRelationScore.REL_TENSION)
+        var l2w_trust = l2w.get_score(FactionRelationScore.REL_TRUST)
+        l2w.set_score(FactionRelationScore.REL_GRIEVANCE, int(clampi(l2w_grievance + 6, 0, 100)))
+        l2w.set_score(FactionRelationScore.REL_TENSION, int(clampi(l2w_tension + 4, 0, 100)))
+        l2w.set_score(FactionRelationScore.REL_TRUST, int(clampi(l2w_trust - 4, 0, 100)))
 
         # winner becomes less trusting too (sym small)
-        var w2l: FactionRelationScore = FactionManager.get_relation(loser, winner)
-        w2l.trust = int(clampi(w2l.trust - 2, 0, 100))
-        w2l.tension = int(clampi(w2l.tension + 2, 0, 100))
+        var w2l: FactionRelationScore = FactionManager.get_relation(winner, loser)
+        var w2l_tension = w2l.get_score(FactionRelationScore.REL_TENSION)
+        var w2l_trust = w2l.get_score(FactionRelationScore.REL_TRUST)
+        w2l.set_score(FactionRelationScore.REL_TRUST, int(clampi(w2l_trust - 2, 0, 100)))
+        w2l.set_score(FactionRelationScore.REL_TENSION, int(clampi(w2l_tension + 2, 0, 100)))
 
         # Check break
         if ArcStateMachine.maybe_break_treaty(arc_state, day):

@@ -9,12 +9,26 @@ func _test_traitor_summit_breaks_treaty() -> void:
     var rng := RandomNumberGenerator.new()
     rng.seed = 22222
 
-    var rel_ab := FactionRelationScore.new()
-    var rel_ba := FactionRelationScore.new()
-    rel_ab.relation = 30; rel_ba.relation = 28
-    rel_ab.trust = 60;    rel_ba.trust = 58
-    rel_ab.tension = 18;  rel_ba.tension = 20
-    rel_ab.grievance = 8; rel_ba.grievance = 10
+
+    # ids
+    FactionManager.generate_factions(2)
+    var ids :Array[String]= FactionManager.get_all_faction_ids()
+    var A = ids[0]
+    var B = ids[1]
+    
+    var rel_ab = FactionManager.get_relation(A,B)
+    var rel_ba = FactionManager.get_relation(B,A)
+    # init A<->B hostile conflict
+    rel_ab.set_score(FactionRelationScore.REL_RELATION, 30)
+    rel_ab.set_score(FactionRelationScore.REL_TRUST, 60)
+    rel_ab.set_score(FactionRelationScore.REL_TENSION, 18)
+    rel_ab.set_score(FactionRelationScore.REL_GRIEVANCE, 8)
+    
+    rel_ba.set_score(FactionRelationScore.REL_RELATION, 28)
+    rel_ba.set_score(FactionRelationScore.REL_TRUST, 58)
+    rel_ba.set_score(FactionRelationScore.REL_TENSION, 18)
+    rel_ba.set_score(FactionRelationScore.REL_GRIEVANCE, 8)
+    
 
     var arc := ArcState.new()
     arc.state = &"TRUCE"

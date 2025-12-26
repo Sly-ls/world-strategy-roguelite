@@ -9,13 +9,25 @@ func _test_violation_then_enforcement_loyal_stabilizes() -> void:
     var rng := RandomNumberGenerator.new()
     rng.seed = 11111
 
-    var rel_ab := FactionRelationScore.new()
-    var rel_ba := FactionRelationScore.new()
-    rel_ab.relation = 25; rel_ba.relation = 22
-    rel_ab.trust = 55;    rel_ba.trust = 52
-    rel_ab.tension = 20;  rel_ba.tension = 22
-    rel_ab.grievance = 10;rel_ba.grievance = 12
-
+    # ids
+    FactionManager.generate_factions(2)
+    var ids :Array[String]= FactionManager.get_all_faction_ids()
+    var A = ids[0]
+    var B = ids[1]
+    
+    var rel_ab = FactionManager.get_relation(A,B)
+    var rel_ba = FactionManager.get_relation(B,A)
+    # init A<->B hostile conflict
+    rel_ab.set_score(FactionRelationScore.REL_RELATION, 25)
+    rel_ab.set_score(FactionRelationScore.REL_TRUST, 55)
+    rel_ab.set_score(FactionRelationScore.REL_TENSION, 20)
+    rel_ab.set_score(FactionRelationScore.REL_GRIEVANCE, 10)
+    
+    rel_ba.set_score(FactionRelationScore.REL_RELATION, 22)
+    rel_ba.set_score(FactionRelationScore.REL_TRUST, 52)
+    rel_ba.set_score(FactionRelationScore.REL_TENSION, 22)
+    rel_ba.set_score(FactionRelationScore.REL_GRIEVANCE, 12)
+    
     var arc := ArcState.new()
     arc.state = &"TRUCE"
     arc.lock_until_day = 0
@@ -55,4 +67,6 @@ func _test_violation_then_enforcement_loyal_stabilizes() -> void:
     _assert(arc.treaty.violation_score < v_after_violation, "violation_score should decrease after enforcement (%.3f -> %.3f)" % [v_after_violation, arc.treaty.violation_score])
 
     # Sanity: tension should not be higher than right after violation (usually decreases)
-    _assert(rel_ab.tension <= 100 and rel_ba.tension <= 100, "tension stays in bounds")
+    var ab_rension_score = rel_ab.get_score(FactionRelationScore.REL_RELATION)
+    var ba_rension_score = rel_ba.get_score(FactionRelationScore.REL_RELATION)
+    _assert(ab_rension_score <= 100 and ba_rension_score <= 100, "tension stays in bounds")

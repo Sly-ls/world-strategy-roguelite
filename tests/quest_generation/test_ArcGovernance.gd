@@ -81,27 +81,35 @@ func _test_tick_day_for_pair_stability_counters() -> void:
     arc_state.stable_low_tension_days = 0
     arc_state.stable_high_trust_days = 0
 
-    var ab := FactionRelationScore.new()
-    var ba := FactionRelationScore.new()
-
+    # ids
+    FactionManager.generate_factions(2)
+    var ids :Array[String]= FactionManager.get_all_faction_ids()
+    var A = ids[0]
+    var B = ids[1]
+    
+    var rel_ab = FactionManager.get_relation(A,B)
+    var rel_ba = FactionManager.get_relation(B,A)
+    # init A<->B hostile conflict
+    rel_ab.set_score(FactionRelationScore.REL_RELATION, -50)
+    rel_ab.set_score(FactionRelationScore.REL_TRUST, 20)
     # Low tension + high trust
-    ab.set_score(FactionRelationScore.REL_TENSION, 10); 
-    ba.set_score(FactionRelationScore.REL_TENSION, 12); 
-    ab.set_score(FactionRelationScore.REL_RELATION, 40); 
-    ba.set_score(FactionRelationScore.REL_RELATION, 38); 
-    ab.set_score(FactionRelationScore.REL_TRUST, 60); 
-    ba.set_score(FactionRelationScore.REL_TRUST, 58); 
+    rel_ab.set_score(FactionRelationScore.REL_TENSION, 10); 
+    rel_ba.set_score(FactionRelationScore.REL_TENSION, 12); 
+    rel_ab.set_score(FactionRelationScore.REL_RELATION, 40); 
+    rel_ba.set_score(FactionRelationScore.REL_RELATION, 38); 
+    rel_ab.set_score(FactionRelationScore.REL_TRUST, 60); 
+    rel_ba.set_score(FactionRelationScore.REL_TRUST, 58); 
 
     for i in range(7):
-        ArcStateMachine.tick_day_for_pair(arc_state, ab, ba)
+        ArcStateMachine.tick_day_for_pair(arc_state, A, B)
 
     _assert(arc_state.stable_low_tension_days == 7, "stable_low_tension_days should count up")
     _assert(arc_state.stable_high_trust_days == 7, "stable_high_trust_days should count up")
 
     # Break condition
-    ab.set_score(FactionRelationScore.REL_TRUST, 60); 
-    ba.set_score(FactionRelationScore.REL_TRUST, 60); 
-    ArcStateMachine.tick_day_for_pair(arc_state, ab, ba)
+    rel_ab.set_score(FactionRelationScore.REL_TRUST, 60); 
+    rel_ba.set_score(FactionRelationScore.REL_TRUST, 60); 
+    ArcStateMachine.tick_day_for_pair(arc_state, A, B)
     _assert(arc_state.stable_low_tension_days == 0, "stable_low_tension_days should reset when tension high")
 
 

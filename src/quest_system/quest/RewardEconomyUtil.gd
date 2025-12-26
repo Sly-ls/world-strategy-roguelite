@@ -36,10 +36,10 @@ static func _w_gold_personality_delta(profile) -> float:
     # Honor/discipline/idealist -> w_gold ↓ (plus de faveurs/traités)
     if profile == null:
         return 0.0
-    var greed :float = profile.get_personality(FactionProfile.PERS_GREED, 0.5)
-    var opp :float = profile.get_personality(FactionProfile.PERS_OPPORTUNISM, 0.5)
-    var dis :float = profile.get_personality(FactionProfile.PERS_DISCIPLINE, 0.5)
-    var hon :float = profile.get_personality(FactionProfile.PERS_HONOR, 0.5)
+    var greed :float = profile.get_personality(FactionProfile.PERS_GREED)
+    var opp :float = profile.get_personality(FactionProfile.PERS_OPPORTUNISM)
+    var dis :float = profile.get_personality(FactionProfile.PERS_DISCIPLINE)
+    var hon :float = profile.get_personality(FactionProfile.PERS_HONOR)
     
     # “greed” est dominant, sinon opportunism fait le job
     var raw := 0.60*(greed - 0.5) + 0.35*(opp - 0.5) - 0.25*(dis - 0.5) - 0.20*(hon - 0.5)
@@ -110,15 +110,15 @@ static func is_non_gold(bundle: Dictionary) -> bool:
 # -----------------------
 # ✅ Variance par personnalité
 # -----------------------
-static func _gold_variance_amp(profile) -> float:
+static func _gold_variance_amp(profile :FactionProfile) -> float:
     if profile == null:
         return 0.108
     # mapping: greedy/chaotic => opp/aggr ↑ ; bureaucratic => discipline/honor ↑
     # profile attendu: FactionProfile ou Dictionary {"personality":{...}} ou dict direct
-    var agr :float = profile.get_personality(FactionProfile.PERS_AGGRESSION, 0.5)
-    var opp :float = profile.get_personality(FactionProfile.PERS_OPPORTUNISM, 0.5)
-    var dis :float = profile.get_personality(FactionProfile.PERS_DISCIPLINE, 0.5)
-    var hon :float = profile.get_personality(FactionProfile.PERS_HONOR, 0.5)
+    var agr :float = profile.get_personality(FactionProfile.PERS_AGGRESSION)
+    var opp :float = profile.get_personality(FactionProfile.PERS_OPPORTUNISM)
+    var dis :float = profile.get_personality(FactionProfile.PERS_DISCIPLINE)
+    var hon :float = profile.get_personality(FactionProfile.PERS_HONOR)
 
     # volatility 0..1 (bornée)
     var vol := 0.20 + 0.45*opp + 0.25*agr - 0.55*dis - 0.20*hon

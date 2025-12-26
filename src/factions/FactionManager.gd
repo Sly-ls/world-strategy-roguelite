@@ -17,7 +17,7 @@ signal faction_status_changed(faction_id: String, old_status: String, new_status
 # PROPRIÉTÉS
 # ========================================
 var factions: Dictionary = {}  ## id -> Faction
-
+var pair_states: Dictionary[StringName, FactionPairState]
 # RNG pour génération reproductible
 var _profile_rng: RandomNumberGenerator = RandomNumberGenerator.new()
 
@@ -537,8 +537,8 @@ func generate_faction(
 
 func generate_factions(
     count: int,
-    heat: int,
-    seed: int = 0,
+    heat: int = 1,
+    seed: int = 123456789,
     params: Dictionary = {}
 ) -> Array:
     heat = clampi(heat, 1, 100)
@@ -717,3 +717,196 @@ func daily_decay() -> void:
             rel.apply_delta_to(FactionRelationScore.REL_TENSION, tension_delta)
             rel.apply_delta_to(FactionRelationScore.REL_GRIEVANCE, grievance_delta)
             rel.apply_delta_to(FactionRelationScore.REL_WEARINESS, weariness_delta)
+
+# ========================================
+# PAIR STATES - Sérialisation
+# ========================================
+
+## Récupère l'état de paire entre deux factions
+## Crée un nouvel état NEUTRAL si la paire n'existe pas
+func get_pair_state(a, b) -> FactionPairState:
+    var key := Utils.pair_key(a, b)
+    if not pair_states.has(key):
+        pair_states[key] = FactionPairState.new(StringName(str(a)), StringName(str(b)))
+    return pair_states[key]
+
+## Vérifie si un état de paire existe (sans le créer)
+func has_pair_state(a, b) -> bool:
+    return pair_states.has(Utils.pair_key(a, b))
+
+## Définit l'état de paire (remplace l'existant)
+func set_pair_state(a, b, state: FactionPairState) -> void:
+    var key := Utils.pair_key(a, b)
+    pair_states[key] = state
+
+## Supprime l'état de paire (revient à l'état par défaut)
+func remove_pair_state(a, b) -> void:
+    var key := Utils.pair_key(a, b)
+    pair_states.erase(key)
+
+## Récupère tous les états de paire
+func get_all_pair_states() -> Dictionary:
+    return pair_states.duplicate()
+
+# ========================================
+# PAIR STATES - Queries de haut niveau
+# ========================================
+
+## Vérifie si deux factions sont en guerre
+func are_at_war(a, b) -> bool:
+    if not has_pair_state(a, b):
+        return false
+    return get_pair_state(a, b).is_at_war()
+
+## Vérifie si deux factions sont alliées
+func are_allied(a, b) -> bool:
+    if not has_pair_state(a, b):
+        return false
+    return get_pair_state(a, b).is_allied()
+
+## Vérifie si deux factions sont en trêve
+func are_in_truce(a, b) -> bool:
+    if not has_pair_state(a, b):
+        return false
+    return get_pair_state(a, b).is_in_truce()
+
+## Vérifie si deux factions sont en conflit (hostile mais pas en guerre)
+func are_in_conflict(a, b) -> bool:
+    if not has_pair_state(a, b):
+        return false
+    var ps := get_pair_state(a, b)
+    return ps.state == FactionPairState.S_CONFLICT or ps.state == FactionPairState.S_RIVALRY
+
+## Vérifie si deux factions ont une relation hostile
+func are_hostile(a, b) -> bool:
+    if not has_pair_state(a, b):
+        return false
+    return get_pair_state(a, b).is_hostile()
+
+## Vérifie si deux factions ont une relation pacifique
+func are_peaceful(a, b) -> bool:
+    if not has_pair_state(a, b):
+        return true  # Par défaut, les factions sont neutres/pacifiques
+    return get_pair_state(a, b).is_peaceful()
+
+# ========================================
+# PAIR STATES - Queries par faction
+# ========================================
+
+## Récupère tous les états de paire impliquant une faction
+func get_pair_states_for(faction_id) -> Array[FactionPairState]:
+    var result: Array[FactionPairState] = []
+    var fid := StringName(str(faction_id))
+    for ps in pair_states.values():
+        if ps.involves(fid):
+            result.append(ps)
+    return result
+
+## Récupère toutes les factions en guerre avec une faction donnée
+func get_war_enemies(faction_id) -> Array[StringName]:
+    var result: Array[StringName] = []
+    var fid := StringName(str(faction_id))
+    for ps in pair_states.values():
+        if ps.involves(fid) and ps.is_at_war():
+            result.append(ps.get_other(fid))
+    return result
+
+## Récupère toutes les factions alliées avec une faction donnée
+func get_war_allies(faction_id) -> Array[StringName]:
+    var result: Array[StringName] = []
+    var fid := StringName(str(faction_id))
+    for ps in pair_states.values():
+        if ps.involves(fid) and ps.is_allied():
+            result.append(ps.get_other(fid))
+    return result
+
+## Récupère toutes les factions en conflit avec une faction donnée (RIVALRY ou CONFLICT)
+func get_rivals(faction_id) -> Array[StringName]:
+    var result: Array[StringName] = []
+    var fid := StringName(str(faction_id))
+    for ps in pair_states.values():
+        if ps.involves(fid) and ps.is_hostile() and not ps.is_at_war():
+            result.append(ps.get_other(fid))
+    return result
+
+## Compte le nombre de guerres actives pour une faction
+func count_active_wars(faction_id) -> int:
+    return get_war_enemies(faction_id).size()
+
+## Compte le nombre d'alliances actives pour une faction
+func count_active_alliances(faction_id) -> int:
+    return get_war_allies(faction_id).size()
+
+# ========================================
+# PAIR STATES - Mise à jour
+# ========================================
+
+## Met à jour l'état de paire après un événement
+## Utilise FactionPairStateMachine pour les transitions
+func update_pair_state(
+    a, b, 
+    day: int, 
+    rng: RandomNumberGenerator, 
+    action: StringName = &"",
+    choice: StringName = &""
+) -> bool:
+    var ps := get_pair_state(a, b)
+    var rel_ab := get_relation(a, b)
+    var rel_ba := get_relation(b, a)
+    
+    if rel_ab == null or rel_ba == null:
+        return false
+    
+    return FactionPairStateMachine.update_state(ps, rel_ab, rel_ba, day, rng, action, choice)
+
+## Mise à jour quotidienne des compteurs de stabilité pour toutes les paires
+func tick_day_all_pairs() -> void:
+    for key in pair_states.keys():
+        var ps: FactionPairState = pair_states[key]
+        var rel_ab := get_relation(ps.a_id, ps.b_id)
+        var rel_ba := get_relation(ps.b_id, ps.a_id)
+        
+        if rel_ab != null and rel_ba != null:
+            FactionPairStateMachine.tick_day(ps, rel_ab, rel_ba)
+
+## Force un état sur une paire (bypass les conditions normales)
+func force_pair_state(
+    a, b,
+    new_state: StringName,
+    day: int,
+    lock_days: int = 7,
+    reason: StringName = &""
+) -> void:
+    var ps := get_pair_state(a, b)
+    FactionPairStateMachine.force_state(ps, new_state, day, lock_days, reason)
+
+# ========================================
+# PAIR STATES - Sérialisation
+# ========================================
+
+## Sérialise tous les états de paire pour sauvegarde
+func save_pair_states() -> Dictionary:
+    var result: Dictionary = {}
+    for key in pair_states.keys():
+        var ps: FactionPairState = pair_states[key]
+        result[String(key)] = ps.to_dict()
+    return result
+
+## Charge les états de paire depuis une sauvegarde
+func load_pair_states(data: Dictionary) -> void:
+    pair_states.clear()
+    for key in data.keys():
+        var ps := FactionPairState.from_dict(data[key])
+        pair_states[StringName(key)] = ps
+
+# ========================================
+# PAIR STATES - Debug
+# ========================================
+
+## Affiche un résumé de tous les états de paire
+func debug_print_pair_states() -> void:
+    print("=== Pair States (%d) ===" % pair_states.size())
+    for key in pair_states.keys():
+        var ps: FactionPairState = pair_states[key]
+        print("  %s: %s (day %d)" % [key, ps.state, ps.entered_day])
+    print("=== End Pair States ===")

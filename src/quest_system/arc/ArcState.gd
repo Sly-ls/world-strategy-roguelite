@@ -22,5 +22,7 @@ var last_action: StringName = &""
 
 var treaty:Treaty = null
 
+var war_terms: Dictionary = {}              # conditions proposées à la sortie
+
 func is_locked(day: int) -> bool:
     return day < lock_until_day

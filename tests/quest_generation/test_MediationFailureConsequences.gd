@@ -40,7 +40,7 @@ func _test_mediation_failure_increases_tension_and_decreases_trust_to_mediator()
     }
 
     # mediator profile for faction C: mediocre diplomacy => low success chance
-    var mediator_profile := FactionProfile.from_profile_and_axis(
+    var mediator_profile := FactionProfile.new(
     {FactionProfile.PERS_DIPLOMACY: 0.2, 
     FactionProfile.PERS_HONOR: 0.4, 
     FactionProfile.PERS_DISCIPLINE: 0.4, 
