@@ -2,12 +2,12 @@
 extends BaseTest
 class_name Integration_WarPressureGate_Autoloads
 
-class DomesticState:
-    var war_support := 75
-    var unrest := 10
-    func pressure() -> float:
-        # même formule que ce qu’on a discuté : simple, stable
-        return clampf(0.55 * (1.0 - war_support / 100.0) + 0.45 * (unrest / 100.0), 0.0, 1.0)
+#class DomesticState:
+#    var war_support := 75
+#    var unrest := 10
+#    func pressure() -> float:
+#        # même formule que ce qu’on a discuté : simple, stable
+#        return clampf(0.55 * (1.0 - war_support / 100.0) + 0.45 * (unrest / 100.0), 0.0, 1.0)
 
 func _ready() -> void:
     _test_world_loop_uses_real_autoloads()
@@ -45,7 +45,7 @@ func _test_world_loop_uses_real_autoloads() -> void:
     _set_goal_state(FactionGoalManagerRunner, A, {"type": &"WAR", "target_id": B})
 
     # --- Simulation ---
-    var dom := DomesticState.new()
+    var dom := FactionDomesticState.new()
 
     var first_truce_day := -1
     var truce_until := -1
