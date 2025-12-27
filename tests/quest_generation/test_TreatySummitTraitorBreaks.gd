@@ -11,7 +11,7 @@ func _test_traitor_summit_breaks_treaty() -> void:
 
 
     # ids
-    FactionManager.generate_factions(2)
+    FactionManager.generate_world(2)
     var ids :Array[String]= FactionManager.get_all_faction_ids()
     var A = ids[0]
     var B = ids[1]

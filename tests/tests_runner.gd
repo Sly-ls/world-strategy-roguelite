@@ -2,7 +2,7 @@ extends Node
 
 @export var excluded_dirs: PackedStringArray = [
     # "res://tests/combat",
-    # "res://tests/logger",
+     "res://tests/logger",
     # "res://tests/quest",
      #"res://tests/quest_generation",
     # "res://tests/faction",

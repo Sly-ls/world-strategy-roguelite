@@ -169,7 +169,7 @@ func _generate_quest_parameters(
 
     # 1️⃣ Runtime factions
     var giver_faction_id: String = _pick_random_faction()
-    var antagonist_faction_id: String = _pick_hostile_faction()
+    var antagonist_faction_id: String = FactionHostilityPicker.pick_ally(giver_faction_id, variation_rng)
 
     # 2️⃣ Catégorie depuis le POI
     var category: QuestTypes.QuestCategory = _guess_category_from_poi(poi_type)
@@ -208,7 +208,7 @@ func _generate_quest_parameters(
             params["urgency"] = variation_rng.randi_range(1, 3)
 
         "town_defense":
-            params["enemy_faction"] = _pick_hostile_faction()
+            params["enemy_faction"] = FactionHostilityPicker.pick_ally(giver_faction_id, variation_rng)
             params["enemy_strength"] = variation_rng.randi_range(1, 5)
             params["reward_multiplier"] = variation_rng.randf_range(1.0, 2.0)
 
@@ -239,7 +239,7 @@ func _generate_random_parameters(
 
     # 1️⃣ Runtime factions (procédural)
     var giver_faction_id: String = _pick_random_faction()
-    var antagonist_faction_id: String = _pick_hostile_faction()
+    var antagonist_faction_id: String = FactionHostilityPicker.pick_ally(giver_faction_id, variation_rng)
 
     # 2️⃣ Contexte de résolution
     var resolution_context := ContextTagResolver.build_context(
@@ -477,11 +477,7 @@ func _generate_artifact_name() -> String:
     ]
 
 func _pick_random_faction() -> String:
-    var factions := ["humans", "elves", "orcs"]
-    return factions[variation_rng.randi_range(0, factions.size() - 1)]
-
-func _pick_hostile_faction() -> String:
-    var factions := ["orcs", "bandits"]
+    var factions := FactionManager.get_all_faction_ids()
     return factions[variation_rng.randi_range(0, factions.size() - 1)]
 
 func _pick_random_resource() -> String:
@@ -1049,7 +1045,7 @@ func tick_artifact_recovery_offers() -> void:
         if ArtifactRegistryRunner.is_lost(artifact_id):
             var q := generate_retrieve_artifact_quest(artifact_id)
             if q != null:
-                QuestOfferSimRunner.add_offer(q) # ou ton système d'offers
+                QuestPool.try_add_offer(q) # ou ton système d'offers
                 
 func generate_retrieve_artifact_quest(artifact_id: String) -> QuestInstance:
     var spec: ArtifactSpec = ArtifactRegistryRunner.get_spec(artifact_id) if ArtifactRegistry else null
@@ -1072,12 +1068,12 @@ func generate_retrieve_artifact_quest(artifact_id: String) -> QuestInstance:
     r.type = QuestTypes.RewardType.GOLD
     r.amount = 80
     template.rewards = [r]
-
+    var giver_faction_id = _pick_random_faction()
     var ctx := {
         "artifact_id": artifact_id,
         "resolution_profile_id": "artifact_recovery",
         "giver_faction_id": _pick_random_faction(),
-        "antagonist_faction_id": _pick_hostile_faction(),
+        "antagonist_faction_id": FactionHostilityPicker.pick_ally(giver_faction_id, variation_rng),
         "tier": template.tier,
         "category": template.category
     }

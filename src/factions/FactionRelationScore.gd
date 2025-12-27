@@ -58,9 +58,6 @@ var min_max :Dictionary = {
 const REL_MIN: float = -100.0
 const REL_MAX: float = 100.0
 
-const TRUST_MIN: float = -100
-const TRUST_MAX: float = 100
-
 const METER_MIN: float = 0.0
 const METER_MAX: float = 100.0
 

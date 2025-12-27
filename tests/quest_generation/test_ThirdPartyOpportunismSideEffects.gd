@@ -15,7 +15,7 @@ func _test_opportunism_improves_A_C_and_does_not_touch_A_B() -> void:
     # -----------------------------
     
     # ids
-    FactionManager.generate_factions(3)
+    FactionManager.generate_world(3)
     var ids :Array[String]= FactionManager.get_all_faction_ids()
     var A = ids[0]
     var B = ids[1]

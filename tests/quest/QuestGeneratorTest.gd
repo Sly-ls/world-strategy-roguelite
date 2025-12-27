@@ -29,6 +29,11 @@ func _setup() -> void:
     _force_load_tiles_enums()
     _ensure_world_day(0)
     generator = _create_generator()
+    
+    FactionManager.generate_world(2)
+    var ids = FactionManager.get_all_faction_ids()
+    var ATTACKER_FACTION = ids[0]
+    var DEFENDER_FACTION = ids[1]
 
 
 func _cleanup() -> void:

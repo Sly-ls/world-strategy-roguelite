@@ -82,7 +82,7 @@ func _test_tick_day_for_pair_stability_counters() -> void:
     arc_state.stable_high_trust_days = 0
 
     # ids
-    FactionManager.generate_factions(2)
+    FactionManager.generate_world(2)
     var ids :Array[String]= FactionManager.get_all_faction_ids()
     var A = ids[0]
     var B = ids[1]

@@ -19,6 +19,12 @@ func _ready() -> void:
         fail_test("QuestPool.get_offers() introuvable")
         return
     
+    
+    FactionManager.generate_world(5)
+    var ids = FactionManager.get_all_faction_ids()
+    var ATTACKER_FACTION = ids[0]
+    var DEFENDER_FACTION = ids[1]
+    
     _test_offers_100_days_simulation()
     
     pass_test("QuestOfferPoolTest: 100 jours simulés, cap=%d respecté, aucune offre invalide, aucun doublon" % MAX_OFFERS_CAP)

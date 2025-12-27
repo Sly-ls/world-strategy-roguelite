@@ -17,6 +17,11 @@ func _ready() -> void:
         fail_test("WorldSimRunner.simulate_days() introuvable")
         return
     
+    FactionManager.generate_world(5)
+    var ids = FactionManager.get_all_faction_ids()
+    var ATTACKER_FACTION = ids[0]
+    var DEFENDER_FACTION = ids[1]
+    
     _test_world_sim_10_days()
     
     pass_test("WorldSimulationTest: %d jours simulés, factions actives, offres générées" % SIMULATION_DAYS)

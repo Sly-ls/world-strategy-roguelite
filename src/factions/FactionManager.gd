@@ -635,7 +635,7 @@ func _new_faction_object():
 # -----------------------------------------
 # API high-level : monde complet
 # -----------------------------------------
-func generate_world(count: int, heat: int, seed: int = 0, params: Dictionary = {}) -> Array:
+func generate_world(count: int, heat: int=1, seed: int = 123456789, params: Dictionary = {}) -> Array:
     generate_factions(count, heat, seed, params)
     FactionRelationsUtil.initialize_relations_world(heat, seed + 1, params)
     return get_all_factions()

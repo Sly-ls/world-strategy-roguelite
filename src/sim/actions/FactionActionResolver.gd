@@ -32,17 +32,20 @@ func _apply_build_domain(a: FactionAction) -> void:
 func _apply_diplomacy(a: FactionAction) -> void:
     if a.target_faction_id == "":
         return
-    FactionManager.set_relation_between(a.actor_faction_id, a.target_faction_id,
-        FactionManager.get_relation_between(a.actor_faction_id, a.target_faction_id) + a.relation_delta_actor_target)
-    print("Diplomatie %s -> %s (%+d)" % [a.actor_faction_id, a.target_faction_id, a.relation_delta_actor_target])
+    _apply_relation(a)
 
 func _apply_raid(a: FactionAction) -> void:
     if a.target_faction_id == "":
         return
-    FactionManager.set_relation_between(a.actor_faction_id, a.target_faction_id,
-        FactionManager.get_relation_between(a.actor_faction_id, a.target_faction_id) + a.relation_delta_actor_target)
-    print("Raid %s -> %s (%+d)" % [a.actor_faction_id, a.target_faction_id, a.relation_delta_actor_target])
+    _apply_relation(a)
 
+func _apply_relation(a: FactionAction) -> void:
+    var rel := FactionManager.get_relation(a.actor_faction_id, a.target_faction_id)
+    rel.apply_delta_to(FactionRelationScore.REL_RELATION, a.relation_delta_actor_target)
+    var rev_rel := FactionManager.get_relation(a.target_faction_id, a.actor_faction_id)
+    rev_rel.apply_delta_to(FactionRelationScore.REL_RELATION, a.relation_delta_actor_target)
+    print("%s %s -> %s (%+d)" % [a.type, a.actor_faction_id, a.target_faction_id, a.relation_delta_actor_target])
+    
 func _apply_generic(a: FactionAction) -> void:
     #print("Faction %s action %s" % [a.actor_faction_id, str(a.type)])
     pass

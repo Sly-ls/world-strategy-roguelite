@@ -10,7 +10,7 @@ func _test_repeated_mediation_converges() -> void:
     rng.seed = 202501
 
     # ids
-    FactionManager.generate_factions(3)
+    FactionManager.generate_world(3)
     var ids :Array[String]= FactionManager.get_all_faction_ids()
     var A = ids[0]
     var B = ids[1]

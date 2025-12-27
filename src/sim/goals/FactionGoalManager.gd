@@ -152,8 +152,7 @@ func complete_goal(faction_id: String) -> void:
     if g.target_faction_id != "" and g.on_complete_relation_delta != 0:
         if FactionManager != null:
             var current_rel :FactionRelationScore = FactionManager.get_relation(g.actor_faction_id, g.target_faction_id)
-            current_rel.trust + g.on_complete_relation_delta
-            FactionManager.set_relation(g.actor_faction_id, g.target_faction_id, current_rel)
+            current_rel.apply_delta_to(FactionRelationScore.REL_RELATION, g.on_complete_relation_delta)
     
     goal_completed.emit(faction_id, g)
     

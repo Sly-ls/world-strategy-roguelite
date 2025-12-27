@@ -10,7 +10,7 @@ func _test_two_non_payments_break_treaty_and_escalate_state() -> void:
 
 
     # ids
-    FactionManager.generate_factions(2)
+    FactionManager.generate_world(2)
     var ids :Array[String]= FactionManager.get_all_faction_ids()
     var winner = ids[0]
     var loser = ids[1]

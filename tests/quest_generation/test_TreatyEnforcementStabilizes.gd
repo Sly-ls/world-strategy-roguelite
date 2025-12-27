@@ -10,7 +10,7 @@ func _test_violation_then_enforcement_loyal_stabilizes() -> void:
     rng.seed = 11111
 
     # ids
-    FactionManager.generate_factions(2)
+    FactionManager.generate_world(2)
     var ids :Array[String]= FactionManager.get_all_faction_ids()
     var A = ids[0]
     var B = ids[1]

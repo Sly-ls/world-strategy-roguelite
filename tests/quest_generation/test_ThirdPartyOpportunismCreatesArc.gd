@@ -15,7 +15,7 @@ func _test_opportunism_creates_new_arc_between_C_and_victim() -> void:
     # -----------------------------
    
     # ids
-    FactionManager.generate_factions(3)
+    FactionManager.generate_world(3)
     var ids :Array[String]= FactionManager.get_all_faction_ids()
     var A = ids[0]
     var B = ids[1]

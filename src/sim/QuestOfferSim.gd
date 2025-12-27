@@ -70,7 +70,7 @@ tier: QuestTypes.QuestTier = QuestTypes.QuestTier.TIER_1) -> void:
     #verification de l'antagonist
     var antagonist := target_id
     if antagonist == "" or antagonist == actor_id:
-        antagonist = QuestGenerator._pick_hostile_faction() # si accessible
+        antagonist = FactionHostilityPicker.pick(actor_id, RandomNumberGenerator.new()) # si accessible
         if antagonist == actor_id:
             antagonist = "bandits"
             

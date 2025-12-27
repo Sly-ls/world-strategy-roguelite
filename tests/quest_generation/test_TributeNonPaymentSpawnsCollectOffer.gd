@@ -8,7 +8,7 @@ func _ready() -> void:
 
 func _test_non_payment_spawns_collect_offer_then_payment_succeeds() -> void:
     # ids
-    FactionManager.generate_factions(2)
+    FactionManager.generate_world(2)
     var ids :Array[String]= FactionManager.get_all_faction_ids()
     var winner = ids[0]
     var loser = ids[1]

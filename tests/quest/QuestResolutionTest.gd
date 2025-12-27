@@ -23,6 +23,12 @@ func _ready() -> void:
         fail_test("QuestManager autoload manquant")
         return
     
+    
+    FactionManager.generate_world(2)
+    var ids = FactionManager.get_all_faction_ids()
+    var ATTACKER_FACTION = ids[0]
+    var DEFENDER_FACTION = ids[1]
+    
     _test_resolution_loyal()
     _test_resolution_neutral()
     _test_resolution_traitor()
@@ -46,10 +52,8 @@ func _cleanup() -> void:
 
 func _snapshot_initial_state() -> void:
     initial_gold = _safe_get_gold()
-    if QuestManager.has_method("get_player_tags"):
-        initial_player_tags = QuestManager.get_player_tags().duplicate()
-    if QuestManager.has_method("get_world_tags"):
-        initial_world_tags = QuestManager.get_world_tags().duplicate()
+    initial_player_tags = QuestManager.player_tags.duplicate()
+    initial_world_tags = QuestManager.world_tags.duplicate()
 
 
 func _restore_initial_state() -> void:

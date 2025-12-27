@@ -5,10 +5,10 @@ class_name ArcRivalryMVPTest
 ## Test MVP du système de rivalité entre factions
 ## Vérifie: action hostile → offre arc → résolution → retaliation
 
-const ATTACKER_FACTION := "elves"
-const DEFENDER_FACTION := "humans"
-
-
+var ATTACKER_FACTION := "elves"
+var DEFENDER_FACTION := "humans"
+var ids :Array[String]= []
+    
 func _ready() -> void:
     if ArcManagerRunner == null:
         fail_test("ArcManagerRunner autoload manquant")
@@ -42,6 +42,11 @@ func _setup() -> void:
     
     if ArcManagerRunner.has_method("reset"):
         ArcManagerRunner.reset()
+    
+    FactionManager.generate_world(2)
+    ids = FactionManager.get_all_faction_ids()
+    ATTACKER_FACTION = ids[0]
+    DEFENDER_FACTION = ids[1]
     
     _set_day(0)
 

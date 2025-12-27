@@ -199,8 +199,9 @@ func _apply_effect(inst: QuestInstance, effect: QuestEffect) -> void:
 
         QuestEffect.EffectType.REL_ANT:
             var ant := String(inst.context.get("antagonist_faction_id", ""))
-            if ant != "":
-                FactionManager.adjust_relation(ant, effect.amount)
+            #TODO avant c'etait pour la relation avec le joueur, maintenant il va faloir que ce soit avec la personne qui fait la quete
+            #if ant != "":
+            #    FactionManager.adjust_relation(ant, effect.amount)
 
 
 func _apply_effect_OLD(inst: QuestInstance, effect: QuestEffect) -> void:
