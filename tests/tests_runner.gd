@@ -17,25 +17,26 @@ var test_counter :int = 1
 var test_size :int = 1
 func _ready() -> void:
 
-    print("====================================\n")
-    print("Recherche des tests")
-    print("====================================\n")
+    myLogger.debug("====================================", LogTypes.Domain.TEST)
+    myLogger.debug("Recherche des tests", LogTypes.Domain.TEST)
+    myLogger.debug("====================================\n", LogTypes.Domain.TEST)
     var tests := _discover_tests(root_dir)
     tests.sort()
 
     if tests.is_empty():
+        myLogger.warn("TestRunner: aucun test trouvé dans %s (pattern: test_*.gd)" % root_dir, LogTypes.Domain.TEST)
         push_warning("TestRunner: aucun test trouvé dans %s (pattern: test_*.gd)" % root_dir)
         return
 
-    print("\n== TestRunner: %d test(s) détecté(s) ==" % tests.size())
+    myLogger.debug("\n== TestRunner: %d test(s) détecté(s) ==" % tests.size(), LogTypes.Domain.TEST)
     var i = 1
     test_size = tests.size()
     for t in tests:
-        print("%d - %s", [i, t])
+        myLogger.debug("%d - %s" % [i, t], LogTypes.Domain.TEST)
         i += 1
-    print("=============================================")
-    print("==    TestRunner: %d test(s) détecté(s)    ==" % tests.size())
-    print("=============================================\n")
+    myLogger.debug("=============================================", LogTypes.Domain.TEST)
+    myLogger.debug("==    TestRunner: %d test(s) détecté(s)    ==" % tests.size(), LogTypes.Domain.TEST)
+    myLogger.debug("=============================================\n", LogTypes.Domain.TEST)
 
     var results := []
     for path in tests:
@@ -66,6 +67,7 @@ func _discover_tests(dir_path: String) -> Array[String]:
 
     var dir := DirAccess.open(dir_path)
     if dir == null:
+        myLogger.error("TestRunner: impossible d'ouvrir %s" % dir_path, LogTypes.Domain.TEST)
         push_error("TestRunner: impossible d'ouvrir %s" % dir_path)
         return out
 
@@ -90,16 +92,18 @@ func _discover_tests(dir_path: String) -> Array[String]:
     dir.list_dir_end()
     return out
 func _run_one(path: String) -> bool:
-    print("\n%d/%d --- RUN %s ---" % [test_counter, test_size, path])
+    myLogger.debug("\n%d/%d --- RUN %s ---" % [test_counter, test_size, path], LogTypes.Domain.TEST)
     test_counter += 1
 
     var scr := load(path)
     if scr == null:
-        push_error("TestRunner: load() a échoué: " + path)
+        myLogger.error("TestRunner: load() a échoué: %s" % path, LogTypes.Domain.TEST)
+        push_error("TestRunner: load() a échoué: %s" % path)
         return false
 
     var node := scr.new() as BaseTest
     if node == null:
+        myLogger.error("TestRunner: %s n'hérite pas de BaseTest (extends BaseTest manquant ?)" % path)
         push_error("TestRunner: %s n'hérite pas de BaseTest (extends BaseTest manquant ?)" % path)
         return false
 
@@ -130,20 +134,24 @@ func _run_one(path: String) -> bool:
         if elapsed > per_test_timeout_sec:
             ok = false
             details = "Timeout (> %.1fs)" % per_test_timeout_sec
-            push_error("TestRunner: timeout sur " + path)
+            myLogger.error("TestRunner: timeout sur %s" % path, LogTypes.Domain.TEST)
+            push_error("TestRunner: timeout sur %s" % path)
             break
 
 
     node.queue_free()
-    print("--- RESULT ", ("OK" if ok else "FAIL"), ((" | " + details) if details != "" else ""), " ---")
+    var summary = "--- RESULT %s %s %s"% [("OK" if ok else "FAIL \n"), (("--- " + details) if details != "" else ""), " ---"]
+    myLogger.debug("==================================\n", LogTypes.Domain.TEST)
+    myLogger.debug("%s" % summary, LogTypes.Domain.TEST)
+    myLogger.debug("==================================\n", LogTypes.Domain.TEST)
     return ok
 
 func _print_summary(results: Array) -> void:
-    print("\n========== TEST SUMMARY ==========")
+    myLogger.debug("\n========== TEST SUMMARY ==========", LogTypes.Domain.TEST)
     var failures := 0
     for r in results:
-        print("%s : %s" % [r["path"], "OK" if r["ok"] else "FAIL"])
+        myLogger.debug("%s : %s" % [r["path"], "OK" if r["ok"] else "FAIL"], LogTypes.Domain.TEST)
         if not r["ok"]:
             failures += 1
-    print("Failures:", failures)
-    print("==================================\n")
+    myLogger.debug("Failures: %s" % failures, LogTypes.Domain.TEST)
+    myLogger.debug("==================================\n", LogTypes.Domain.TEST)

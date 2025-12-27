@@ -8,7 +8,8 @@
     "ARC": "DEBUG",
     "WORLD": "DEBUG",
     "ARMY": "DEBUG",
-    "COMBAT": "DEBUG"
+    "COMBAT": "DEBUG",
+    "TEST": "DEBUG"
   },
   "appenders": {
     "console": { "enabled": true, "min_level": "DEBUG", "rich": true },

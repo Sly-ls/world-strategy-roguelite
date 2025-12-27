@@ -48,7 +48,7 @@ func assert_true(cond: bool, message: String = "assert_true failed") -> void:
 
 func _assert(cond: bool, msg: String) -> bool:
     if not cond:
-        print("FAILED = " + msg)
+        myLogger.debug("FAILED = %s " % msg, LogTypes.Domain.TEST)
         count_error += 1
     return cond
         

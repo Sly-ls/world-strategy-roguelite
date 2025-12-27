@@ -3,7 +3,7 @@ class_name LogTypes
 
 enum Level { DEBUG = 10, INFO = 20, WARNING = 30, ERROR = 40, CRITICAL = 50, OFF = 100 }
 
-enum Domain { SYSTEM, QUEST, ARC, WORLD, ARMY, COMBAT }
+enum Domain { SYSTEM, QUEST, ARC, WORLD, ARMY, COMBAT, TEST }
 
 static func level_name(level: int) -> String:
     match level:
