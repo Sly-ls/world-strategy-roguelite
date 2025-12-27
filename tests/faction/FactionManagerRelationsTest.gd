@@ -49,25 +49,29 @@ func _test_set_get_relation_between() -> void:
     
     # Modifier
     FactionManager.set_relation_between("humans", "orcs", -99)
-    var new_val := FactionManager.get_relation("humans", "orcs").trust
-    _assert(new_val == -99, "get_relation_between doit retourner la valeur set, got %d" % new_val)
+    var new_rel :FactionRelationScore = FactionManager.get_relation("humans", "orcs")
+    var new_score =  new_rel.get_score(FactionRelationScore.REL_RELATION)
+    _assert(new_score == -99, "get_relation_between doit retourner la valeur set, got %d" % new_score)
     
     # Vérifier symétrie
-    var reverse_val := FactionManager.get_relation("orcs", "humans").trust
-    _assert(reverse_val == -99, "relation doit être symétrique, got %d" % reverse_val)
+    var reverse_rel :FactionRelationScore = FactionManager.get_relation("orcs", "humans")
+    var reverse_score =  new_rel.get_score(FactionRelationScore.REL_RELATION)
+    _assert(reverse_score == -99, "relation doit être symétrique, got %d" % reverse_score)
     
     # Cas edge: même faction
-    var self_val := FactionManager.get_relation("humans", "humans").trust
-    _assert(self_val == 0, "relation avec soi-même doit être 0, got %d" % self_val)
+    var self_rel :FactionRelationScore = FactionManager.get_relation("humans", "humans")
+    var self_score =  new_rel.get_score(FactionRelationScore.REL_RELATION)
+    _assert(self_score == 0, "relation avec soi-même doit être 0, got %d" % self_score)
     
     # Cas edge: faction vide
-    var empty_val := FactionManager.get_relation("", "humans").trust
-    _assert(empty_val == 0, "relation avec faction vide doit être 0, got %d" % empty_val)
+    var empty_rel :FactionRelationScore = FactionManager.get_relation("", "humans")
+    var empty_score =  new_rel.get_score(FactionRelationScore.REL_RELATION)
+    _assert(empty_score == 0, "relation avec faction vide doit être 0, got %d" % empty_score)
     
     # Restaurer
     FactionManager.set_relation_between("humans", "orcs", old_val)
     
-    print("  ✓ set/get_relation_between: set=-99, get=%d, symmetric=%d" % [new_val, reverse_val])
+    print("  ✓ set/get_relation_between: set=-99, get=%d, symmetric=%d" % [new_rel, reverse_rel])
 
 
 # =============================================================================

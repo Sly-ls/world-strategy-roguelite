@@ -1,12 +1,12 @@
 extends Node
 
 @export var excluded_dirs: PackedStringArray = [
-    "res://tests/combat",
-    "res://tests/logger",
-    "res://tests/quest",
+    # "res://tests/combat",
+    # "res://tests/logger",
+    # "res://tests/quest",
      #"res://tests/quest_generation",
-    "res://tests/faction",
-    "res://tests/runners",
+    # "res://tests/faction",
+    # "res://tests/runners",
     #"res://tests/faction", comment to let the test flow
 ]
 @export var root_dir: String = "res://tests"
