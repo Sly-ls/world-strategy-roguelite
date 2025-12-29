@@ -54,6 +54,9 @@ var relations: Dictionary[StringName, FactionRelationScore] = {}
 
 func get_relation_to(target_id: StringName) -> FactionRelationScore:
     """Récupère le FactionRelationScore vers une autre faction, la crée si elle n'existe pas"""
+    # Self-relation: retourne une relation neutre (tous scores à 0)
+    if target_id == id:
+        return FactionRelationScore.new(target_id)
     if not relations.has(target_id):
         init_relation(target_id)
     return relations[target_id]

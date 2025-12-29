@@ -106,9 +106,10 @@ func _test_tick_day_for_pair_stability_counters() -> void:
     _assert(arc_state.stable_low_tension_days == 7, "stable_low_tension_days should count up")
     _assert(arc_state.stable_high_trust_days == 7, "stable_high_trust_days should count up")
 
-    # Break condition
-    rel_ab.set_score(FactionRelationScore.REL_TRUST, 60); 
-    rel_ba.set_score(FactionRelationScore.REL_TRUST, 60); 
+    # CORRECTION: Break condition - augmenter TENSION (pas trust)
+    # Le seuil t_low est 25, donc on met la tension > 25 pour reset le compteur
+    rel_ab.set_score(FactionRelationScore.REL_TENSION, 50); 
+    rel_ba.set_score(FactionRelationScore.REL_TENSION, 50); 
     ArcStateMachine.tick_day_for_pair(arc_state, A, B)
     _assert(arc_state.stable_low_tension_days == 0, "stable_low_tension_days should reset when tension high")
 
@@ -141,7 +142,7 @@ func _test_fallback_action_tier_with_stub() -> void:
     var tier := 3
 
     # Cette fonction de test reproduit EXACTEMENT ta logique de fallback,
-    # mais en utilisant spawn_fn(action,tier) au lieu d’ArcOfferFactory.
+    # mais en utilisant spawn_fn(action,tier) au lieu d'ArcOfferFactory.
     var inst := _fallback_with_injected_spawn(initial_action, tier, 1, 2, 2, spawn_fn)
     _assert(inst != null, "fallback should eventually succeed via RAID tier 1")
     _assert(StringName(inst.context["arc_action_type"]) == ArcDecisionUtil.ARC_RAID, "action should downgrade to RAID")

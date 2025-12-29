@@ -492,16 +492,23 @@ static func _select_with_smart_rng(scored_candidates: Array[Dictionary], rng: Ra
 ## temperature > 1 : favorise le meilleur
 ## temperature < 1 : distribution plus uniforme
 static func _weighted_selection(scored_candidates: Array[Dictionary], rng: RandomNumberGenerator, temperature: float) -> String:
-    # Trouver les candidats compétitifs (dans les 20% du meilleur score)
+    # Trouver les candidats compétitifs
+    # MODIFIÉ: Seuil réduit à 50% pour permettre trahisons/réconciliations
     var best_score: float = scored_candidates[0]["score"]
-    var threshold: float = best_score * 0.8
+    var threshold: float = best_score * 0.50  # était 0.80
+    var min_candidates := 3  # Garantir au moins 3 candidats
     
     var competitive: Array[Dictionary] = []
     for candidate in scored_candidates:
-        if candidate["score"] >= threshold:
+        # Inclure si score >= seuil OU si on n'a pas encore min_candidates
+        if candidate["score"] >= threshold or competitive.size() < min_candidates:
             competitive.append(candidate)
-        else:
-            break  # Liste triée, on peut arrêter
+        elif candidate["score"] > 0 and rng.randf() < 0.03:
+            # 3% de chance d'inclure un outsider (trahison/réconciliation possible)
+            competitive.append(candidate)
+    
+    if competitive.is_empty():
+        return scored_candidates[0]["id"]  # Fallback
     
     if competitive.size() == 1:
         return competitive[0]["id"]

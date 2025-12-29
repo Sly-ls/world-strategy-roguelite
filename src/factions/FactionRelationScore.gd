@@ -40,11 +40,11 @@ var min_max :Dictionary = {
     },
     REL_TENSION:{
         MIN:METER_MIN,
-        MAX:METER_MIN,
+        MAX:METER_MAX,
     },
     REL_WEARINESS:{
         MIN:METER_MIN,
-        MAX:METER_MIN,
+        MAX:METER_MAX,
     },
     REL_FRICTION:{
         MIN:RATIO_MIN,
@@ -91,10 +91,10 @@ func clamp_all() -> void:
 
 func clamp_one(k: StringName = &"") -> void:
     var score = scores[k]
-    var min = min_max[k][MIN]
-    var max = min_max[k][MAX]
-    var clamp = clampf(score, METER_MIN, METER_MAX)
-    scores[k] =clamp
+    var min_val = min_max[k][MIN]
+    var max_val = min_max[k][MAX]
+    var clamped = clampf(score, min_val, max_val)  # FIX: utilise min_val/max_val au lieu de METER_MIN/MAX
+    scores[k] = clamped
 
 func get_score(score_name:StringName) -> float:
     return scores.get(score_name, 0)

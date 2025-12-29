@@ -1,6 +1,6 @@
 # RewardEconomyUtil.gd
 class_name RewardEconomyUtil
-extends RefCounted
+extends Node
 
 
 static func compute_reward_style(econ: Dictionary, tier: int, profile :FactionProfile = null) -> Dictionary:
