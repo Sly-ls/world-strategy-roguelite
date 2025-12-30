@@ -293,18 +293,18 @@ func _count_hot_pairs() -> int:
 
 
 func _print_summary(stats: Dictionary, days: int) -> void:
-    print("\n--- Arc Simulation Summary (", days, " days) ---")
-    print("Events total: ", stats["events_total"])
-    print("Hostile: ", stats["hostile_events"], " | Peace: ", stats["peace_events"], " | War declares: ", stats["declare_war"])
-    print("By choice: ", stats["by_choice"])
-    print("By action: ", stats["by_action"])
+    myLogger.debug("\n--- Arc Simulation Summary ( %d days) ---" % days, LogTypes.Domain.TEST)
+    myLogger.debug("Events total: %d" % stats["events_total"], LogTypes.Domain.TEST)
+    myLogger.debug("Hostile: %d | Peace: %d | War declares: %d" % [stats["hostile_events"], stats["peace_events"], stats["declare_war"]], LogTypes.Domain.TEST)
+    myLogger.debug("By choice: %s" % stats["by_choice"], LogTypes.Domain.TEST)
+    myLogger.debug("By action: %s" % stats["by_action"], LogTypes.Domain.TEST)
 
     var ts: Array = stats["avg_tension_series"]
     var ws: Array = stats["avg_weariness_series"]
     var rs: Array = stats["avg_relation_series"]
-    print("Avg tension:   ", ts[0], " -> ", ts[ts.size() - 1])
-    print("Avg weariness: ", ws[0], " -> ", ws[ws.size() - 1])
-    print("Avg relation:  ", rs[0], " -> ", rs[rs.size() - 1])
+    myLogger.debug("Avg tension: %.3f → %.3f" % [ts[0], ts[ts.size() - 1]], LogTypes.Domain.TEST)
+    myLogger.debug("Avg tension: %.3f → %.3f" % [ws[0], ws[ws.size() - 1]], LogTypes.Domain.TEST)
+    myLogger.debug("Avg tension: %.3f → %.3f" % [rs[0], rs[rs.size() - 1]], LogTypes.Domain.TEST)
 
 
 # -----------------------------
@@ -312,7 +312,7 @@ func _print_summary(stats: Dictionary, days: int) -> void:
 # -----------------------------
 func _load_golden_profiles() -> Array[FactionProfile]:
     if not FileAccess.file_exists(GOLDEN_PATH):
-        print("Golden profiles not found at %s, generating 10 fallback profiles." % GOLDEN_PATH)
+        myLogger.debug("Golden profiles not found at %s, generating 10 fallback profiles." % GOLDEN_PATH, LogTypes.Domain.TEST)
         push_warning("Golden profiles not found at %s, generating 10 fallback profiles." % GOLDEN_PATH)
         return _generate_fallback_profiles(10)
 

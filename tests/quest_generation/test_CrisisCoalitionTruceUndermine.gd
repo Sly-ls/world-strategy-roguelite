@@ -80,20 +80,20 @@ func _test_crisis_coalition_truce_then_undermine_creates_suspicion() -> void:
     var notebook := ArcNotebook.new()
 
     # Debug: afficher les scores de join avant tick
-    print("  [DEBUG] Join scores before tick_day:")
+    myLogger.debug(" Join scores before tick_day:", LogTypes.Domain.TEST)
     for f in [A, B, D]:
         var faction :Faction = FactionManager.get_faction(f)
         var score := CoalitionManager._stop_crisis_join_score(faction, faction_c, FactionProfile.AXIS_CORRUPTION, 0.90, world)
-        print("    %s: score=%.3f (threshold=0.55)" % [str(f), score])
+        myLogger.debug("    %s: score=%.3f (threshold=0.55)" % [str(f), score], LogTypes.Domain.TEST)
 
     # Day 10: tick => should form STOP_CRISIS coalition and set truce locks
     CoalitionManager.tick_day(10, world)
 
     # Debug: afficher les coalitions créées
-    print("  [DEBUG] Coalitions created: %d" % CoalitionManager.coalitions_by_id.size())
+    myLogger.debug(" Coalitions created: %d" % CoalitionManager.coalitions_by_id.size(), LogTypes.Domain.TEST)
     for cid in CoalitionManager.coalitions_by_id.keys():
         var c: CoalitionBlock = CoalitionManager.coalitions_by_id[cid]
-        print("    - %s: kind=%s goal=%s target=%s members=%s" % [
+        myLogger.debug("    - %s: kind=%s goal=%s target=%s members=%s" % [
             str(cid), str(c.kind), str(c.goal), str(c.target_id), str(c.member_ids)
         ])
 
@@ -109,7 +109,7 @@ func _test_crisis_coalition_truce_then_undermine_creates_suspicion() -> void:
         _assert(coal.member_ids.has(A), "coalition should include A")
         _assert(coal.member_ids.has(B), "coalition should include B")
         _assert(coal.member_ids.has(D), "coalition should include D")
-        print("  ✓ STOP_CRISIS coalition created with members: %s" % str(coal.member_ids))
+        myLogger.debug("  ✓ STOP_CRISIS coalition created with members: %s" % str(coal.member_ids), LogTypes.Domain.TEST)
 
         # Verify pair lock truce between members (A|B in particular)
         var pair_key_ab := Utils.pair_key(A, B)
@@ -119,7 +119,7 @@ func _test_crisis_coalition_truce_then_undermine_creates_suspicion() -> void:
         _assert(not lock.is_empty(), "lock should not be empty")
         _assert(int(lock.get("until", 0)) >= 20, "truce lock should last ~10+ days, got until=%d" % int(lock.get("until", 0)))
         _assert(StringName(lock.get("reason", &"")) == &"COALITION_TRUCE", "lock reason should be COALITION_TRUCE")
-        print("  ✓ Pair lock A|B exists until day %d with reason %s" % [lock.get("until", 0), lock.get("reason", "")])
+        myLogger.debug("  ✓ Pair lock A|B exists until day %d with reason %s" % [lock.get("until", 0), lock.get("reason", "")], LogTypes.Domain.TEST)
 
         # Ensure a JOINT OP offer exists (spawned by tick_day after lock_until_day)
         # Note: lock_until_day = day + 2 = 12, so offers won't spawn until day 12+
@@ -145,9 +145,9 @@ func _test_crisis_coalition_truce_then_undermine_creates_suspicion() -> void:
                 "tier": 3,
                 "joint_op_type": &"JOINT_MILITARY"
             }
-            print("  ⚠ No joint_op offer found in QuestPool, using manual context")
+            myLogger.debug("  ⚠ No joint_op offer found in QuestPool, using manual context", LogTypes.Domain.TEST)
         else:
-            print("  ✓ Joint op offer found in QuestPool")
+            myLogger.debug("  ✓ Joint op offer found in QuestPool", LogTypes.Domain.TEST)
 
         # Apply resolution at day 16: should cause some members to UNDERMINE and lower cohesion
         var cohesion_before := coal.cohesion

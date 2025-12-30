@@ -86,5 +86,7 @@ func _test_priority_targets_shift_with_heat_inversion() -> void:
     _assert(StringName(res30["best_enemy"]) == c, "day30: best_enemy should shift to C once B is no longer the top enemy")
 
     # (Optionnel debug) : vérifier qu'on a bien enregistré des attempts (juste sanity)
+    myLogger.debug("enemy_rank %d" % [res30["enemy_rank"]], LogTypes.Domain.TEST)
+    myLogger.debug("ally_rank %d" % [res30["ally_rank"]], LogTypes.Domain.TEST)
     # print(res30["enemy_rank"])
     # print(res30["ally_rank"])

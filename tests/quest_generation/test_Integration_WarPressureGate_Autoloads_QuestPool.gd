@@ -92,20 +92,20 @@ func _test_real_autoload_loop_with_goal_stack_and_offers() -> void:
         if out.is_forced() and out.force_reason == &"DOMESTIC_PRESSURE" and first_truce_day < 0:
             first_truce_day = day
             truce_until = out.forced_until_day
-            print("  📋 TRUCE forced on day %d until day %d (pressure: %.2f)" % [day, truce_until, dom.pressure()])
+            myLogger.debug("  📋 TRUCE forced on day %d until day %d (pressure: %.2f)" % [day, truce_until, dom.pressure()], LogTypes.Domain.TEST)
 
         # Pendant TRUCE forcée, le budget offensif devrait être bas
         if first_truce_day > 0 and day >= first_truce_day and day <= truce_until:
             if out.is_forced() and out.budget_mult_offensive > 0.5:
                 high_budget_during_truce += 1
-                print("  ⚠️ Day %d: offensive budget too high during TRUCE: %.2f" % [day, out.budget_mult_offensive])
+                myLogger.debug("  ⚠️ Day %d: offensive budget too high during TRUCE: %.2f" % [day, out.budget_mult_offensive], LogTypes.Domain.TEST)
 
         # Vérifier restore WAR après TRUCE
         if first_truce_day > 0 and day > truce_until:
             if not out.is_forced() and goal != null and goal.type == FactionGoal.GoalType.START_WAR:
                 if not saw_restore_war:
                     saw_restore_war = true
-                    print("  ✅ WAR restored on day %d" % day)
+                    myLogger.debug("  ✅ WAR restored on day %d" % day, LogTypes.Domain.TEST)
 
     # ---------------- ASSERTIONS ----------------
     _assert(low_budget_pre_15 >= 1, "Expected at least one day with normal offensive budget before day 15 (got %d)" % low_budget_pre_15)
@@ -147,14 +147,14 @@ func _test_real_autoload_loop_with_goal_stack_and_offers() -> void:
 
         # Ces assertions sont optionnelles car dépendent du setup complet
         if domestic_post >= 1:
-            print("  ✅ Found %d domestic offers after day 15" % domestic_post)
+            myLogger.debug("  ✅ Found %d domestic offers after day 15" % domestic_post, LogTypes.Domain.TEST)
         else:
-            print("  ⚠️ No domestic offers found (may need full setup)")
+            myLogger.debug("  ⚠️ No domestic offers found (may need full setup)", LogTypes.Domain.TEST)
         
         if truce_post >= 1:
-            print("  ✅ Found %d truce offers after day 15" % truce_post)
+            myLogger.debug("  ✅ Found %d truce offers after day 15" % truce_post, LogTypes.Domain.TEST)
         else:
-            print("  ⚠️ No truce offers found (may need full setup)")
+            myLogger.debug("  ⚠️ No truce offers found (may need full setup)", LogTypes.Domain.TEST)
 
     # ---------------- RESTORE ----------------
     if prev_goal_state != null:

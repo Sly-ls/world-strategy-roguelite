@@ -83,7 +83,7 @@ func _test_world_loop_uses_real_autoloads() -> void:
         if out.is_forced() and out.force_reason == &"DOMESTIC_PRESSURE" and first_truce_day < 0:
             first_truce_day = day
             truce_until = out.forced_until_day
-            print("  📋 TRUCE forced on day %d until day %d (pressure: %.2f)" % [day, truce_until, dom.pressure()])
+            myLogger.debug("  📋 TRUCE forced on day %d until day %d (pressure: %.2f)" % [day, truce_until, dom.pressure()], LogTypes.Domain.TEST)
 
         # Compter offensives pendant TRUCE
         # Pendant une TRUCE forcée, budget_mult_offensive devrait être bas
@@ -92,7 +92,7 @@ func _test_world_loop_uses_real_autoloads() -> void:
                 # Vérifier que le budget offensif est réduit
                 if out.budget_mult_offensive > 0.5:
                     offensive_actions_during_truce += 1
-                    print("  ⚠️ Day %d: offensive budget too high during TRUCE: %.2f" % [day, out.budget_mult_offensive])
+                    myLogger.debug("  ⚠️ Day %d: offensive budget too high during TRUCE: %.2f" % [day, out.budget_mult_offensive], LogTypes.Domain.TEST)
 
         # Vérifier restore WAR après TRUCE
         # Le goal original (START_WAR) devrait être restauré quand la pression baisse
@@ -100,7 +100,7 @@ func _test_world_loop_uses_real_autoloads() -> void:
             if not out.is_forced() and goal != null and goal.type == FactionGoal.GoalType.START_WAR:
                 if not saw_restore_war:
                     saw_restore_war = true
-                    print("  ✅ WAR restored on day %d" % day)
+                    myLogger.debug("  ✅ WAR restored on day %d" % day, LogTypes.Domain.TEST)
 
     # --- Assertions ---
     _assert(first_truce_day > 0, "Should enter TRUCE at least once (pressure gate). Check DomesticPolicyGate threshold.")
@@ -112,9 +112,9 @@ func _test_world_loop_uses_real_autoloads() -> void:
     var offers_after = _snapshot_offers(offer_sink)
     # Note: On relaxe cette assertion car les offers dépendent de beaucoup de facteurs
     if offers_after.size() >= 1:
-        print("  ✅ %d offers spawned during loop" % offers_after.size())
+        myLogger.debug("  ✅ %d offers spawned during loop" % offers_after.size(), LogTypes.Domain.TEST)
     else:
-        print("  ⚠️ No offers spawned (may be expected depending on setup)")
+        myLogger.debug("  ⚠️ No offers spawned (may be expected depending on setup)", LogTypes.Domain.TEST)
 
     # --- RESTORE ---
     _restore_goal_state(FactionGoalManagerRunner, A, snap["goal_prev"])

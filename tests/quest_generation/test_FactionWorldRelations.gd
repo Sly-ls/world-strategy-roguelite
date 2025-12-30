@@ -113,8 +113,8 @@ func _validate_allies_enemies() -> void:
 
     # On log juste le résultat sans faire échouer le test pour les alliés/ennemis
     # car la distribution dépend fortement des paramètres de génération
-    print("  Factions with ally (>=20): %d/%d" % [with_ally, all_factions.size()])
-    print("  Factions with enemy (<=-10): %d/%d" % [with_enemy, all_factions.size()])
+    myLogger.debug("  Factions with ally (>=20): %d/%d" % [with_ally, all_factions.size()], LogTypes.Domain.TEST)
+    myLogger.debug("  Factions with enemy (<=-10): %d/%d" % [with_enemy, all_factions.size()], LogTypes.Domain.TEST)
 
 
 func _validate_reciprocity() -> void:

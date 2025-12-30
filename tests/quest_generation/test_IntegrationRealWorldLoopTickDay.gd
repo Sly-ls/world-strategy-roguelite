@@ -129,8 +129,8 @@ func _test_tick_day_loop_goal_stack_and_offers() -> void:
     _assert(final_pressure < 0.5, "pressure should end low after recovery phase (got %.3f)" % final_pressure)
 
     # --- Debug output ---
-    print("  [DEBUG] first_truce_day=%d, until_day=%d, final_pressure=%.3f" % [first_truce_day, until_day, final_pressure])
-    print("  [DEBUG] raids_after_restore=%d" % raids_after_restore)
+    myLogger.debug("  [DEBUG] first_truce_day=%d, until_day=%d, final_pressure=%.3f" % [first_truce_day, until_day, final_pressure], LogTypes.Domain.TEST)
+    myLogger.debug("  [DEBUG] raids_after_restore=%d" % raids_after_restore, LogTypes.Domain.TEST)
     
     # Cleanup
     manager.queue_free()

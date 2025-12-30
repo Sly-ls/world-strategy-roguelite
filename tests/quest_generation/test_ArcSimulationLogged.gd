@@ -157,8 +157,8 @@ func run(days: int) -> void:
     _write_json(LOG_PATH, {"seed": 888888, "days": days, "events": event_log})
     _write_json(SUMMARY_PATH, summary)
 
-    print("\n📄 Saved logs to: ", LOG_PATH)
-    print("📄 Saved summary to: ", SUMMARY_PATH)
+    myLogger.debug("📄 Saved logs to: %s" % LOG_PATH, LogTypes.Domain.TEST)
+    myLogger.debug("📄 Saved summary to: %s" % SUMMARY_PATH, LogTypes.Domain.TEST)
 
     _print_summary(summary)
     _validate_escalation_invariants(summary, days)
@@ -305,16 +305,16 @@ func _snapshot_global(ids: Array[StringName], world_rel: Dictionary) -> Dictiona
 
 
 
-func _print_summary(summary: Dictionary) -> void:
-    print("\n--- Arc Simulation Logged Summary ---")
-    print("Days: ", summary["days"], " | Events: ", summary["events_total"])
-    print("Hostile: ", summary["hostile_events"], " | Peace: ", summary["peace_events"], " | War declares: ", summary["declare_war"])
-    print("Avg tension drift: ", summary["avg_tension_drift"])
-    print("Escalation EI mean/day: ", summary["escalation"]["mean"], " | max day: ", summary["escalation"]["max_day"])
-    print("Baseline: ", summary["baseline"])
-    print("Final:    ", summary["final"])
-    print("By action: ", summary["by_action"])
-
+func _print_summary(stats: Dictionary) -> void:
+    
+    myLogger.debug("\n--- Arc Simulation Summary ( %d days) ---" % stats["days"], LogTypes.Domain.TEST)
+    myLogger.debug("Events total: %d" % stats["events_total"], LogTypes.Domain.TEST)
+    myLogger.debug("Hostile: %d | Peace: %d | War declares: %d" % [stats["hostile_events"], stats["peace_events"], stats["declare_war"]], LogTypes.Domain.TEST)
+    myLogger.debug("Escalation EI mean/day: %d | max day: %d " % [stats["escalation"]["mean"], stats["escalation"]["max_day"]], LogTypes.Domain.TEST)
+    myLogger.debug("Avg tension drift: %d" % stats["avg_tension_drift"])
+    myLogger.debug("Baseline: %s" % stats["baseline"])
+    myLogger.debug("Final:    %s" % stats["final"])
+    myLogger.debug("By action: %s" % stats["by_action"])
 
 func _validate_escalation_invariants(summary: Dictionary, days: int) -> void:
     # 1) EI moyen/jour ne doit pas exploser

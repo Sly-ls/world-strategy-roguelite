@@ -59,4 +59,4 @@ func _test_rich_greedy_has_higher_gold_proportion_than_honorable() -> void:
     _assert(p_g >= p_h + 0.08, "expected greedy gold proportion higher (greedy=%.2f honorable=%.2f)" % [p_g, p_h])
 
     # optional: print-ish debug in log
-    print("RICH gold proportions: greedy=%.2f honorable=%.2f (n=%d)" % [p_g, p_h, n])
+    myLogger.debug("RICH gold proportions: greedy=%.2f honorable=%.2f (n=%d)" % [p_g, p_h, n], LogTypes.Domain.TEST)

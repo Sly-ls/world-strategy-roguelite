@@ -18,7 +18,7 @@ func _ready() -> void:
 
 
 func _run_mode(mode: StringName) -> void:
-    print("\n--- Testing mode: ", String(mode), " ---")
+    myLogger.debug("--- Testing mode: %s ---" % String(mode), LogTypes.Domain.TEST)
 
     var profiles: Array[FactionProfile] = []
     var distinctive_count := 0
@@ -54,7 +54,7 @@ func _run_mode(mode: StringName) -> void:
 
 func _validate_profile(p: FactionProfile, mode: StringName, idx: int) -> bool:
     if p == null:
-        print("⚠ Profile is null (idx=%d, mode=%s)" % [idx, mode])
+        myLogger.debug("⚠ Profile is null (idx=%d, mode=%s)" % [idx, mode], LogTypes.Domain.TEST)
         return false
 
     if not _validate_axes(p.axis_affinity, mode, idx):
@@ -68,11 +68,11 @@ func _validate_axes(axis: Dictionary, mode: StringName, idx: int) -> bool:
     # 5 axes présents, bornes, règles (pos>50, neg<-20), somme, distribution intéressante
     for a in FactionProfile.ALL_AXES:
         if not axis.has(a):
-            print("⚠ Missing axis '%s' (idx=%d, mode=%s)" % [a, idx, mode])
+            myLogger.debug("⚠ Missing axis '%s' (idx=%d, mode=%s)" % [a, idx, mode], LogTypes.Domain.TEST)
             return false
         var v := int(axis[a])
         if v < -100 or v > 100:
-            print("⚠ Axis out of range %s=%d (idx=%d, mode=%s)" % [a, v, idx, mode])
+            myLogger.debug("⚠ Axis out of range %s=%d (idx=%d, mode=%s)" % [a, v, idx, mode], LogTypes.Domain.TEST)
             return false
 
     var has_pos := false
@@ -229,13 +229,13 @@ func _save_golden(golden: Array, mode: StringName) -> void:
     var json := JSON.stringify(payload, "\t")
     var f := FileAccess.open(GOLDEN_PATH, FileAccess.WRITE)
     if f == null:
-        print("⚠ Cannot open %s for writing" % GOLDEN_PATH)
+        myLogger.debug("⚠ Cannot open %s for writing" % GOLDEN_PATH, LogTypes.Domain.TEST)
         return
     f.store_string(json)
     f.close()
 
-    print("\n⭐ Saved ", golden.size(), " golden profiles to: ", GOLDEN_PATH)
-    print("   (Tu peux les recharger ensuite pour tes tests de quêtes/arcs.)")
+    myLogger.debug("\n⭐ Saved %s golden profiles to: %s" % [golden.size(), GOLDEN_PATH], LogTypes.Domain.TEST)
+    myLogger.debug("   (Tu peux les recharger ensuite pour tes tests de quêtes/arcs.)", LogTypes.Domain.TEST)
 
 
 func _to_json_dict(p: FactionProfile) -> Dictionary:
