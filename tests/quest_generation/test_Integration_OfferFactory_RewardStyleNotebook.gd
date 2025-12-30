@@ -4,7 +4,7 @@ class_name Integration_OfferFactory_RewardStyleNotebook_Test
 
 func _ready() -> void:
     _test_spawn_logs_reward_style_with_w_gold_dw()
-    pass_test("\n✅ Integration_OfferFactory_RewardStyleNotebook_Test: OK\n")
+    pass_test("✅ Integration_OfferFactory_RewardStyleNotebook_Test: OK")
 
 
 func _test_spawn_logs_reward_style_with_w_gold_dw() -> void:

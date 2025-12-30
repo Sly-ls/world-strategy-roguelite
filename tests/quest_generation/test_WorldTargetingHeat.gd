@@ -8,7 +8,7 @@ func _ready() -> void:
 
     _test_priority_targets_shift_with_heat_inversion()
 
-    pass_test("\n✅ WorldTargetingHeatTest: OK\n")
+    pass_test("✅ WorldTargetingHeatTest: OK")
 
 
 func _test_priority_targets_shift_with_heat_inversion() -> void:

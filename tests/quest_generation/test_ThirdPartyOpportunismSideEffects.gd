@@ -3,7 +3,7 @@ class_name ThirdPartyOpportunismSideEffectsTest
 
 func _ready() -> void:
     _test_opportunism_improves_A_C_and_does_not_touch_A_B()
-    pass_test("\n✅ ThirdPartyOpportunismSideEffectsTest: OK\n")
+    pass_test("✅ ThirdPartyOpportunismSideEffectsTest: OK")
 
 
 func _test_opportunism_improves_A_C_and_does_not_touch_A_B() -> void:

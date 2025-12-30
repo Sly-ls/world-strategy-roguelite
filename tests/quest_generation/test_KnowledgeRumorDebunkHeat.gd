@@ -3,7 +3,7 @@ class_name KnowledgeRumorDebunkHeatTest
 
 func _ready() -> void:
     _test_two_rumors_then_debunk_reduces_heat_below_threshold()
-    pass_test("\n✅ KnowledgeRumorDebunkHeatTest: OK\n")
+    pass_test("✅ KnowledgeRumorDebunkHeatTest: OK")
 
 
 func _test_two_rumors_then_debunk_reduces_heat_below_threshold() -> void:

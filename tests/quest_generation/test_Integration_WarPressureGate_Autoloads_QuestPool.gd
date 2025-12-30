@@ -13,7 +13,7 @@ class_name Integration_WarPressureGate_Autoloads_QuestPool
 
 func _ready() -> void:
     _test_real_autoload_loop_with_goal_stack_and_offers()
-    pass_test("\n✅ Integration_WarPressureGate_Autoloads_QuestPool: OK\n")
+    pass_test("✅ Integration_WarPressureGate_Autoloads_QuestPool: OK")
 
 func _test_real_autoload_loop_with_goal_stack_and_offers() -> void:
     # Chercher le runner (peut s'appeler FactionGoalManager ou FactionGoalManagerRunner)

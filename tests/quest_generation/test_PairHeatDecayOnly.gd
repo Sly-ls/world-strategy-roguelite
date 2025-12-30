@@ -3,7 +3,7 @@ class_name PairHeatDecayOnlyTest
 
 func _ready() -> void:
     _test_decay_only_reduces_hostile_heat_over_time()
-    pass_test("\n✅ PairHeatDecayOnlyTest: OK\n")
+    pass_test("✅ PairHeatDecayOnlyTest: OK")
 
 
 func _test_decay_only_reduces_hostile_heat_over_time() -> void:

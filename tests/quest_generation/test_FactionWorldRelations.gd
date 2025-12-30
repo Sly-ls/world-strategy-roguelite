@@ -22,7 +22,7 @@ func _ready() -> void:
     # Vérifications
     _validate_world_relations()
 
-    pass_test("\n✅ World relations initialization tests: OK\n")
+    pass_test("✅ World relations initialization tests: OK")
 
 
 # -------------------------

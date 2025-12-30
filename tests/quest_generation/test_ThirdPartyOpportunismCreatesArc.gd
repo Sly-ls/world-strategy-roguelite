@@ -3,7 +3,7 @@ class_name ThirdPartyOpportunismCreatesArcTest
 
 func _ready() -> void:
     _test_opportunism_creates_new_arc_between_C_and_victim()
-    pass_test("\n✅ ThirdPartyOpportunismCreatesArcTest: OK\n")
+    pass_test("✅ ThirdPartyOpportunismCreatesArcTest: OK")
 
 
 func _test_opportunism_creates_new_arc_between_C_and_victim() -> void:

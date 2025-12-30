@@ -14,7 +14,7 @@ func _ready() -> void:
     _run_mode(FactionProfile.GEN_NORMAL)
     _run_mode(FactionProfile.GEN_DRAMATIC)
 
-    pass_test("\n✅ FactionProfile generation tests: OK\n")
+    pass_test("✅ FactionProfile generation tests: OK")
 
 
 func _run_mode(mode: StringName) -> void:

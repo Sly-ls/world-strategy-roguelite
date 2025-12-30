@@ -76,9 +76,9 @@ func _ready() -> void:
     if _is_test_to_run("12"):
         _test_12_arc_rivalry_mvp()
     
-    myLogger.debug("==============================\n", LogTypes.Domain.TEST)
-    myLogger.debug("\n✅ TEST HARNESS FINISHED (regarde les warnings/erreurs ci-dessus).", LogTypes.Domain.TEST)
-    myLogger.debug("==============================\n", LogTypes.Domain.TEST)
+    myLogger.debug("==============================", LogTypes.Domain.TEST)
+    myLogger.debug("✅ TEST HARNESS FINISHED (regarde les warnings/erreurs ci-dessus).", LogTypes.Domain.TEST)
+    myLogger.debug("==============================", LogTypes.Domain.TEST)
     pass_test()
 
 func _is_test_to_run(test_id:String, requiered_test_1: String = "", required_test_2="") -> bool:
@@ -324,7 +324,7 @@ func _test_10() -> void:
     myLogger.debug("  ctx.giver: %s" % q.context.get("giver_faction_id", ""), LogTypes.Domain.TEST)
     myLogger.debug("  ctx.profile: %s"% q.context.get("resolution_profile_id", ""), LogTypes.Domain.TEST)
 
-    myLogger.debug("\n✅ TEST 10 PASSED")
+    myLogger.debug("✅ TEST 10 PASSED")
     myLogger.debug("==============================\n")
 func _test_9_hero_competition_30_days() -> void:
     myLogger.debug("\n--- TEST 9: HERO COMPETITION 30 DAYS ---")
@@ -660,7 +660,7 @@ func _test_6_full_resolution_pipeline(gen: Node) -> void:
     myLogger.debug("Player tags: %s" % QuestManager.player_tags, LogTypes.Domain.TEST)
     myLogger.debug("World tags: %s" % QuestManager.world_tags, LogTypes.Domain.TEST)
 
-    myLogger.debug("\n✅ TEST 6 PASSED — Palier 2 pipeline OK")
+    myLogger.debug("✅ TEST 6 PASSED — Palier 2 pipeline OK")
 
 # ------------------------------------------------------------
 #  Dump / printing

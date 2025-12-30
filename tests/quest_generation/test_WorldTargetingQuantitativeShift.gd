@@ -8,7 +8,7 @@ func _ready() -> void:
 
     _test_enemy_score_decreases_for_B_between_day10_and_day30()
 
-    pass_test("\n✅ WorldTargetingQuantitativeShiftTest: OK\n")
+    pass_test("✅ WorldTargetingQuantitativeShiftTest: OK")
 
 
 func _test_enemy_score_decreases_for_B_between_day10_and_day30() -> void:

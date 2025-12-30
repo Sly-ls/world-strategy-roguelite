@@ -30,7 +30,7 @@ class TestArcNotebook:
 
 func _ready() -> void:
     _test_real_runners_goal_stack_restore()
-    pass_test("\n✅ IntegrationRealRunnersGoalStackTest: OK\n")
+    pass_test("✅ IntegrationRealRunnersGoalStackTest: OK")
 
 
 func _test_real_runners_goal_stack_restore() -> void:

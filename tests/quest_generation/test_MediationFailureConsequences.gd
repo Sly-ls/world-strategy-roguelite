@@ -7,7 +7,7 @@ class TestInst:
 
 func _ready() -> void:
     _test_mediation_failure_increases_tension_and_decreases_trust_to_mediator()
-    pass_test("\n✅ MediationFailureConsequencesTest: OK\n")
+    pass_test("✅ MediationFailureConsequencesTest: OK")
 
 func _test_mediation_failure_increases_tension_and_decreases_trust_to_mediator() -> void:
     var A := &"A"

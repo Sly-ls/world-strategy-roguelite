@@ -3,7 +3,7 @@ class_name WGoldPersonalityClampedTest
 
 func _ready() -> void:
     _test_w_gold_depends_on_personality_but_is_clamped_by_economy()
-    pass_test("\n✅ WGoldPersonalityClampedTest: OK\n")
+    pass_test("✅ WGoldPersonalityClampedTest: OK")
 
 func _test_w_gold_depends_on_personality_but_is_clamped_by_economy() -> void:
     # CORRECTION: ClassDB.class_exists ne fonctionne PAS pour les classes GDScript

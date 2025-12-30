@@ -10,7 +10,7 @@ class StubArcNotebook:
 
 func _ready() -> void:
     _test_spawn_logs_reward_style_w_gold_dw_for_greedy()
-    pass_test("\n✅ Integration_QuestOfferSimRunner_RewardStyleNotebook_Test: OK\n")
+    pass_test("✅ Integration_QuestOfferSimRunner_RewardStyleNotebook_Test: OK")
 
 func _test_spawn_logs_reward_style_w_gold_dw_for_greedy() -> void:
     _assert(QuestOfferSimRunner != null, "Missing /root/QuestOfferSimRunner autoload")

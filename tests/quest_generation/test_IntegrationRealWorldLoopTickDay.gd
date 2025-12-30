@@ -9,7 +9,7 @@ class_name IntegrationRealWorldLoopTickDayTest
 
 func _ready() -> void:
     _test_tick_day_loop_goal_stack_and_offers()
-    pass_test("\n✅ IntegrationRealWorldLoopTickDayTest: OK\n")
+    pass_test("✅ IntegrationRealWorldLoopTickDayTest: OK")
 
 
 func _test_tick_day_loop_goal_stack_and_offers() -> void:

@@ -3,7 +3,7 @@ class_name RichGreedyVsHonorableGoldProportionTest
 
 func _ready() -> void:
     _test_rich_greedy_has_higher_gold_proportion_than_honorable()
-    pass_test("\n✅ RichGreedyVsHonorableGoldProportionTest: OK\n")
+    pass_test("✅ RichGreedyVsHonorableGoldProportionTest: OK")
 
 func _test_rich_greedy_has_higher_gold_proportion_than_honorable() -> void:
     _assert(ClassDB.class_exists("RewardEconomyUtil"), "RewardEconomyUtil must exist")

@@ -26,7 +26,7 @@ func _ready() -> void:
     rng.seed = 777777
 
     run(days_to_simulate)
-    pass_test("\n✅ Arc simulation test: OK\n")
+    pass_test("✅ Arc simulation test: OK")
 
 
 # Appelable depuis ailleurs (le nombre de jours est le param)

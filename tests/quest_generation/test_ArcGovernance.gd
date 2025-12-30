@@ -12,7 +12,7 @@ func _ready() -> void:
     _test_tick_day_for_pair_stability_counters()
     _test_fallback_action_tier_with_stub()
 
-    pass_test("\n✅ ArcGovernanceTest: OK\n")
+    pass_test("✅ ArcGovernanceTest: OK")
     
 
 

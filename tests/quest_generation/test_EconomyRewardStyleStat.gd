@@ -3,7 +3,7 @@ class_name EconomyRewardStyleStatTest
 
 func _ready() -> void:
     _test_poor_vs_rich_reward_distribution_and_opportunism_heat()
-    pass_test("\n✅ EconomyRewardStyleStatTest: OK\n")
+    pass_test("✅ EconomyRewardStyleStatTest: OK")
 
 func _test_poor_vs_rich_reward_distribution_and_opportunism_heat() -> void:
     _assert(RewardEconomyUtilRunner != null, "RewardEconomyUtil must exist")

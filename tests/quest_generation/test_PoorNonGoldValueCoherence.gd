@@ -3,7 +3,7 @@ class_name PoorNonGoldValueCoherenceTest
 
 func _ready() -> void:
     _test_poor_non_gold_value_scales_with_tier_but_is_bounded()
-    pass_test("\n✅ PoorNonGoldValueCoherenceTest: OK\n")
+    pass_test("✅ PoorNonGoldValueCoherenceTest: OK")
 
 func _test_poor_non_gold_value_scales_with_tier_but_is_bounded() -> void:
     _assert(ClassDB.class_exists("RewardEconomyUtil"), "RewardEconomyUtil must exist")

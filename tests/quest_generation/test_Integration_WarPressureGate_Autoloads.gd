@@ -13,7 +13,7 @@ class_name Integration_WarPressureGate_Autoloads
 
 func _ready() -> void:
     _test_world_loop_uses_real_autoloads()
-    pass_test("\n✅ Integration_WarPressureGate_Autoloads: OK\n")
+    pass_test("✅ Integration_WarPressureGate_Autoloads: OK")
 
 func _test_world_loop_uses_real_autoloads() -> void:
     _assert(FactionGoalManagerRunner != null, "Missing autoload /root/FactionGoalManagerRunner")

@@ -4,7 +4,7 @@ class_name Integration_QuestManager_Mediation3Factions_Success_Test
 
 func _ready() -> void:
     _test_resolve_quest_mediation_success_logs_and_inverse_deltas()
-    pass_test("\n✅ Integration_QuestManager_Mediation3Factions_Success_Test: OK\n")
+    pass_test("✅ Integration_QuestManager_Mediation3Factions_Success_Test: OK")
 
 
 func _test_resolve_quest_mediation_success_logs_and_inverse_deltas() -> void:

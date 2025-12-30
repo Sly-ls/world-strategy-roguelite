@@ -142,7 +142,7 @@ func _run_one(path: String) -> bool:
 
 
     node.queue_free()
-    var summary = "--- RESULT %s %s %s"% [("OK" if ok else "FAIL "), (("--- " + details) if details != "" else ""), " ---"]
+    var summary = "--- RESULT %s %s %s"% [("OK ✅" if ok else "FAIL ❌"), (("--- " + details) if details != "" else ""), " ---"]
     myLogger.debug("==================================", LogTypes.Domain.TEST)
     myLogger.debug("%s" % summary, LogTypes.Domain.TEST)
     myLogger.debug("==================================\n", LogTypes.Domain.TEST)
@@ -152,7 +152,7 @@ func _print_summary(results: Array) -> void:
     myLogger.debug("\n========== TEST SUMMARY ==========", LogTypes.Domain.TEST)
     var failures := 0
     for r in results:
-        myLogger.debug("%s : %s" % [r["path"], "OK" if r["ok"] else "FAIL"], LogTypes.Domain.TEST)
+        myLogger.debug("%s : %s" % [r["path"], "OK ✅" if r["ok"] else "FAIL ❌"], LogTypes.Domain.TEST)
         if not r["ok"]:
             failures += 1
     myLogger.debug("Failures: %s" % failures, LogTypes.Domain.TEST)
