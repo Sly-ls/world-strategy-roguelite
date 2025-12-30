@@ -311,10 +311,10 @@ func _print_summary(stats: Dictionary) -> void:
     myLogger.debug("Events total: %d" % stats["events_total"], LogTypes.Domain.TEST)
     myLogger.debug("Hostile: %d | Peace: %d | War declares: %d" % [stats["hostile_events"], stats["peace_events"], stats["declare_war"]], LogTypes.Domain.TEST)
     myLogger.debug("Escalation EI mean/day: %d | max day: %d " % [stats["escalation"]["mean"], stats["escalation"]["max_day"]], LogTypes.Domain.TEST)
-    myLogger.debug("Avg tension drift: %d" % stats["avg_tension_drift"])
-    myLogger.debug("Baseline: %s" % stats["baseline"])
-    myLogger.debug("Final:    %s" % stats["final"])
-    myLogger.debug("By action: %s" % stats["by_action"])
+    myLogger.debug("Avg tension drift: %d" % stats["avg_tension_drift"], LogTypes.Domain.TEST)
+    myLogger.debug("Baseline: %s" % stats["baseline"], LogTypes.Domain.TEST)
+    myLogger.debug("Final:    %s" % stats["final"], LogTypes.Domain.TEST)
+    myLogger.debug("By action: %s" % stats["by_action"], LogTypes.Domain.TEST)
 
 func _validate_escalation_invariants(summary: Dictionary, days: int) -> void:
     # 1) EI moyen/jour ne doit pas exploser

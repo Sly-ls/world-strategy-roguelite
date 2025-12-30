@@ -159,7 +159,7 @@ func _apply_config(cfg: Dictionary) -> void:
         # Fallback: tous au niveau de default_domain_level
         for d in LogTypes.Domain.values():
             domain_levels[d] = default_domain_level
-
+            
 func _resolve_mode(mode_value) -> String:
     # JSON > ProjectSettings > auto
     var mode := ""

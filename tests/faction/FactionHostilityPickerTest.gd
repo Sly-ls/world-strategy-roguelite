@@ -577,7 +577,7 @@ func _test_pick_most_allies() -> void:
     _assert(first_position_counts["beta"] > first_position_counts["epsilon"], 
         "ALLIANCE faction should be first more often: beta=%d vs epsilon=%d" % [first_position_counts["beta"], first_position_counts["epsilon"]])
     
-    myLogger.debug("    First position distribution: %s" % str(first_position_counts))
+    myLogger.debug("    First position distribution: %s" % str(first_position_counts), LogTypes.Domain.TEST)
     
     # Test 3: get_top_ally_factions
     var top_allies := FactionHostilityPicker.get_top_ally_factions("alpha", 4)

@@ -73,7 +73,7 @@ func test_army_service():
     var signal_received = false
     army_service.army_updated.connect(func(army):
         signal_received = true
-        myLogger.debug("  Signal reçu: army_updated"), LogTypes.Domain.TEST)
+        myLogger.debug("  Signal reçu: army_updated", LogTypes.Domain.TEST))
     
     army_service.heal_player_army(10)
     # FIX ME : ça ne passe pas

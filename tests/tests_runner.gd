@@ -16,7 +16,9 @@ extends Node
 var test_counter :int = 1
 var test_size :int = 1
 func _ready() -> void:
-
+    for key_id: int in LogTypes.Domain.values():
+        if key_id != LogTypes.Domain.TEST:
+            myLogger.set_domain_level(key_id, LogTypes.Level.INFO)
     myLogger.debug("====================================", LogTypes.Domain.TEST)
     myLogger.debug("Recherche des tests", LogTypes.Domain.TEST)
     myLogger.debug("====================================\n", LogTypes.Domain.TEST)
@@ -28,7 +30,7 @@ func _ready() -> void:
         push_warning("TestRunner: aucun test trouvé dans %s (pattern: test_*.gd)" % root_dir)
         return
 
-    myLogger.debug("\n== TestRunner: %d test(s) détecté(s) ==" % tests.size(), LogTypes.Domain.TEST)
+    myLogger.debug("== TestRunner: %d test(s) détecté(s) ==" % tests.size(), LogTypes.Domain.TEST)
     var i = 1
     test_size = tests.size()
     for t in tests:
@@ -149,7 +151,7 @@ func _run_one(path: String) -> bool:
     return ok
 
 func _print_summary(results: Array) -> void:
-    myLogger.debug("\n========== TEST SUMMARY ==========", LogTypes.Domain.TEST)
+    myLogger.debug("========== TEST SUMMARY ==========", LogTypes.Domain.TEST)
     var failures := 0
     for r in results:
         myLogger.debug("%s : %s" % [r["path"], "OK ✅" if r["ok"] else "FAIL ❌"], LogTypes.Domain.TEST)
