@@ -34,8 +34,8 @@ static func _apply_mediation(target :Faction, antagonist :Faction, third_party :
     var rel_t_tp = target.get_relation_to(third_party.id)
     var rel_a_t = antagonist.get_relation_to(target.id)
     var rel_a_tp = antagonist.get_relation_to(third_party.id)
-    var rel_tp_a = third_party.get_relation_to(third_party.id)
-    var rel_tp_t = third_party.get_relation_to(third_party.id)
+    var rel_tp_a = third_party.get_relation_to(antagonist.id)
+    var rel_tp_t = third_party.get_relation_to(target.id)
     
     if outcome == &"SUCCESS":
         rel_a_t.apply_delta_to(FactionRelationScore.REL_GRIEVANCE, -6)
