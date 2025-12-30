@@ -28,7 +28,7 @@ var last_generation_day: int = 0
 func _ready() -> void:
     variation_rng = RandomNumberGenerator.new()
     world_seed = Rng.rng.seed if Rng else 12345
-    print("✓ QuestGenerator initialisé (seed: %d)" % world_seed)
+    myLogger.debug("✓ QuestGenerator initialisé (seed: %d)" % world_seed, LogTypes.Domain.QUEST)
 
 # ========================================
 # GÉNÉRATION PRINCIPALE
@@ -114,7 +114,7 @@ func refresh_quest_pool_if_needed() -> void:
 
 func _refresh_world_quests() -> void:
     """Regénère les quêtes du monde"""
-    print("\n🔄 Régénération du pool de quêtes (jour %d)" % WorldState.current_day)
+    myLogger.debug("\n🔄 Régénération du pool de quêtes (jour %d)" % WorldState.current_day, LogTypes.Domain.QUEST)
     
     # Générer nouvelles quêtes
     var new_quests := generate_quest_pool(MAX_QUESTS_PER_DAY)
@@ -417,7 +417,7 @@ func _create_dynamic_template(quest_type: String, params: Dictionary) -> QuestTe
             template.objective_target = ""
             template.objective_count = 1
             template.expires_in_days = 3
-            print("QuestGenerator: quest_type non géré: %s" % quest_type)
+            myLogger.debug("QuestGenerator: quest_type non géré: %s" % quest_type, LogTypes.Domain.QUEST)
             
     return template
 

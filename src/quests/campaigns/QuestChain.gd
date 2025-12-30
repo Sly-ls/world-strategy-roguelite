@@ -71,7 +71,7 @@ func advance_to_next_quest(completed_quest_id: String) -> void:
     """Passe à la quête suivante"""
     completed_quest_ids.append(completed_quest_id)
     current_quest_index += 1
-    print("📖 Campagne '%s': %d/%d quêtes complétées" % [title, current_quest_index, quest_generation_rules.size()])
+    myLogger.debug("📖 Campagne '%s': %d/%d quêtes complétées" % [title, current_quest_index, quest_generation_rules.size()], LogTypes.Domain.QUEST)
 
 func is_complete() -> bool:
     """La campagne est-elle terminée ?"""

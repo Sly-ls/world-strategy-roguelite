@@ -57,23 +57,23 @@ func start() -> void:
     if template.expires_in_days > 0:
         expires_on_day = started_on_day + template.expires_in_days
     status = QuestTypes.QuestStatus.ACTIVE
-    print("✓ Quête démarrée : %s (%s)" % [template.title, QuestTypes.get_tier_name(template.tier)])
+    myLogger.debug("✓ Quête démarrée : %s (%s)" % [template.title, QuestTypes.get_tier_name(template.tier)], LogTypes.Domain.QUEST)
 
 func complete() -> void:
     """Termine la quête avec succès"""
     status = QuestTypes.QuestStatus.COMPLETED
     needs_resolution = true
-    print("✓ Objectif atteint : %s (résolution requise)" % template.title)
+    myLogger.debug("✓ Objectif atteint : %s (résolution requise)" % template.title, LogTypes.Domain.QUEST)
 
 func fail() -> void:
     """Échoue la quête"""
     status = QuestTypes.QuestStatus.FAILED
-    print("✗ Quête échouée : %s" % template.title)
+    myLogger.debug("✗ Quête échouée : %s" % template.title, LogTypes.Domain.QUEST)
 
 func expire() -> void:
     """Expire la quête"""
     status = QuestTypes.QuestStatus.EXPIRED
-    print("⏰ Quête expirée : %s" % template.title)
+    myLogger.debug("⏰ Quête expirée : %s" % template.title, LogTypes.Domain.QUEST)
 
 # ========================================
 # PROGRESSION
@@ -83,7 +83,7 @@ func update_progress(delta: int) -> void:
     """Met à jour la progression"""
     progress = clamp(progress + delta, 0, template.objective_count)
     
-    print("→ Progression : %d / %d" % [progress, template.objective_count])
+    myLogger.debug("→ Progression : %d / %d" % [progress, template.objective_count], LogTypes.Domain.QUEST)
     
     # Vérifier la complétion
     if progress >= template.objective_count:

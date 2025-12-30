@@ -50,7 +50,7 @@ func clone_runtime(_player: bool = false) -> ArmyData:
 func describe():
     for unit in units:
         if unit:
-            print(unit.describe())
+            myLogger.debug(unit.describe(), LogTypes.Domain.ARMY)
 
 ## ===== GESTION DE POSITION =====
 
@@ -198,7 +198,7 @@ func rest(cell_type: TilesEnums.CellType) -> void:
             if heal_hp < 1 and missing_hp > 0:
                 heal_hp = 1
             unit.hp = clamp(unit.hp + heal_hp, 0, unit.max_hp)
-            print("%s soigne %d HP → %d/%d" % [unit.name, heal_hp, unit.hp, unit.max_hp])
+            myLogger.debug("%s soigne %d HP → %d/%d" % [unit.name, heal_hp, unit.hp, unit.max_hp], LogTypes.Domain.ARMY)
     
     # Soin du moral
     var missing_morale := max_morale - morale
@@ -207,7 +207,7 @@ func rest(cell_type: TilesEnums.CellType) -> void:
         if heal_morale < 1 and missing_morale > 0:
             heal_morale = 1
         morale = clamp(morale + heal_morale, 0, max_morale)
-        print("Moral restauré: +%d → %d/%d" % [heal_morale, morale, max_morale])
+        myLogger.debug("Moral restauré: +%d → %d/%d" % [heal_morale, morale, max_morale], LogTypes.Domain.ARMY)
 
 ## ===== COMBAT METHODS =====
 
@@ -286,12 +286,12 @@ func get_max_hp() -> int:
 ## ===== DEBUG =====
 
 func debug_print() -> void:
-    print("\n=== ARMÉE: %s ===" % id)
-    print("Position: %s" % runtime_position)
-    print("Unités vivantes: %d/%d" % [get_alive_count(), ARMY_SIZE])
-    print("HP: %d/%d" % [get_total_hp(), get_max_hp()])
-    print("Moral: %d/%d" % [morale, max_morale])
-    print("\nFormation:")
+    myLogger.debug("\n=== ARMÉE: %s ===" % id, LogTypes.Domain.ARMY)
+    myLogger.debug("Position: %s" % runtime_position, LogTypes.Domain.ARMY)
+    myLogger.debug("Unités vivantes: %d/%d" % [get_alive_count(), ARMY_SIZE], LogTypes.Domain.ARMY)
+    myLogger.debug("HP: %d/%d" % [get_total_hp(), get_max_hp()], LogTypes.Domain.ARMY)
+    myLogger.debug("Moral: %d/%d" % [morale, max_morale], LogTypes.Domain.ARMY)
+    myLogger.debug("\nFormation:", LogTypes.Domain.ARMY)
     for row in range(ARMY_ROWS):
         var line = "  Row %d: " % row
         for col in range(ARMY_COLS):
@@ -300,5 +300,5 @@ func debug_print() -> void:
                 line += "[%s %dHP] " % [unit.name, unit.hp]
             else:
                 line += "[----] "
-        print(line)
-    print("================\n")
+        myLogger.debug(line, LogTypes.Domain.ARMY)
+    myLogger.debug("================\n", LogTypes.Domain.ARMY)

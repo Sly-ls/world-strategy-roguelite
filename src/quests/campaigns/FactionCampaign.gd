@@ -127,7 +127,7 @@ func start() -> void:
     started_on_day = WorldState.current_day
     current_chapter = 1
     
-    print("🎬 Campagne démarrée : %s (Chapitre 1/%d)" % [title, max_chapters])
+    myLogger.debug("🎬 Campagne démarrée : %s (Chapitre 1/%d)" % [title, max_chapters], LogTypes.Domain.ARC)
     
     # Démarrer première quête
     if not quest_chain.is_empty():
@@ -156,11 +156,11 @@ func advance_chapter() -> void:
     current_chapter += 1
     
     if current_chapter <= max_chapters:
-        print("📖 Chapitre %d/%d : %s" % [
+        myLogger.debug("📖 Chapitre %d/%d : %s" % [
             current_chapter,
             max_chapters,
             get_chapter_title(current_chapter)
-        ])
+        ], LogTypes.Domain.ARC)
         
         # Démarrer quête suivante
         _start_chapter_quest(current_chapter - 1)
@@ -172,7 +172,7 @@ func complete() -> void:
     status = CampaignStatus.COMPLETED
     completed_on_day = WorldState.current_day
     
-    print("🏆 Campagne complétée : %s" % title)
+    myLogger.debug("🏆 Campagne complétée : %s" % title, LogTypes.Domain.ARC)
     
     # Appliquer récompenses finales
     for reward in final_rewards:
@@ -184,7 +184,7 @@ func complete() -> void:
 func fail() -> void:
     """Fait échouer la campagne"""
     status = CampaignStatus.FAILED
-    print("✗ Campagne échouée : %s" % title)
+    myLogger.debug("✗ Campagne échouée : %s" % title, LogTypes.Domain.ARC)
 
 func _apply_reward(reward: QuestReward) -> void:
     """Applique une récompense"""
@@ -206,7 +206,7 @@ func _apply_final_world_impact() -> void:
     if final_world_impact.is_empty():
         return
     
-    print("🌍 Impact monde de la campagne appliqué")
+    myLogger.debug("🌍 Impact monde de la campagne appliqué", LogTypes.Domain.ARC)
     
     # Alliance faction
     if final_world_impact.has("faction_becomes_ally"):

@@ -134,7 +134,7 @@ func _start_drag(unit: UnitData, from_index: int, slot: TextureRect) -> void:
     # Mettre en évidence les cases valides
     _highlight_valid_slots()
     
-    print("Début du drag : %s depuis l'index %d" % [unit.name, from_index])
+    myLogger.debug("Début du drag : %s depuis l'index %d" % [unit.name, from_index], LogTypes.Domain.SYSTEM)
 
 
 func _highlight_valid_slots() -> void:
@@ -183,7 +183,7 @@ func _try_drop(to_index: int) -> void:
     if dragged_unit == null:
         return
 
-    print("Tentative de drop à l'index %d" % to_index)
+    myLogger.debug("Tentative de drop à l'index %d" % to_index, LogTypes.Domain.SYSTEM)
 
     # Coordonnées de départ et d'arrivée (col, row)
     var from_coords = army_data.rc_from_index(dragged_from_index)
@@ -202,14 +202,14 @@ func _try_drop(to_index: int) -> void:
         army_data.swap_units(from_col, from_row, to_col, to_row)
 
         if target_unit != null:
-            print("✓ Échange réussi : %s ↔ %s" % [dragged_unit.name, target_unit.name])
+            myLogger.debug("✓ Échange réussi : %s ↔ %s" % [dragged_unit.name, target_unit.name], LogTypes.Domain.SYSTEM)
         else:
-            print("✓ Déplacement réussi : %s vers (col=%d, row=%d), idx=%d" % [dragged_unit.name, to_col, to_row, army_data.index_from_rc(to_row, to_col)])
+            myLogger.debug("✓ Déplacement réussi : %s vers (col=%d, row=%d), idx=%d" % [dragged_unit.name, to_col, to_row, army_data.index_from_rc(to_row, to_col)], LogTypes.Domain.SYSTEM)
 
         # Appliquer le compactage "Puissance 4" après chaque déplacement
         _compact_army_columns()
     else:
-        print("✗ Placement invalide à (col=%d, row=%d)" % [to_col, to_row])
+        myLogger.debug("✗ Placement invalide à (col=%d, row=%d)" % [to_col, to_row], LogTypes.Domain.SYSTEM)
 
     # Nettoyer
     _end_drag()
@@ -221,7 +221,7 @@ func _compact_army_columns() -> void:
     """
     if army_data != null:
         army_data.compact_columns()
-        print("→ Compactage des colonnes effectué")
+        myLogger.debug("→ Compactage des colonnes effectué", LogTypes.Domain.SYSTEM)
 
 
 func _end_drag() -> void:

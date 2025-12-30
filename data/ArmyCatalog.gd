@@ -45,15 +45,15 @@ func _load_army_templates() -> void:
                 key = file_name.trim_suffix(".tres")
 
             if templates.has(key):
-                print("ArmyCatalog: id d'armée dupliqué '%s' (%s)" % [key, full_path])
+                myLogger.debug("ArmyCatalog: id d'armée dupliqué '%s' (%s)" % [key, full_path], LogTypes.Domain.SYSTEM)
 
             templates[key] = army_res
         else:
-            print("ArmyCatalog: %s n'est pas un ArmyData" % full_path)
+            myLogger.debug("ArmyCatalog: %s n'est pas un ArmyData" % full_path, LogTypes.Domain.SYSTEM)
 
     dir.list_dir_end()
 
-    print("ArmyCatalog: %d templates d'armées chargés." % templates.size())
+    myLogger.debug("ArmyCatalog: %d templates d'armées chargés." % templates.size(), LogTypes.Domain.SYSTEM)
 
 # ========================================
 # CRÉATION DE BASE (CODE EXISTANT AMÉLIORÉ)
@@ -111,7 +111,7 @@ func create_random_enemy(difficulty: int = 1) -> ArmyData:
             available.append(template_id)
     
     if available.is_empty():
-        print("ArmyCatalog: aucun template pour difficulté %d, utilise fallback" % difficulty)
+        myLogger.debug("ArmyCatalog: aucun template pour difficulté %d, utilise fallback" % difficulty, LogTypes.Domain.SYSTEM)
         return _create_fallback_army("enemy_difficulty_%d" % difficulty, false)
     
     var chosen = available.pick_random()
@@ -153,7 +153,7 @@ func create_procedural_patrol(faction: String, strength: int = 3) -> ArmyData:
             return create_enemy_army(key)
     
     # Aucun template trouvé, crée fallback
-    print("ArmyCatalog: aucun template pour faction '%s'" % faction)
+    myLogger.debug("ArmyCatalog: aucun template pour faction '%s'" % faction, LogTypes.Domain.SYSTEM)
     return _create_fallback_army("%s_patrol" % faction, false)
 
 # ========================================
@@ -162,7 +162,7 @@ func create_procedural_patrol(faction: String, strength: int = 3) -> ArmyData:
 
 func _create_fallback_army(id: String, is_player: bool) -> ArmyData:
     """Crée une armée basique si le template est manquant"""
-    print("[ArmyCatalog] ⚠️ Fallback pour: %s" % id)
+    myLogger.debug("[ArmyCatalog] ⚠️ Fallback pour: %s" % id, LogTypes.Domain.SYSTEM)
     
     var army = ArmyData.new(is_player)
     army.id = id
@@ -207,7 +207,8 @@ func spawn_random_encounter(difficulty: int = 1) -> void:
     var enemy_id = "encounter_%d" % randi()
     #entity_position_service.register_entity(enemy_id, "enemy_army", enemy)
     #WorldState.enemy_armies[enemy_id] = enemy
-    print("[WorldMap] Rencontre générée: %s à %s (difficulté %d)" % [enemy.id, spawn_pos, difficulty])
+    
+    myLogger.debug("[WorldMap] Rencontre générée: %s à %s (difficulté %d)" % [enemy.id, spawn_pos, difficulty], LogTypes.Domain.SYSTEM)
     #return enemy_id, "enemy_army", enemy
 
 # ========================================
@@ -235,13 +236,13 @@ func get_template_count() -> int:
 
 func debug_print_templates() -> void:
     """Affiche tous les templates chargés (debug)"""
-    print("\n========== ARMY TEMPLATES ==========")
+    myLogger.debug("\n========== ARMY TEMPLATES ==========", LogTypes.Domain.SYSTEM)
     for key in templates.keys():
         var template = templates[key] as ArmyData
         var unit_count = 0
         for unit in template.units:
             if unit != null:
                 unit_count += 1
-        print("  • %s (id: %s, units: %d)" % [key, template.id, unit_count])
-    print("Total: %d templates" % templates.size())
-    print("====================================\n")
+        myLogger.debug("  • %s (id: %s, units: %d)" % [key, template.id, unit_count], LogTypes.Domain.SYSTEM)
+    myLogger.debug("Total: %d templates" % templates.size(), LogTypes.Domain.SYSTEM)
+    myLogger.debug("====================================\n", LogTypes.Domain.SYSTEM)

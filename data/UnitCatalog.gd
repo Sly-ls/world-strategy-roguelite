@@ -34,17 +34,17 @@ func _load_unit_templates() -> void:
         if res is UnitData:
             var unit_res := res as UnitData
             if unit_res.id == "":
-                print("UnitCatalog: UnitData sans id dans %s" % full_path)
+                myLogger.debug("UnitCatalog: UnitData sans id dans %s" % full_path, LogTypes.Domain.SYSTEM)
                 continue
             if templates.has(unit_res.id):
-                print("UnitCatalog: id dupliqué '%s' (%s)" % [unit_res.id, full_path])
+                myLogger.debug("UnitCatalog: id dupliqué '%s' (%s)" % [unit_res.id, full_path], LogTypes.Domain.SYSTEM)
             templates[unit_res.id] = unit_res
         else:
-            print("UnitCatalog: %s n'est pas un UnitData" % full_path)
+            myLogger.debug("UnitCatalog: %s n'est pas un UnitData" % full_path, LogTypes.Domain.SYSTEM)
 
     dir.list_dir_end()
 
-    print("UnitCatalog: %d templates chargés." % templates.size())
+    myLogger.debug("UnitCatalog: %d templates chargés." % templates.size(), LogTypes.Domain.SYSTEM)
 
 
 func create_unit(id: String) -> UnitData:

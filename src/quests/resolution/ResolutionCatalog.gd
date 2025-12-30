@@ -5,12 +5,12 @@ var profiles: Dictionary = {}
 
 func _ready() -> void:
     _load_profiles()
-    print("✓ ResolutionCatalog initialisé (%d profils)" % profiles.size())
+    myLogger.debug("✓ ResolutionCatalog initialisé (%d profils)" % profiles.size(), LogTypes.Domain.QUEST)
 
 func _load_profiles() -> void:
     var dir := DirAccess.open("res://data/resolution_profiles/")
     if dir == null:
-        print("ResolutionCatalog: dossier introuvable")
+        myLogger.debug("ResolutionCatalog: dossier introuvable", LogTypes.Domain.QUEST)
         return
 
     dir.list_dir_begin()

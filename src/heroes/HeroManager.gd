@@ -26,4 +26,4 @@ func destroy_hero(hero_id: String) -> void:
         LootSiteManagerRunner.spawn_site(h.pos, h.inventory, 20)
 
     remove_hero(hero_id)
-    print("💀 Hero destroyed:", hero_id)
+    myLogger.debug("💀 Hero destroyed: %s" % hero_id, LogTypes.Domain.COMBAT)

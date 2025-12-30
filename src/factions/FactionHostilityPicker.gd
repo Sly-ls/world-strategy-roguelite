@@ -545,24 +545,24 @@ static func _get_current_day() -> int:
     return 0
 
 static func _debug_log_candidates(origin: String, scored_candidates: Array[Dictionary]) -> void:
-    print("=== FactionHostilityPicker (hostile): %s ===" % origin)
+    myLogger.debug("=== FactionHostilityPicker (hostile): %s ===" % origin, LogTypes.Domain.ARC)
     var count := mini(5, scored_candidates.size())
     for i in range(count):
         var c: Dictionary = scored_candidates[i]
-        print("  %d. %s: %.2f" % [i + 1, c["id"], c["score"]])
+        myLogger.debug("  %d. %s: %.2f" % [i + 1, c["id"], c["score"]], LogTypes.Domain.ARC)
     if scored_candidates.size() > 5:
-        print("  ... +%d autres" % (scored_candidates.size() - 5))
-    print("===")
+        myLogger.debug("  ... +%d autres" % (scored_candidates.size() - 5), LogTypes.Domain.ARC)
+    myLogger.debug("===", LogTypes.Domain.ARC)
 
 static func _debug_log_candidates_ally(origin: String, scored_candidates: Array[Dictionary]) -> void:
-    print("=== FactionHostilityPicker (ally): %s ===" % origin)
+    myLogger.debug("=== FactionHostilityPicker (ally): %s ===" % origin, LogTypes.Domain.ARC)
     var count := mini(5, scored_candidates.size())
     for i in range(count):
         var c: Dictionary = scored_candidates[i]
-        print("  %d. %s: %.2f" % [i + 1, c["id"], c["score"]])
+        myLogger.debug("  %d. %s: %.2f" % [i + 1, c["id"], c["score"]], LogTypes.Domain.ARC)
     if scored_candidates.size() > 5:
-        print("  ... +%d autres" % (scored_candidates.size() - 5))
-    print("===")
+        myLogger.debug("  ... +%d autres" % (scored_candidates.size() - 5), LogTypes.Domain.ARC)
+    myLogger.debug("===", LogTypes.Domain.ARC)
 
 # =============================================================================
 # MÉTHODES DE CONVENANCE

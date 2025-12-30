@@ -52,11 +52,3 @@ static var POWER_ENUM := {
     PowerType.DODGE: PowerInfo.new(PowerType.DODGE, PowerCategory.COMBAT_POWER, 0, "DODGE", null, 10000),
     PowerType.MAGIC_RESISTANCE: PowerInfo.new(PowerType.MAGIC_RESISTANCE, PowerCategory.COMBAT_POWER, 0, "MAGIC_RESISTANCE", null, 10000)
 }
-
-
-#exemple d'utilisation
-#var info := TilesEnums.CELL_ENUM[TilesEnums.CellType.TOWN]
-#print(info.name)        # "Ville"
-#print(info.move_cost)   # 2.0
-#print(info.id)          # 1
-#print(info.type)        # 1 (le CellType.TOWN)

@@ -16,16 +16,16 @@ func execute_choice(choice_id: String, world_controller: Node) -> void:
             QuestManager.start_quest("ruins_artifact_1", {
                 "poi_pos": poi_pos
             })
-            print("✓ Quête 'L'Artefact des Ruines Anciennes' acceptée !")
+            myLogger.debug("✓ Quête 'L'Artefact des Ruines Anciennes' acceptée !", LogTypes.Domain.WORLD)
         "close":
             pass
         _:
-            print("RuinsExploreHandler: choix inconnu :", choice_id)
+            myLogger.debug("RuinsExploreHandler: choix inconnu : %s" % choice_id, LogTypes.Domain.WORLD)
 
 
 
 func _do_ruins_explore(world_controller: Node) -> void:
-    print("Exploration des ruines → combat")
+    myLogger.debug("Exploration des ruines → combat", LogTypes.Domain.WORLD)
 
     # 1) Récupérer l'armée du joueur
     var player_army := WorldState.player_army

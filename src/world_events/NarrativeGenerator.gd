@@ -60,7 +60,7 @@ class NarrativeEvent:
 
 func _ready() -> void:
     _initialize_world_characters()
-    print("✓ NarrativeGenerator initialisé")
+    myLogger.debug("✓ NarrativeGenerator initialisé", LogTypes.Domain.QUEST)
 
 func _initialize_world_characters() -> void:
     """Initialise les personnages récurrents du monde"""
@@ -236,7 +236,7 @@ func record_character_interaction(character_id: String) -> void:
     
     if character.first_met_day < 0:
         character.first_met_day = WorldState.current_day
-        print("🤝 Première rencontre : %s" % character.get_full_name())
+        myLogger.debug("🤝 Première rencontre : %s" % character.get_full_name(), LogTypes.Domain.QUEST)
 
 func adjust_character_relationship(character_id: String, delta: int) -> void:
     """Ajuste la relation avec un personnage"""

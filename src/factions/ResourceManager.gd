@@ -42,7 +42,7 @@ var resources: Dictionary = {
 # ========================================
 
 func _ready() -> void:
-    print("✓ ResourceManager initialisé")
+    myLogger.debug("✓ ResourceManager initialisé", LogTypes.Domain.SYSTEM)
 
 # ========================================
 # GESTION DES RESSOURCES
@@ -61,7 +61,7 @@ func add_resource(resource_id: String, amount: int) -> void:
     resource_changed.emit(resource_id, old_value, new_value)
     
     var sign := "+" if amount >= 0 else ""
-    print("→ %s : %s%d (total: %d)" % [resource_id.capitalize(), sign, amount, new_value])
+    myLogger.debug("→ %s : %s%d (total: %d)" % [resource_id.capitalize(), sign, amount, new_value], LogTypes.Domain.SYSTEM)
 
 func remove_resource(resource_id: String, amount: int) -> bool:
     """Retire une quantité de ressource. Retourne false si pas assez."""
@@ -132,7 +132,7 @@ func load_state(data: Dictionary) -> void:
     for resource_id in data:
         resources[resource_id] = data[resource_id]
     
-    print("✓ État des ressources chargé")
+    myLogger.debug("✓ État des ressources chargé", LogTypes.Domain.SYSTEM)
 
 # ========================================
 # DEBUG
@@ -140,7 +140,7 @@ func load_state(data: Dictionary) -> void:
 
 func print_all_resources() -> void:
     """Affiche toutes les ressources (debug)"""
-    print("\n=== RESSOURCES ===")
+    myLogger.debug("=== RESSOURCES ===", LogTypes.Domain.SYSTEM)
     for resource_id in resources:
-        print("- %s : %d" % [resource_id.capitalize(), resources[resource_id]])
-    print("==================\n")
+        myLogger.debug("- %s : %d" % [resource_id.capitalize(), resources[resource_id]], LogTypes.Domain.SYSTEM)
+    myLogger.debug("==================", LogTypes.Domain.SYSTEM)

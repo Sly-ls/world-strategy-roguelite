@@ -121,7 +121,7 @@ func _refresh_all_grids() -> void:
 func _combat_tick() -> void:
     if battle_over:
         return
-    print("Tour %d" % turn_counter)
+    myLogger.debug("Tour %d" % turn_counter, LogTypes.Domain.COMBAT)
     
     for action :PowerEnums.PowerType in  combat_actions:
         for phase :PowerEnums.PowerType in combat_phases:
@@ -143,16 +143,16 @@ func log_messages(messages: Array[String]) -> void:
     
 func log_message(message: String) -> void:
     if combat_log == null:
-        print("ERROR : %s" % message)
+        myLogger.debug("ERROR : %s" % message, LogTypes.Domain.COMBAT)
         return
     combat_log.append_text(message + "\n")
     combat_log.scroll_to_line(combat_log.get_line_count() - 1)
-    print(message)
+    myLogger.debug(message, LogTypes.Domain.COMBAT)
     
 func _update_round_phase_ui(action: PowerEnums.PowerType, phase :PowerEnums.PowerType) -> void:
     var action_name :String = PowerEnums.POWER_ENUM[action].name
     var phase_name :String = PowerEnums.POWER_ENUM[phase].name
-    print("Phase : %s - %s (%d-%d)" % [action_name, phase_name,action,phase])
+    myLogger.debug("Phase : %s - %s (%d-%d)" % [action_name, phase_name,action,phase], LogTypes.Domain.COMBAT)
     phase_label.text = "Phase : %s - %s (%d-%d)" % [action_name, phase_name,action,phase]
     round_label.text = "Round : %d" % turn_counter
     
@@ -172,17 +172,17 @@ func _check_end_of_combat() -> void:
     var enemies_dead := enemies.is_dead()
 
     if allies_dead and enemies_dead:
-        print("Match nul : les deux camps sont morts.")
+        myLogger.debug("Match nul : les deux camps sont morts.", LogTypes.Domain.COMBAT)
         _apply_results_to_player_army("draw")
         WorldState.last_battle_result = "draw"
         _end_battle()
     elif allies_dead:
-        print("Défaite !")
+        myLogger.debug("Défaite !", LogTypes.Domain.COMBAT)
         _apply_results_to_player_army("defeat")
         WorldState.last_battle_result = "defeat"
         _end_battle()
     elif enemies_dead:
-        print("Victoire !")
+        myLogger.debug("Victoire !", LogTypes.Domain.COMBAT)
         _apply_results_to_player_army("victory")
         WorldState.last_battle_result = "victory"
         _end_battle()
@@ -190,7 +190,7 @@ func _check_end_of_combat() -> void:
 
 
 func _on_QuitButton_pressed() -> void:
-    print("Quit combat requested (retreat)")
+    myLogger.debug("Quit combat requested (retreat)", LogTypes.Domain.COMBAT)
     if not battle_over:
         _apply_results_to_player_army("retreat")
         WorldState.last_battle_result = "retreat"
@@ -257,11 +257,11 @@ func _on_next_turn_button_pressed() -> void:
 func _on_battle_result_closed() -> void:
     # Ici, le résultat est déjà dans WorldGameState.last_battle_result
     # Tu peux retourner à la worldmap
-    print("go to world map")
+    myLogger.debug("go to world map", LogTypes.Domain.COMBAT)
     get_tree().change_scene_to_file("res://scenes/WorldMap.tscn")
 
 func _on_retreat_button_pressed(col: int) -> void:
-    print("Retreat col ", col)
+    myLogger.debug("Retreat col %d" % col, LogTypes.Domain.COMBAT)
     allies.reatreat_front_unit(col)
     retreat_status[col] = false
     

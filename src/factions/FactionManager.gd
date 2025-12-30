@@ -29,7 +29,7 @@ func _ready() -> void:
     _profile_rng.seed = 42  # Seed fixe pour reproductibilité
     _init_default_factions()
     _init_relation_scores()
-    print("✓ FactionManager initialisé avec %d factions" % factions.size())
+    myLogger.debug("✓ FactionManager initialisé avec %d factions" % factions.size(), LogTypes.Domain.ARC)
 
 func reset():
     factions.clear()
@@ -202,7 +202,7 @@ func _init_relation_scores() -> void:
                 continue
             from_faction.init_relation(to_id)
     
-    print("✓ Relations inter-factions initialisées")
+    myLogger.debug("✓ Relations inter-factions initialisées", LogTypes.Domain.ARC)
 
 # ========================================
 # GESTION DES FACTIONS
@@ -279,7 +279,7 @@ func get_relation(from_id, to_id) -> FactionRelationScore:
     var from_faction := get_faction(from_id)
     if from_faction == null:
         # Créer un score neutre si la faction n'existe pas
-        myLogger.error("faction not found : " + from_id)
+        myLogger.error("faction not found : %s" % from_id, LogTypes.Domain.ARC)
         return null
     else :
         return from_faction.get_relation_to(to_id)
@@ -441,7 +441,7 @@ func load_state(data: Dictionary) -> void:
             var f: Faction = factions[id]
             f.load_state(data[id])
     
-    print("✓ État des factions chargé")
+    myLogger.debug("✓ État des factions chargé", LogTypes.Domain.ARC)
 
 # ========================================
 # DEBUG
@@ -449,40 +449,40 @@ func load_state(data: Dictionary) -> void:
 
 func print_relation_scores() -> void:
     """Affiche les FactionRelationScore détaillés"""
-    print("\n=== RELATION SCORES DÉTAILLÉS ===")
+    myLogger.debug("=== RELATION SCORES DÉTAILLÉS ===", LogTypes.Domain.ARC)
     for faction_id in factions.keys():
         var f: Faction = factions[faction_id]
         for to_id in f.relations.keys():
             var rs: FactionRelationScore = f.relations[to_id]
-            print("- %s → %s : rel=%d trust=%d tension=%d" % [
+            myLogger.debug("- %s → %s : rel=%d trust=%d tension=%d" % [
                 faction_id, to_id, rs.relation, rs.trust, rs.tension
-            ])
-    print("=================================\n")
+            ], LogTypes.Domain.ARC)
+    myLogger.debug("=================================", LogTypes.Domain.ARC)
 
 
 func print_faction_profiles() -> void:
     """Affiche les profils de faction"""
-    print("\n=== FACTION PROFILES ===")
+    myLogger.debug("=== FACTION PROFILES ===", LogTypes.Domain.ARC)
     for id in factions.keys():
         var f: Faction = factions[id]
         if f.profile != null:
-            print("- %s:" % id)
-            print("  Axes: tech=%d magic=%d nature=%d divine=%d corr=%d" % [
+            myLogger.debug("- %s:" % id, LogTypes.Domain.ARC)
+            myLogger.debug("  Axes: tech=%d magic=%d nature=%d divine=%d corr=%d" % [
                 f.profile.get_axis_affinity(FactionProfile.AXIS_TECH),
                 f.profile.get_axis_affinity(FactionProfile.AXIS_MAGIC),
                 f.profile.get_axis_affinity(FactionProfile.AXIS_NATURE),
                 f.profile.get_axis_affinity(FactionProfile.AXIS_DIVINE),
                 f.profile.get_axis_affinity(FactionProfile.AXIS_CORRUPTION)
-            ])
-            print("  Pers: aggr=%.2f veng=%.2f diplo=%.2f risk=%.2f expan=%.2f integ=%.2f" % [
+            ], LogTypes.Domain.ARC)
+            myLogger.debug("  Pers: aggr=%.2f veng=%.2f diplo=%.2f risk=%.2f expan=%.2f integ=%.2f" % [
                 f.profile.get_personality(FactionProfile.PERS_AGGRESSION),
                 f.profile.get_personality(FactionProfile.PERS_VENGEFULNESS),
                 f.profile.get_personality(FactionProfile.PERS_DIPLOMACY),
                 f.profile.get_personality(FactionProfile.PERS_RISK_AVERSION),
                 f.profile.get_personality(FactionProfile.PERS_EXPANSIONISM),
                 f.profile.get_personality(FactionProfile.PERS_INTEGRATIONISM)
-            ])
-    print("========================\n")
+            ], LogTypes.Domain.ARC)
+    myLogger.debug("========================", LogTypes.Domain.ARC)
     
 
 # TODO: print_all_factions - doit être migré avec factions mineures/armées libres
@@ -885,8 +885,8 @@ func load_pair_states(data: Dictionary) -> void:
 
 ## Affiche un résumé de tous les états de paire
 func debug_print_pair_states() -> void:
-    print("=== Pair States (%d) ===" % pair_states.size())
+    myLogger.debug("=== Pair States (%d) ===" % pair_states.size(), LogTypes.Domain.ARC)
     for key in pair_states.keys():
         var ps: FactionPairState = pair_states[key]
-        print("  %s: %s (day %d)" % [key, ps.state, ps.entered_day])
-    print("=== End Pair States ===")
+        myLogger.debug("  %s: %s (day %d)" % [key, ps.state, ps.entered_day], LogTypes.Domain.ARC)
+    myLogger.debug("=== End Pair States ===", LogTypes.Domain.ARC)

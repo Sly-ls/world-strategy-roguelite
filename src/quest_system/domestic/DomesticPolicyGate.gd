@@ -44,9 +44,9 @@ static func apply(
             # Créer un goal de TRUCE
             var truce_goal := _create_truce_goal(faction_id, current_day, force_days)
             goal_state.suspend_current_goal(truce_goal, current_day + force_days, &"DOMESTIC_PRESSURE")
-            print("[DomesticPolicyGate] %s: pressure=%.2f >= %.2f, forcing TRUCE for %d days" % [
+            myLogger.debug("[DomesticPolicyGate] %s: pressure=%.2f >= %.2f, forcing TRUCE for %d days" % [
                 str(faction_id), p, threshold, force_days
-            ])
+            ], LogTypes.Domain.WORLD)
         
         # Réduire les budgets offensifs
         var mult := clampf(1.0 - 0.85 * (p - threshold) / (1.0 - threshold), min_mult, 1.0)
@@ -90,7 +90,7 @@ static func maybe_restore_suspended_goal(
     # 2. La pression est suffisamment basse
     if goal_state.is_force_expired(current_day) and p < RESTORE_PRESSURE_THRESHOLD:
         if goal_state.restore_suspended_goal():
-            print("[DomesticPolicyGate] Restored suspended goal for pressure=%.2f" % p)
+            myLogger.debug("[DomesticPolicyGate] Restored suspended goal for pressure=%.2f" % p, LogTypes.Domain.WORLD)
     
     return goal_state
 

@@ -28,4 +28,4 @@ func destroy_army(army_id: String) -> void:
 
     # remove
     remove_army(army_id)
-    print("💥 Army destroyed:", army_id)
+    myLogger.debug("💥 Army destroyed: %s" % army_id, LogTypes.Domain.ARMY)

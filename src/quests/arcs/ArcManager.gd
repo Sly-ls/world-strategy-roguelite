@@ -18,20 +18,20 @@ var faction_profiles: Dictionary = {}
 var faction_relations: Dictionary = {}
 
 func _ready() -> void:
-    print("[ARC] ArcManager before connect")
+    myLogger.debug("ArcManager before connect", LogTypes.Domain.ARC)
     _connect_signals()
-    print("[ARC] ArcManager after connect")
+    myLogger.debug("ArcManager after connect", LogTypes.Domain.ARC)
 
       
 func _connect_signals() -> void:
     if QuestManager != null and QuestManager.has_signal("quest_resolved"):
         if not QuestManager.quest_resolved.is_connected(on_quest_resolution_choice):
             QuestManager.quest_resolved.connect(on_quest_resolution_choice)
-            if DebugConstants.ARC_LOG: print("[ARC] connected to QuestManager.quest_resolved")
+            if DebugConstants.ARC_LOG: myLogger.debug("connected to QuestManager.quest_resolved", LogTypes.Domain.ARC)
         else:
-            print("[ARC] QuestManager has no signal quest_resolved")	 
+            myLogger.debug("QuestManager has no signal quest_resolved", LogTypes.Domain.ARC)
     else:
-        print("[ARC] QuestManagerRunner not found")
+        myLogger.debug("QuestManagerRunner not found", LogTypes.Domain.ARC)
     return
 
 
@@ -183,13 +183,13 @@ func _spawn_arc_offer(arc: Dictionary, reason: String) -> void:
     # Important: on veut une offer, pas une quête "active" immédiatement
     inst.status = QuestTypes.QuestStatus.AVAILABLE
     if DebugConstants.ARC_LOG:
-        print("[ARC] created offer title=%s giver=%s ant=%s stage=%s reason=%s" % [
+        myLogger.debug("created offer title=%s giver=%s ant=%s stage=%s reason=%s" % [
             inst.template.title,
             str(ctx.get("giver_faction_id","")),
             str(ctx.get("antagonist_faction_id","")),
             str(ctx.get("arc_stage","")),
             reason
-        ])
+        ], LogTypes.Domain.ARC)
 
     # Inject dans le pool (on reste compatible avec ton pattern Runner)
     if QuestPool != null and QuestPool.has_method("try_add_offer"):
@@ -197,6 +197,6 @@ func _spawn_arc_offer(arc: Dictionary, reason: String) -> void:
     elif QuestOfferSimRunner != null and QuestOfferSimRunner.has_method("try_add_offer"):
         var ok: bool = QuestOfferSimRunner.try_add_offer(inst)
         if DebugConstants.ARC_LOG:
-            print("[ARC] try_add_offer => %s (offers now=%d)" % [str(ok), QuestOfferSimRunner.offers.size()])
+            myLogger.debug("try_add_offer => %s (offers now=%d)" % [str(ok), QuestOfferSimRunner.offers.size()], LogTypes.Domain.ARC)
     else:
-        print("[ArcManager] No offer sink found (QuestPool.try_add_offer missing).")
+        myLogger.debug("No offer sink found (QuestPool.try_add_offer missing).", LogTypes.Domain.ARC)

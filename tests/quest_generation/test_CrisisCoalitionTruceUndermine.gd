@@ -157,7 +157,7 @@ func _test_crisis_coalition_truce_then_undermine_creates_suspicion() -> void:
 
         CoalitionManager.apply_joint_op_resolution(joint_ctx, &"LOYAL", 16, world)
 
-    # print("  [DEBUG] Cohesion: before=%d after=%d" % [cohesion_before, coal.cohesion])
+        myLogger.debug("  [DEBUG] Cohesion: before=%d after=%d" % [cohesion_before, coal.cohesion], LogTypes.Domain.TEST)
 
         # Note: cohesion might increase or decrease depending on stances
         # The key test is that COALITION_BETRAYAL events are recorded when UNDERMINE happens
@@ -165,10 +165,10 @@ func _test_crisis_coalition_truce_then_undermine_creates_suspicion() -> void:
         if notebook.has_method("count_events_by_action"):
             betrayals_after = notebook.count_events_by_action(&"COALITION_BETRAYAL")
 
-    # print("  [DEBUG] Betrayals: before=%d after=%d" % [betrayals_before, betrayals_after])
+        myLogger.debug("  [DEBUG] Betrayals: before=%d after=%d" % [betrayals_before, betrayals_after], LogTypes.Domain.TEST)
 
         # If B undermines (due to high opportunism + corruption affinity), there should be a betrayal event
         # But this depends on the RNG in _decide_member_stance
         # For a deterministic test, we'd need to override _decide_member_stance or seed the RNG
         
-    # print("  ✓ Resolution applied, cohesion=%d, betrayals=%d" % [coal.cohesion, betrayals_after])
+        myLogger.debug("  ✓ Resolution applied, cohesion=%d, betrayals=%d" % [coal.cohesion, betrayals_after], LogTypes.Domain.TEST)

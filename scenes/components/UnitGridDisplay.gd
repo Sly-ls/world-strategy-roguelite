@@ -35,11 +35,11 @@ func _collect_cards() -> void:
         if child is UnitCard:
             unit_cards.append(child)
     
-    print("✓ %d UnitCards trouvées dans la grille" % unit_cards.size())
+    myLogger.debug("✓ %d UnitCards trouvées dans la grille" % unit_cards.size(), LogTypes.Domain.SYSTEM)
     
     # Vérifier qu'on a bien 15 cartes
     if unit_cards.size() != 15:
-        print("Attention : %d cartes trouvées au lieu de 15" % unit_cards.size())
+        myLogger.debug("Attention : %d cartes trouvées au lieu de 15" % unit_cards.size(), LogTypes.Domain.SYSTEM)
 
 func _get_display_index(army_index: int) -> int:
     """

@@ -70,21 +70,21 @@ func apply_effects() -> void:
     for tag in adds_tags:
         if not tag in QuestManager.player_tags:
             QuestManager.player_tags.append(tag)
-            print("  → Tag ajouté: %s" % tag)
+            myLogger.debug("  → Tag ajouté: %s" % tag, LogTypes.Domain.QUEST)
     
     # Retirer tags
     for tag in removes_tags:
         QuestManager.player_tags.erase(tag)
-        print("  → Tag retiré: %s" % tag)
+        myLogger.debug("  → Tag retiré: %s" % tag, LogTypes.Domain.QUEST)
     
     # Débloquer quête suivante
     if leads_to_quest != "":
-        print("  → Quête débloquée: %s" % leads_to_quest)
+        myLogger.debug("  → Quête débloquée: %s" % leads_to_quest, LogTypes.Domain.QUEST)
         # TODO: Démarrer la quête suivante
     
     # Bloquer quêtes
     for quest_id in blocks_quests:
-        print("  → Quête bloquée: %s" % quest_id)
+        myLogger.debug("  → Quête bloquée: %s" % quest_id, LogTypes.Domain.QUEST)
         # TODO: Bloquer la quête
 # ========================================
 # PERSISTANCE

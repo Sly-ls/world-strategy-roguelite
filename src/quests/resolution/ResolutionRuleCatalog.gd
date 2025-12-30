@@ -5,7 +5,7 @@ var rules: Array[QuestResolutionRule] = []
 
 func _ready() -> void:
     _load_rules()
-    print("✓ ResolutionRuleCatalog initialisé (%d règles)" % rules.size())
+    myLogger.debug("✓ ResolutionRuleCatalog initialisé (%d règles)" % rules.size(), LogTypes.Domain.QUEST)
 
 func _load_rules() -> void:
     var dir := DirAccess.open("res://data/quest_resolution_rules/")

@@ -39,7 +39,7 @@ func show_event(
     for i in count:
         var choice: Dictionary = choices[i]
         if not choice.has("text") or not choice.has("choice_id"):
-            print("EventPanel: choix invalide à l'index %d" % i)
+            myLogger.error("EventPanel: choix invalide à l'index %d" % i, LogTypes.Domain.QUEST)
             continue
 
         var btn := Button.new()
@@ -62,7 +62,7 @@ func hide_event() -> void:
 func _on_choice_button_pressed(button: Button) -> void:
     var choice_id := button.get_meta("choice_id") as String
     if choice_id == "":
-        print("EventPanel: bouton sans choice_id")
+        myLogger.error("EventPanel: bouton sans choice_id", LogTypes.Domain.QUEST)
     else:
         choice_made.emit(choice_id)
     hide_event()

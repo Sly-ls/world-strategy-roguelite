@@ -50,9 +50,9 @@ func _ready() -> void:
     _load_all_campaigns()
     _connect_signals()
     
-    print("✓ CampaignManager hybride initialisé")
-    print("  - %d campagnes procédurales (QuestChain)" % quest_chains.size())
-    print("  - %d campagnes narratives (FactionCampaign)" % faction_campaigns.size())
+    myLogger.debug("✓ CampaignManager hybride initialisé", LogTypes.Domain.ARC)
+    myLogger.debug("  - %d campagnes procédurales (QuestChain)" % quest_chains.size(), LogTypes.Domain.ARC)
+    myLogger.debug("  - %d campagnes narratives (FactionCampaign)" % faction_campaigns.size(), LogTypes.Domain.ARC)
 
 func _load_all_campaigns() -> void:
     """Charge tous les types de campagnes"""
@@ -63,7 +63,7 @@ func _load_quest_chains() -> void:
     """Charge les campagnes procédurales depuis data/campaigns/procedural/"""
     var dir := DirAccess.open("res://data/campaigns/procedural/")
     if dir == null:
-        print("  ℹ️ Pas de campagnes procédurales (créer data/campaigns/procedural/)")
+        myLogger.debug("  ℹ️ Pas de campagnes procédurales (créer data/campaigns/procedural/)", LogTypes.Domain.ARC)
         DirAccess.make_dir_recursive_absolute("res://data/campaigns/procedural/")
         return
     
@@ -74,7 +74,7 @@ func _load_quest_chains() -> void:
             var campaign: QuestChain = load("res://data/campaigns/procedural/" + file_name)
             if campaign:
                 quest_chains[campaign.id] = campaign
-                print("  ✓ QuestChain chargée: %s" % campaign.title)
+                myLogger.debug("  ✓ QuestChain chargée: %s" % campaign.title, LogTypes.Domain.ARC)
         file_name = dir.get_next()
     dir.list_dir_end()
 
@@ -82,7 +82,7 @@ func _load_faction_campaigns() -> void:
     """Charge les campagnes narratives depuis data/campaigns/factions/"""
     var dir := DirAccess.open("res://data/campaigns/factions/")
     if dir == null:
-        print("  ℹ️ Pas de campagnes de faction (créer data/campaigns/factions/)")
+        myLogger.debug("  ℹ️ Pas de campagnes de faction (créer data/campaigns/factions/)", LogTypes.Domain.ARC)
         DirAccess.make_dir_recursive_absolute("res://data/campaigns/factions/")
         return
     
@@ -93,10 +93,10 @@ func _load_faction_campaigns() -> void:
             var campaign: FactionCampaign = load("res://data/campaigns/factions/" + file_name)
             if campaign:
                 faction_campaigns[campaign.id] = campaign
-                print("  ✓ FactionCampaign chargée: %s (%s)" % [
+                myLogger.debug("  ✓ FactionCampaign chargée: %s (%s)" % [
                     campaign.title,
                     campaign.faction_id
-                ])
+                ], LogTypes.Domain.ARC)
         file_name = dir.get_next()
     dir.list_dir_end()
 
@@ -180,11 +180,11 @@ func _start_faction_campaign(campaign_id: String) -> bool:
         return false
     
     if not campaign.can_start():
-        print("⚠️ Conditions non remplies pour '%s'" % campaign.title)
+        myLogger.debug("⚠️ Conditions non remplies pour '%s'" % campaign.title, LogTypes.Domain.ARC)
         return false
     
     if active_faction_campaigns.has(campaign_id):
-        print("⚠️ Campagne déjà active: '%s'" % campaign.title)
+        myLogger.debug("⚠️ Campagne déjà active: '%s'" % campaign.title, LogTypes.Domain.ARC)
         return false
     
     # Démarrer
@@ -195,10 +195,10 @@ func _start_faction_campaign(campaign_id: String) -> bool:
     faction_campaign_started.emit(campaign_id)
     campaign_started_generic.emit(campaign_id, "faction")
     
-    print("\n🎬 === CAMPAGNE NARRATIVE DÉMARRÉE ===")
-    print("  Titre: %s" % campaign.title)
-    print("  Faction: %s" % campaign.faction_id)
-    print("  Chapitres: %d" % campaign.max_chapters)
+    myLogger.debug("\n🎬 === CAMPAGNE NARRATIVE DÉMARRÉE ===", LogTypes.Domain.ARC)
+    myLogger.debug("  Titre: %s" % campaign.title, LogTypes.Domain.ARC)
+    myLogger.debug("  Faction: %s" % campaign.faction_id, LogTypes.Domain.ARC)
+    myLogger.debug("  Chapitres: %d" % campaign.max_chapters, LogTypes.Domain.ARC)
     
     return true
 
@@ -250,16 +250,16 @@ func _start_quest_chain(campaign_id: String, context: Dictionary = {}) -> bool:
     """Démarre une campagne procédurale (code Palier 2-3 existant)"""
     
     if campaign_id in active_quest_chains:
-        print("⚠️ Campagne '%s' déjà active" % campaign_id)
+        myLogger.debug("⚠️ Campagne '%s' déjà active" % campaign_id, LogTypes.Domain.ARC)
         return false
     
-    var template: QuestChain = quest_chains.get(campaign_id)
+    var template: QuestChain = quest_chains.get(campaign_id, LogTypes.Domain.ARC)
     if not template:
-        print("❌ Campagne '%s' introuvable" % campaign_id)
+        myLogger.debug("❌ Campagne '%s' introuvable" % campaign_id, LogTypes.Domain.ARC)
         return false
     
     if not template.can_start():
-        print("⚠️ Conditions non remplies pour campagne '%s'" % campaign_id)
+        myLogger.debug("⚠️ Conditions non remplies pour campagne '%s'" % campaign_id, LogTypes.Domain.ARC)
         return false
     
     # Créer une instance runtime (copie)
@@ -272,10 +272,10 @@ func _start_quest_chain(campaign_id: String, context: Dictionary = {}) -> bool:
     campaign_started.emit(campaign_instance)
     campaign_started_generic.emit(campaign_id, "procedural")
     
-    print("\n📖 === CAMPAGNE PROCÉDURALE DÉMARRÉE ===")
-    print("  Titre: %s" % campaign_instance.title)
-    print("  Quêtes: %d" % campaign_instance.get_total_quests())
-    print("  Jour: %d" % WorldState.current_day)
+    myLogger.debug("\n📖 === CAMPAGNE PROCÉDURALE DÉMARRÉE ===", LogTypes.Domain.ARC)
+    myLogger.debug("  Titre: %s" % campaign_instance.title, LogTypes.Domain.ARC)
+    myLogger.debug("  Quêtes: %d" % campaign_instance.get_total_quests(), LogTypes.Domain.ARC)
+    myLogger.debug("  Jour: %d" % WorldState.current_day, LogTypes.Domain.ARC)
     
     # Démarrer la première quête
     _start_next_quest_in_chain(campaign_id, context)
@@ -295,7 +295,7 @@ func _start_next_quest_in_chain(campaign_id: String, context: Dictionary = {}) -
     
     var rule := campaign.get_current_quest_rule()
     if rule.is_empty():
-        print("❌ Aucune règle de génération pour index %d" % campaign.current_quest_index)
+        myLogger.debug("❌ Aucune règle de génération pour index %d" % campaign.current_quest_index, LogTypes.Domain.ARC)
         return
     
     var quest_instance: QuestInstance = _create_quest_from_rule(rule, context)
@@ -307,11 +307,11 @@ func _start_next_quest_in_chain(campaign_id: String, context: Dictionary = {}) -
     
     campaign_quest_advanced.emit(campaign, campaign.current_quest_index)
     
-    print("  → Quête %d/%d démarrée: %s" % [
+    myLogger.debug("  → Quête %d/%d démarrée: %s" % [
         campaign.current_quest_index + 1,
         campaign.get_total_quests(),
         quest_instance.template.title
-    ])
+    ], LogTypes.Domain.ARC)
 
 func _create_quest_from_rule(rule: Dictionary, context: Dictionary) -> QuestInstance:
     """Crée une instance de quête selon la règle (code existant)"""
@@ -363,18 +363,18 @@ func _complete_quest_chain(campaign_id: String) -> void:
     if not campaign:
         return
     
-    print("\n🎉 === CAMPAGNE PROCÉDURALE TERMINÉE ===")
-    print("  Titre: %s" % campaign.title)
-    print("  Durée: %d jours" % (WorldState.current_day - campaign.started_at_day))
+    myLogger.debug("🎉 === CAMPAGNE PROCÉDURALE TERMINÉE ===", LogTypes.Domain.ARC)
+    myLogger.debug("  Titre: %s" % campaign.title, LogTypes.Domain.ARC)
+    myLogger.debug("  Durée: %d jours" % (WorldState.current_day - campaign.started_at_day), LogTypes.Domain.ARC)
     
     for reward in campaign.campaign_rewards:
         reward.apply()
-        print("  → Récompense: %s" % reward.get_description())
+        myLogger.debug("  → Récompense: %s" % reward.get_description(), LogTypes.Domain.ARC)
     
     for tag in campaign.adds_player_tags:
         if not tag in QuestManager.player_tags:
             QuestManager.player_tags.append(tag)
-            print("  → Tag ajouté: %s" % tag)
+            myLogger.debug("  → Tag ajouté: %s" % tag, LogTypes.Domain.ARC)
     
     # Signaux (legacy + nouveau)
     campaign_completed.emit(campaign)
@@ -394,7 +394,7 @@ func _on_quest_completed(quest: QuestInstance) -> void:
     if qc_campaign_id != "":
         var campaign: QuestChain = active_quest_chains.get(qc_campaign_id)
         if campaign:
-            print("📖 Quête de campagne procédurale '%s' complétée" % campaign.title)
+            myLogger.debug("📖 Quête de campagne procédurale '%s' complétée" % campaign.title, LogTypes.Domain.ARC)
             campaign.advance_to_next_quest(quest.template.id)
             quest_to_campaign.erase(quest.runtime_id)
             _start_next_quest_in_chain(qc_campaign_id)
@@ -528,4 +528,4 @@ func load_state(data: Dictionary) -> void:
     completed_faction_campaigns = data.get("completed_faction_campaigns", [])
     quest_to_campaign = data.get("quest_to_campaign", {})
     
-    print("✓ État des campagnes chargé")
+    myLogger.debug("✓ État des campagnes chargé", LogTypes.Domain.ARC)

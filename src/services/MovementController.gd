@@ -30,12 +30,12 @@ func initialize(p_world_grid: Array, p_grid_width: int, p_grid_height: int) -> v
     world_grid = p_world_grid
     grid_width = p_grid_width
     grid_height = p_grid_height
-    print("[MovementController] Initialisé (mode pixel-based)")
+    myLogger.debug("Initialisé (mode pixel-based)", LogTypes.Domain.WORLD)
 
 ## ⭐ NOUVEAU: Démarre mouvement vers position PIXEL exacte
 func start_movement_to_pixel(from_pixel: Vector2, to_pixel: Vector2, speed: float = 200.0) -> bool:
     if is_moving:
-        print("[MovementController] Mouvement déjà en cours")
+        myLogger.debug("Mouvement déjà en cours", LogTypes.Domain.WORLD)
         return false
     
     # Vérifie que destination est dans la carte
@@ -65,7 +65,7 @@ func start_movement_to_pixel(from_pixel: Vector2, to_pixel: Vector2, speed: floa
     target_world_pos = current_path[0]
     
     movement_started.emit(from_pixel, to_pixel)
-    print("[MovementController] Mouvement pixel: %s -> %s (%d waypoints)" % [from_pixel, to_pixel, current_path.size()])
+    myLogger.debug("Mouvement pixel: %s -> %s (%d waypoints)" % [from_pixel, to_pixel, current_path.size()], LogTypes.Domain.WORLD)
     
     return true
 
@@ -100,13 +100,13 @@ func calculate_pixel_path(from_pixel: Vector2, to_pixel: Vector2) -> Array[Vecto
     # ⭐ Dernier point = destination EXACTE
     pixel_path.append(to_pixel)
     
-    print("   📍 Before pixel simplify: %d waypoints" % pixel_path.size())
+    myLogger.debug("   📍 Before pixel simplify: %d waypoints" % pixel_path.size(), LogTypes.Domain.WORLD)
     
     # 4. ⭐ Vérifie CHAQUE segment du chemin
     # Si un segment traverse obstacle, le subdivise
     pixel_path = validate_and_fix_pixel_path(pixel_path, grid_path)
     
-    print("   📍 Final pixel path: %d waypoints (from grid: %d)" % [pixel_path.size(), simplified_grid.size()])
+    myLogger.debug("   📍 Final pixel path: %d waypoints (from grid: %d)" % [pixel_path.size(), simplified_grid.size()], LogTypes.Domain.WORLD)
     
     return pixel_path
 
@@ -132,7 +132,7 @@ func validate_and_fix_pixel_path(pixel_path: Array[Vector2], grid_path: Array[Ve
             fixed_path.append(to_pixel)
         else:
             # ❌ Segment traverse obstacle !
-            print("   ⚠️ Segment %d→%d blocked, subdividing" % [i-1, i])
+            myLogger.debug("   ⚠️ Segment %d→%d blocked, subdividing" % [i-1, i], LogTypes.Domain.WORLD)
             
             # Trouve cases grille du segment bloqué
             var from_grid = world_to_grid(from_pixel)
@@ -143,16 +143,16 @@ func validate_and_fix_pixel_path(pixel_path: Array[Vector2], grid_path: Array[Ve
             
             if sub_path.is_empty():
                 # Pas de chemin trouvé, garde segment direct (fallback)
-                print("      ⚠️ No A* path found, keeping segment")
+                myLogger.debug("      ⚠️ No A* path found, keeping segment", LogTypes.Domain.WORLD)
                 fixed_path.append(to_pixel)
             else:
                 # Insère waypoints du sous-chemin
-                print("      ✅ Inserting %d grid waypoints" % sub_path.size())
+                myLogger.debug("      ✅ Inserting %d grid waypoints" % sub_path.size(), LogTypes.Domain.WORLD)
                 for grid_pos in sub_path:
                     fixed_path.append(grid_to_world_center(grid_pos))
                 fixed_path.append(to_pixel)
     
-    print("   📍 After validation: %d waypoints (was %d)" % [fixed_path.size(), pixel_path.size()])
+    myLogger.debug("   📍 After validation: %d waypoints (was %d)" % [fixed_path.size(), pixel_path.size()], LogTypes.Domain.WORLD)
     return fixed_path
 
 ## ⭐ NOUVEAU: Simplifie chemin pixel avec line-of-sight pixel
@@ -169,7 +169,7 @@ func simplify_pixel_path(path: Array[Vector2]) -> Array[Vector2]:
         else:
             # Ligne droite traverse obstacle !
             # Garde chemin original (déjà optimal via A*)
-            print("   ⚠️ Cannot simplify: direct line blocked")
+            myLogger.debug("   ⚠️ Cannot simplify: direct line blocked", LogTypes.Domain.WORLD)
             return path
     
     var simplified: Array[Vector2] = []
@@ -200,7 +200,7 @@ func has_pixel_line_of_sight(from_pixel: Vector2, to_pixel: Vector2) -> bool:
     var from_grid = world_to_grid(from_pixel)
     var to_grid = world_to_grid(to_pixel)
     
-    print("🔍 LOS: %s → %s" % [from_grid, to_grid])
+    myLogger.debug("🔍 LOS: %s → %s" % [from_grid, to_grid], LogTypes.Domain.WORLD)
     
     # Bresenham sur les cases
     var dx = abs(to_grid.x - from_grid.x)
@@ -213,7 +213,7 @@ func has_pixel_line_of_sight(from_pixel: Vector2, to_pixel: Vector2) -> bool:
     var cells_checked = 0
     var first_cell = true  # ⭐ Flag pour ignorer case de départ
     
-    print("   ⭐ START Bresenham (dx=%d, dy=%d)" % [dx, dy])
+    myLogger.debug("   ⭐ START Bresenham (dx=%d, dy=%d)" % [dx, dy], LogTypes.Domain.WORLD)
     
     while true:
         cells_checked += 1
@@ -224,18 +224,18 @@ func has_pixel_line_of_sight(from_pixel: Vector2, to_pixel: Vector2) -> bool:
             var cell_walkable = is_walkable(current)
             var cell_type = world_grid[current.y][current.x] if is_valid_grid_position(current) else -1
             
-            print("   [%d] Case %s: type=%s, walkable=%s" % [cells_checked, current, cell_type, cell_walkable])
+            myLogger.debug("   [%d] Case %s: type=%s, walkable=%s" % [cells_checked, current, cell_type, cell_walkable], LogTypes.Domain.WORLD)
             
             if not is_valid_grid_position(current) or not cell_walkable:
-                print("   ❌ BLOCKED at case %d!" % cells_checked)
+                myLogger.debug("   ❌ BLOCKED at case %d!" % cells_checked, LogTypes.Domain.WORLD)
                 return false
         else:
-            print("   [%d] Case %s: SKIPPED (start position)" % [cells_checked, current])
+            myLogger.debug("   [%d] Case %s: SKIPPED (start position)" % [cells_checked, current], LogTypes.Domain.WORLD)
             first_cell = false
         
         # Arrivé à destination
         if current == to_grid:
-            print("   ✅ REACHED destination after %d cells" % cells_checked)
+            myLogger.debug("   ✅ REACHED destination after %d cells" % cells_checked, LogTypes.Domain.WORLD)
             break
         
         var e2 = 2 * err
@@ -250,7 +250,7 @@ func has_pixel_line_of_sight(from_pixel: Vector2, to_pixel: Vector2) -> bool:
             err += dx
             current.y += sy
     
-    print("   ✅ CLEAR (total: %d cells checked)" % cells_checked)
+    myLogger.debug("   ✅ CLEAR (total: %d cells checked)" % cells_checked, LogTypes.Domain.WORLD)
     return true
 
 ## Met à jour le mouvement
@@ -274,7 +274,7 @@ func update_movement(delta: float) -> Vector2:
         if current_step >= current_path.size():
             is_moving = false
             movement_completed.emit(current_world_pos)
-            print("[MovementController] Mouvement terminé à %s" % current_world_pos)
+            myLogger.debug("Mouvement terminé à %s" % current_world_pos, LogTypes.Domain.WORLD)
         else:
             # Prochaine cible
             target_world_pos = current_path[current_step]
@@ -294,14 +294,14 @@ func recalculate_path_to_pixel(new_target_pixel: Vector2) -> bool:
     var new_path = calculate_pixel_path(current_world_pos, new_target_pixel)
     
     if new_path.is_empty():
-        print("[MovementController] Impossible de recalculer vers %s" % new_target_pixel)
+        myLogger.debug("Impossible de recalculer vers %s" % new_target_pixel, LogTypes.Domain.WORLD)
         return false
     
     current_path = new_path
     current_step = 0
     target_world_pos = current_path[0]
     
-    print("[MovementController] Chemin recalculé vers %s (%d waypoints)" % [new_target_pixel, new_path.size()])
+    myLogger.debug("Chemin recalculé vers %s (%d waypoints)" % [new_target_pixel, new_path.size()], LogTypes.Domain.WORLD)
     movement_started.emit(current_world_pos, new_target_pixel)
     
     return true
@@ -445,7 +445,7 @@ func simplify_path(path: Array[Vector2i]) -> Array[Vector2i]:
     return simplified
 
 func has_line_of_sight(from: Vector2i, to: Vector2i) -> bool:
-    print("   🔍 Grid LOS: %s → %s" % [from, to])
+    myLogger.debug("   🔍 Grid LOS: %s → %s" % [from, to], LogTypes.Domain.WORLD)
     
     var dx = abs(to.x - from.x)
     var dy = abs(to.y - from.y)
@@ -464,13 +464,13 @@ func has_line_of_sight(from: Vector2i, to: Vector2i) -> bool:
         if not first_cell:
             var walkable = is_walkable(current)
             var cell_type = world_grid[current.y][current.x]
-            print("      [%d] %s: type=%s, walkable=%s" % [cells_checked, current, cell_type, walkable])
+            myLogger.debug("      [%d] %s: type=%s, walkable=%s" % [cells_checked, current, cell_type, walkable], LogTypes.Domain.WORLD)
             
             if not walkable:
-                print("      ❌ Grid LOS BLOCKED at %s" % current)
+                myLogger.debug("      ❌ Grid LOS BLOCKED at %s" % current, LogTypes.Domain.WORLD)
                 return false
         else:
-            print("      [%d] %s: SKIPPED (start)" % [cells_checked, current])
+            myLogger.debug("      [%d] %s: SKIPPED (start)" % [cells_checked, current], LogTypes.Domain.WORLD)
             first_cell = false
         
         var e2 = 2 * err
@@ -484,12 +484,12 @@ func has_line_of_sight(from: Vector2i, to: Vector2i) -> bool:
             current.y += sy
     
     var final_walkable = is_walkable(to)
-    print("      Final %s: walkable=%s" % [to, final_walkable])
+    myLogger.debug("      Final %s: walkable=%s" % [to, final_walkable], LogTypes.Domain.WORLD)
     
     if final_walkable:
-        print("      ✅ Grid LOS CLEAR")
+        myLogger.debug("      ✅ Grid LOS CLEAR", LogTypes.Domain.WORLD)
     else:
-        print("      ❌ Grid LOS BLOCKED at destination")
+        myLogger.debug("      ❌ Grid LOS BLOCKED at destination", LogTypes.Domain.WORLD)
     
     return final_walkable
 

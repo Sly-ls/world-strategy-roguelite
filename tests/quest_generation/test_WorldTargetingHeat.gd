@@ -88,5 +88,3 @@ func _test_priority_targets_shift_with_heat_inversion() -> void:
     # (Optionnel debug) : vérifier qu'on a bien enregistré des attempts (juste sanity)
     myLogger.debug("enemy_rank %d" % [res30["enemy_rank"]], LogTypes.Domain.TEST)
     myLogger.debug("ally_rank %d" % [res30["ally_rank"]], LogTypes.Domain.TEST)
-    # print(res30["enemy_rank"])
-    # print(res30["ally_rank"])

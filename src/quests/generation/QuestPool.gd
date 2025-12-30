@@ -38,7 +38,7 @@ signal quest_expired(quest: QuestInstance)
 
 func _ready() -> void:
     _initial_generation()
-    print("✓ QuestPool initialisé (%d quêtes)" % available_quests.size())
+    myLogger.debug("✓ QuestPool initialisé (%d quêtes)" % available_quests.size(), LogTypes.Domain.ARC)
 
 func _initial_generation() -> void:
     """Génère le pool initial"""
@@ -55,19 +55,19 @@ func try_add_offer(o: QuestInstance) -> bool:
     # 1) Validité
     var day := WorldState.current_day if WorldState != null else 0
     if not o.is_offer_valid(day):
-        if DebugConstants.ARC_LOG: print("[OFFER] reject invalid: %s" % o.template.title)
+        myLogger.debug("[OFFER] reject invalid: %s" % o.template.title, LogTypes.Domain.ARC)
         return false
 
     # 2) Cap global
     if offers.size() >= MAX_OFFERS_GLOBAL:
-        if DebugConstants.ARC_LOG: print("[OFFER] reject global cap: %d/%d" % [offers.size(), MAX_OFFERS_GLOBAL])
+        myLogger.debug("[OFFER] reject global cap: %d/%d" % [offers.size(), MAX_OFFERS_GLOBAL], LogTypes.Domain.ARC)
         return false
 
     # 3) Cap par signature
     var sig := o.get_offer_signature()
     var sig_count := int(_count_by_signature.get(sig, 0))
     if sig_count >= MAX_OFFERS_PER_SIGNATURE:
-        if DebugConstants.ARC_LOG: print("[OFFER] reject signature cap: sig=%s count=%d/%d" % [sig, sig_count, MAX_OFFERS_PER_SIGNATURE])
+        myLogger.debug("[OFFER] reject signature cap: sig=%s count=%d/%d" % [sig, sig_count, MAX_OFFERS_PER_SIGNATURE], LogTypes.Domain.ARC)
         return false
 
     # 4) Cap par giver
@@ -75,7 +75,7 @@ func try_add_offer(o: QuestInstance) -> bool:
     if giver != "":
         var giver_count := int(_count_by_giver.get(giver, 0))
         if giver_count >= MAX_OFFERS_PER_GIVER:
-            if DebugConstants.ARC_LOG: print("[OFFER] reject giver cap: giver=%s count=%d/%d" % [giver, giver_count, MAX_OFFERS_PER_GIVER])
+            myLogger.debug("[OFFER] reject giver cap: giver=%s count=%d/%d" % [giver, giver_count, MAX_OFFERS_PER_GIVER], LogTypes.Domain.ARC)
             return false
 
     # OK -> insert + index update
@@ -102,7 +102,7 @@ func _rebuild_indexes() -> void:
 
 func refresh_pool() -> void:
     """Régénère complètement le pool"""
-    print("\n🔄 Régénération du pool de quêtes (jour %d)" % WorldState.current_day)
+    myLogger.debug("\n🔄 Régénération du pool de quêtes (jour %d)" % WorldState.current_day, LogTypes.Domain.ARC)
     
     # Retirer les quêtes expirées/complétées
     _cleanup_expired_quests()
@@ -123,7 +123,7 @@ func refresh_pool() -> void:
     last_refresh_day = WorldState.current_day
     pool_refreshed.emit(available_quests)
     
-    print("✓ Pool regénéré : %d quêtes disponibles" % available_quests.size())
+    myLogger.debug("✓ Pool regénéré : %d quêtes disponibles" % available_quests.size(), LogTypes.Domain.ARC)
 
 func refresh_if_needed() -> void:
     """Refresh automatique si intervalle écoulé"""
@@ -296,20 +296,20 @@ func is_pool_empty() -> bool:
 
 func print_pool() -> void:
     """Affiche le contenu du pool (debug)"""
-    print("\n=== QUEST POOL ===")
-    print("Taille : %d / %d" % [available_quests.size(), pool_size])
-    print("Dernier refresh : Jour %d" % last_refresh_day)
-    print("Prochain refresh : Jour %d" % (last_refresh_day + refresh_days))
-    print("\nQuêtes disponibles :")
+    myLogger.debug("=== QUEST POOL ===", LogTypes.Domain.ARC)
+    myLogger.debug("Taille : %d / %d" % [available_quests.size(), pool_size], LogTypes.Domain.ARC)
+    myLogger.debug("Dernier refresh : Jour %d" % last_refresh_day, LogTypes.Domain.ARC)
+    myLogger.debug("Prochain refresh : Jour %d" % (last_refresh_day + refresh_days), LogTypes.Domain.ARC)
+    myLogger.debug("Quêtes disponibles :", LogTypes.Domain.ARC)
     
     for quest in available_quests:
-        print("  - %s (Tier %d, %s)" % [
+        myLogger.debug("  - %s (Tier %d, %s)" % [
             quest.template.title,
             quest.template.tier,
             QuestTypes.get_category_name(quest.template.category)
-        ])
+        ], LogTypes.Domain.ARC)
     
-    print("==================\n")
+    myLogger.debug("==================", LogTypes.Domain.ARC)
 
 # ========================================
 # GETTER

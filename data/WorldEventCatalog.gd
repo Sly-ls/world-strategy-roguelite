@@ -32,16 +32,16 @@ func _load_events() -> void:
         if res is WorldEvent:
             var evt := res as WorldEvent
             if evt.id == "":
-                print("WorldEventCatalog: event sans id (%s)" % full_path)
+                myLogger.debug("WorldEventCatalog: event sans id (%s)" % full_path, LogTypes.Domain.SYSTEM)
                 continue
             if events.has(evt.id):
-                print("WorldEventCatalog: id d'event dupliqué '%s'" % evt.id)
+                myLogger.debug("WorldEventCatalog: id d'event dupliqué '%s'" % evt.id, LogTypes.Domain.SYSTEM)
             events[evt.id] = evt
         else:
-            print("WorldEventCatalog: %s n'est pas un WorldEvent" % full_path)
+            myLogger.debug("WorldEventCatalog: %s n'est pas un WorldEvent" % full_path, LogTypes.Domain.SYSTEM)
 
     dir.list_dir_end()
-    print("WorldEventCatalog: %d events chargés." % events.size())
+    myLogger.debug("WorldEventCatalog: %d events chargés." % events.size(), LogTypes.Domain.SYSTEM)
 
 
 func get_event(id: String) -> WorldEvent:

@@ -59,7 +59,6 @@ func place_loss(gridContainer: GridContainer, loss : Array[UnitData]) -> void:
             slot.tooltip_text = "%s\nPV: %d / %d" % [unit.name, unit.hp, unit.max_hp]
 
 func _on_continue_button_pressed() -> void:
-    print("cliked")
     get_tree().paused = false
     visible = false
     emit_signal("result_closed")

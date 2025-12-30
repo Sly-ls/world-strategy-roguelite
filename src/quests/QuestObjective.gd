@@ -73,7 +73,7 @@ func start() -> void:
     """Démarre l'objectif"""
     status = ObjectiveStatus.ACTIVE
     current_progress = 0
-    print("▸ Objectif démarré : %s" % title)
+    myLogger.debug("▸ Objectif démarré : %s" % title, LogTypes.Domain.QUEST)
 
 func update_progress(delta: int = 1) -> bool:
     """Met à jour la progression, retourne true si complété"""
@@ -97,7 +97,7 @@ func complete() -> void:
     current_progress = count
     completed_on_day = WorldState.current_day
     
-    print("✓ Objectif complété : %s (%d/%d)" % [title, current_progress, count])
+    myLogger.debug("✓ Objectif complété : %s (%d/%d)" % [title, current_progress, count], LogTypes.Domain.QUEST)
 
 func fail() -> void:
     """Fait échouer l'objectif"""
@@ -105,13 +105,13 @@ func fail() -> void:
         return
     
     status = ObjectiveStatus.FAILED
-    print("✗ Objectif échoué : %s" % title)
+    myLogger.debug("✗ Objectif échoué : %s" % title, LogTypes.Domain.QUEST)
 
 func unlock() -> void:
     """Déverrouille l'objectif"""
     if status == ObjectiveStatus.LOCKED:
         status = ObjectiveStatus.ACTIVE
-        print("🔓 Objectif déverrouillé : %s" % title)
+        myLogger.debug("🔓 Objectif déverrouillé : %s" % title, LogTypes.Domain.QUEST)
 
 # ========================================
 # CHECKS

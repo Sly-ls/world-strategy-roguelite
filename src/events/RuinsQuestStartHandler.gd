@@ -8,4 +8,4 @@ func execute_choice(choice_id: String, world_controller: Node) -> void:
             QuestManager.start_quest("ruins_artifact_1", {
                 "poi_pos": poi_pos
             })
-            print("✓ Quête 'L'Artefact des Ruines Anciennes' acceptée !")
+            myLogger.debug("✓ Quête 'L'Artefact des Ruines Anciennes' acceptée !", LogTypes.Domain.QUEST)
