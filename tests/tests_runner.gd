@@ -155,5 +155,10 @@ func _print_summary(results: Array) -> void:
         myLogger.debug("%s : %s" % [r["path"], "OK ✅" if r["ok"] else "FAIL ❌"], LogTypes.Domain.TEST)
         if not r["ok"]:
             failures += 1
-    myLogger.debug("Failures: %s" % failures, LogTypes.Domain.TEST)
-    myLogger.debug("==================================\n", LogTypes.Domain.TEST)
+    myLogger.debug("==================================", LogTypes.Domain.TEST)
+    myLogger.debug("======     Failures: %s     ======" % failures, LogTypes.Domain.TEST )
+    if failures == 0:
+        myLogger.debug("======     ✅✅✅✅✅     ======" % failures, LogTypes.Domain.TEST )
+    else:
+        myLogger.debug("======     ❌❌❌❌❌     ======" % failures, LogTypes.Domain.TEST )
+    myLogger.debug("==================================", LogTypes.Domain.TEST)

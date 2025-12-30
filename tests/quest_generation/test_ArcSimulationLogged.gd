@@ -307,7 +307,7 @@ func _snapshot_global(ids: Array[StringName], world_rel: Dictionary) -> Dictiona
 
 func _print_summary(stats: Dictionary) -> void:
     
-    myLogger.debug("\n--- Arc Simulation Summary ( %d days) ---" % stats["days"], LogTypes.Domain.TEST)
+    myLogger.debug("--- Arc Simulation Summary ( %d days) ---" % stats["days"], LogTypes.Domain.TEST)
     myLogger.debug("Events total: %d" % stats["events_total"], LogTypes.Domain.TEST)
     myLogger.debug("Hostile: %d | Peace: %d | War declares: %d" % [stats["hostile_events"], stats["peace_events"], stats["declare_war"]], LogTypes.Domain.TEST)
     myLogger.debug("Escalation EI mean/day: %d | max day: %d " % [stats["escalation"]["mean"], stats["escalation"]["max_day"]], LogTypes.Domain.TEST)

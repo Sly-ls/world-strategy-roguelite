@@ -234,7 +234,7 @@ func _save_golden(golden: Array, mode: StringName) -> void:
     f.store_string(json)
     f.close()
 
-    myLogger.debug("\n⭐ Saved %s golden profiles to: %s" % [golden.size(), GOLDEN_PATH], LogTypes.Domain.TEST)
+    myLogger.debug("⭐ Saved %s golden profiles to: %s" % [golden.size(), GOLDEN_PATH], LogTypes.Domain.TEST)
     myLogger.debug("   (Tu peux les recharger ensuite pour tes tests de quêtes/arcs.)", LogTypes.Domain.TEST)
 
 

@@ -293,7 +293,7 @@ func _count_hot_pairs() -> int:
 
 
 func _print_summary(stats: Dictionary, days: int) -> void:
-    myLogger.debug("\n--- Arc Simulation Summary ( %d days) ---" % days, LogTypes.Domain.TEST)
+    myLogger.debug("--- Arc Simulation Summary ( %d days) ---" % days, LogTypes.Domain.TEST)
     myLogger.debug("Events total: %d" % stats["events_total"], LogTypes.Domain.TEST)
     myLogger.debug("Hostile: %d | Peace: %d | War declares: %d" % [stats["hostile_events"], stats["peace_events"], stats["declare_war"]], LogTypes.Domain.TEST)
     myLogger.debug("By choice: %s" % stats["by_choice"], LogTypes.Domain.TEST)

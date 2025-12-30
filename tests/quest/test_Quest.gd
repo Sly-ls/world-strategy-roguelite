@@ -39,9 +39,9 @@ func _ready() -> void:
     
     enable_test(true)
         
-    myLogger.debug("\n==============================", LogTypes.Domain.TEST)
+    myLogger.debug("==============================", LogTypes.Domain.TEST)
     myLogger.debug("=== QUEST SYSTEM TEST HARNESS ===", LogTypes.Domain.TEST)
-    myLogger.debug("==============================\n", LogTypes.Domain.TEST)
+    myLogger.debug("==============================", LogTypes.Domain.TEST)
     _force_load_tiles_enums()
     _ensure_world_day(0)
 
