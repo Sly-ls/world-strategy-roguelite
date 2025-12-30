@@ -39,9 +39,9 @@ func _ready() -> void:
     
     enable_test(true)
         
-    print("\n==============================")
-    print("=== QUEST SYSTEM TEST HARNESS ===")
-    print("==============================\n")
+    myLogger.debug("\n==============================", LogTypes.Domain.TEST)
+    myLogger.debug("=== QUEST SYSTEM TEST HARNESS ===", LogTypes.Domain.TEST)
+    myLogger.debug("==============================\n", LogTypes.Domain.TEST)
     _force_load_tiles_enums()
     _ensure_world_day(0)
 
@@ -76,9 +76,9 @@ func _ready() -> void:
     if _is_test_to_run("12"):
         _test_12_arc_rivalry_mvp()
     
-    print("==============================\n")
-    print("\n✅ TEST HARNESS FINISHED (regarde les warnings/erreurs ci-dessus).")
-    print("==============================\n")
+    myLogger.debug("==============================\n", LogTypes.Domain.TEST)
+    myLogger.debug("\n✅ TEST HARNESS FINISHED (regarde les warnings/erreurs ci-dessus).", LogTypes.Domain.TEST)
+    myLogger.debug("==============================\n", LogTypes.Domain.TEST)
     pass_test()
 
 func _is_test_to_run(test_id:String, requiered_test_1: String = "", required_test_2="") -> bool:
@@ -89,7 +89,7 @@ func _is_test_to_run(test_id:String, requiered_test_1: String = "", required_tes
         will_run = test_to_run.get(required_test_2)
     return will_run
 func _test_5(gen):
-    print("\n--- TEST 5: LOYAL / NEUTRAL / TRAITOR ---")
+    myLogger.debug("\n--- TEST 5: LOYAL / NEUTRAL / TRAITOR ---", LogTypes.Domain.TEST)
     var qm = get_node_or_null(QUEST_MANAGER_SINGLETON)
     if qm != null and gen != null and qm.has_method("start_runtime_quest") and qm.has_method("resolve_quest"):
         _run_resolution_case(qm, gen, "LOYAL")
@@ -98,10 +98,10 @@ func _test_5(gen):
     else:
         _warn("TEST 5 ignoré: QuestManager ou méthodes manquantes.")
 func _test_4(quest1):
-    print("\n--- TEST 4: QuestManager integration (if available) ---")
+    myLogger.debug("\n--- TEST 4: QuestManager integration (if available) ---", LogTypes.Domain.TEST)
     _try_quest_manager_flow(quest1)
 func _test_3(quest1, quest2):
-    print("\n--- TEST 3: template.can_appear() ---")
+    myLogger.debug("\n--- TEST 3: template.can_appear() ---", LogTypes.Domain.TEST)
     _test_can_appear(quest1)
     _test_can_appear(quest2)
     
@@ -113,7 +113,7 @@ func _force_load_tiles_enums() -> void:
         if s == null:
             _warn("Impossible de load TilesEnum.gd (%s)" % TILES_ENUMS_SCRIPT)
         else:
-            print("✓ TilesEnums chargé via %s" % TILES_ENUMS_SCRIPT)
+            myLogger.debug("✓ TilesEnums chargé via %s" % TILES_ENUMS_SCRIPT, LogTypes.Domain.TEST)
     else:
         _warn("TilesEnum.gd introuvable (%s). Vérifie le chemin." % TILES_ENUMS_SCRIPT)
 
@@ -123,7 +123,7 @@ func _force_load_tiles_enums() -> void:
 # ------------------------------------------------------------
 func _test_12_arc_rivalry_mvp() -> void:
 
-    print("\n--- TEST 12: ARC RIVALRY MVP ---")
+    myLogger.debug("\n--- TEST 12: ARC RIVALRY MVP ---", LogTypes.Domain.TEST)
     # reset
     if QuestPool != null and QuestPool.has_method("clear_offers"):
         QuestPool.clear_offers()
@@ -194,10 +194,10 @@ func _test_12_arc_rivalry_mvp() -> void:
         _fail("No retaliation offer found")
         return
 
-    print("✅ TEST 12 PASSED — Arc rivalry MVP ok")
+    myLogger.debug("✅ TEST 12 PASSED — Arc rivalry MVP ok", LogTypes.Domain.TEST)
 
 func _test_11_offers_pro_100_days() -> void:
-    print("\n--- TEST 11: OFFERS PRO (100 DAYS) ---")
+    myLogger.debug("\n--- TEST 11: OFFERS PRO (100 DAYS) ---", LogTypes.Domain.TEST)
     # Preconditions
     if QuestPool == null:
         _fail("QuestPool autoload manquant")
@@ -254,11 +254,11 @@ func _test_11_offers_pro_100_days() -> void:
                 return
             seen[sig] = true
 
-    print("✅ TEST 12 PASSED — max offers seen:", max_seen)
+    myLogger.debug("✅ TEST 12 PASSED — max offers seen: %d" % max_seen)
 
 func _test_10() -> void:
     
-    print("\n--- TEST 10: ARTIFACT LOST / LOOT SITE / RETRIEVE QUEST ---")
+    myLogger.debug("\n--- TEST 10: ARTIFACT LOST / LOOT SITE / RETRIEVE QUEST ---", LogTypes.Domain.TEST)
     _set_day(0)
     _require_autoload(ARTIFACT_REGISTRY_SINGLETON, "ArtifactRegistry")
     _require_autoload(LOOT_SITE_MANAGER_SINGLETON, "LootSiteManager")
@@ -279,7 +279,7 @@ func _test_10() -> void:
     spec.unique = true
 
     ArtifactRegistryRunner.register_spec(spec)
-    print("✓ Registered artifact spec:", spec.id, spec.name)
+    myLogger.debug("✓ Registered artifact spec: %s - %s" % [spec.id, spec.name], LogTypes.Domain.TEST)
 
     # 2) Create army with inventory + artifact
     var a :ArmyData = ArmyFactory.create_army("starter")
@@ -289,7 +289,7 @@ func _test_10() -> void:
     ArtifactRegistryRunner.set_artifact_owner(spec.id, "ARMY", a.id)
 
     ArmyManagerRunner.register_army(a)
-    print("✓ Army created:", a.id, "pos=", a.runtime_position, "gold=", a.inventory.gold, "artifacts=", a.inventory.artifacts)
+    myLogger.debug("✓ Army created: id=%s - pos=%s - gold=%d - artifacts=%s" % [a.id, a.runtime_position, a.inventory.gold, a.inventory.artifacts], LogTypes.Domain.TEST)
 
     # 3) Destroy army => LootSite spawned
     ArmyManagerRunner.destroy_army(a.id)
@@ -299,14 +299,14 @@ func _test_10() -> void:
         _fail("LootSite non trouvé (artefact pas droppé ?) ")
         return
 
-    print("✓ LootSite found:", site_id)
-    print("Owner after destroy:", ArtifactRegistryRunner.owner_type.get(spec.id, "?"), ArtifactRegistryRunner.owner_id.get(spec.id, "?"))
+    myLogger.debug("✓ LootSite found: %s" % site_id)
+    myLogger.debug("Owner after destroy: %s - %s" %  [ArtifactRegistryRunner.owner_type.get(spec.id, "?"), ArtifactRegistryRunner.owner_id.get(spec.id, "?")], LogTypes.Domain.TEST)
 
     # 4) Expire LootSite => artifact LOST
     _set_day(999) # force expiration
     LootSiteManagerRunner.tick_day()
 
-    print("Owner after expire:", ArtifactRegistryRunner.owner_type.get(spec.id, "?"), ArtifactRegistryRunner.owner_id.get(spec.id, "?"))
+    myLogger.debug("Owner after expire:%s - %s" %  [ArtifactRegistryRunner.owner_type.get(spec.id, "?"), ArtifactRegistryRunner.owner_id.get(spec.id, "?")], LogTypes.Domain.TEST)
     if ArtifactRegistryRunner.owner_type.get(spec.id, "") != "LOST":
         _fail("Artefact devrait être LOST après expiration LootSite.")
         return
@@ -317,17 +317,17 @@ func _test_10() -> void:
         _fail("Impossible de générer la quête retrieve.")
         return
 
-    print("\n✓ Retrieve quest generated:")
-    print("  id:", q.template.id)
-    print("  title:", q.template.title)
-    print("  ctx.artifact_id:", q.context.get("artifact_id", ""))
-    print("  ctx.giver:", q.context.get("giver_faction_id", ""))
-    print("  ctx.profile:", q.context.get("resolution_profile_id", ""))
+    myLogger.debug("\n✓ Retrieve quest generated:", LogTypes.Domain.TEST)
+    myLogger.debug("  id: %s" % q.template.id, LogTypes.Domain.TEST)
+    myLogger.debug("  title: %s" % q.template.title, LogTypes.Domain.TEST)
+    myLogger.debug("  ctx.artifact_id: %s" % q.context.get("artifact_id", ""), LogTypes.Domain.TEST)
+    myLogger.debug("  ctx.giver: %s" % q.context.get("giver_faction_id", ""), LogTypes.Domain.TEST)
+    myLogger.debug("  ctx.profile: %s"% q.context.get("resolution_profile_id", ""), LogTypes.Domain.TEST)
 
-    print("\n✅ TEST 10 PASSED")
-    print("==============================\n")
+    myLogger.debug("\n✅ TEST 10 PASSED")
+    myLogger.debug("==============================\n")
 func _test_9_hero_competition_30_days() -> void:
-    print("\n--- TEST 9: HERO COMPETITION 30 DAYS ---")
+    myLogger.debug("\n--- TEST 9: HERO COMPETITION 30 DAYS ---")
     # Setup heroes
     var h1 := HeroAgent.new()
     h1.id = "h1"; h1.name = "Sir Aldren"; h1.faction_id = "humans"
@@ -347,7 +347,7 @@ func _test_9_hero_competition_30_days() -> void:
 
     for day in range(30):
         WorldState.current_day += 1
-        print("\n=== DAY %d ===" % WorldState.current_day)
+        myLogger.debug("\n=== DAY %d ===" % WorldState.current_day, LogTypes.Domain.TEST)
 
         # 1) factions agissent et créent des offers
         FactionSimRunner.run_day(3)
@@ -358,21 +358,21 @@ func _test_9_hero_competition_30_days() -> void:
         # 3) expirations
         QuestManager.check_expirations()
 
-    print("\n=== END TEST 9 ===")
-    print("World tags:", QuestManager.world_tags)
+        myLogger.debug("\n=== END TEST 9 ===", LogTypes.Domain.TEST)
+        myLogger.debug("World tags: %s" % QuestManager.world_tags, LogTypes.Domain.TEST)
 
 func _test_7() -> void:
     
-    print("\n--- TEST 7: WORLD SIM 10 DAYS ---")
+    myLogger.debug("\n--- TEST 7: WORLD SIM 10 DAYS ---", LogTypes.Domain.TEST)
     WorldSimRunner.simulate_days(10)
     FactionManager.print_all_factions()
-    print("World tags:", QuestManager.world_tags)
-    print("Offers:", QuestPool.get_offers().size())
+    myLogger.debug("World tags: %s" % QuestManager.world_tags, LogTypes.Domain.TEST)
+    myLogger.debug("Offers: %d" % QuestPool.get_offers().size(), LogTypes.Domain.TEST)
     FactionManager.print_relations_between()
     _print_sample_offers()
     
 func _test_8() -> void:
-    print("\n--- TEST 8: GOAL OFFER DOMAIN ---")
+    myLogger.debug("\n--- TEST 8: GOAL OFFER DOMAIN ---")
     QuestPool.get_offers().clear()
     QuestOfferSimRunner.offer_created_day.clear()
 
@@ -381,7 +381,7 @@ func _test_8() -> void:
 
     QuestOfferSimRunner.generate_goal_offer("orcs", "", "corruption", "gather")
 
-    print("\n=== OFFERS SAMPLE (goal only) ===")
+    myLogger.debug("\n=== OFFERS SAMPLE (goal only) ===", LogTypes.Domain.TEST)
 
     if QuestPool.get_offers().is_empty():
         push_error("TEST 8 failed: offers is empty (generate_goal_offer n'a rien ajouté).")
@@ -393,14 +393,14 @@ func _test_8() -> void:
         return
 
     var ctx_1: Dictionary = quest_instance_1.context
-    print("- %s | giver=%s | ant=%s | step=%s | domain=%s | profile=%s" % [
+    myLogger.debug("- %s | giver=%s | ant=%s | step=%s | domain=%s | profile=%s" % [
         quest_instance_1.template.title,
         str(ctx_1.get("giver_faction_id","")),
         str(ctx_1.get("antagonist_faction_id","")),
         str(ctx_1.get("goal_step_id","")),
         str(ctx_1.get("goal_domain","")),
         str(ctx_1.get("resolution_profile_id",""))
-    ])
+    ], LogTypes.Domain.TEST)
 
     var found := false
     for q in QuestPool.get_offers():
@@ -412,7 +412,7 @@ func _test_8() -> void:
         if ctx.get("goal_domain","") != "corruption":
             continue
 
-        print("✅ FOUND:", q.template.title, "giver=", ctx.get("giver_faction_id"), "ant=", ctx.get("antagonist_faction_id"))
+        myLogger.debug("✅ FOUND: % s - giver=%s - ant=%s" % [q.template.title, ctx.get("giver_faction_id"), ctx.get("antagonist_faction_id")], LogTypes.Domain.TEST)
         found = true
         break
 
@@ -420,20 +420,20 @@ func _test_8() -> void:
         push_error("TEST 8 failed: no gather/corruption goal offer found")
         
 func _print_sample_offers() -> void:
-    print("\n=== OFFERS SAMPLE ===")
+    myLogger.debug("\n=== OFFERS SAMPLE ===", LogTypes.Domain.TEST)
     for i in range(min(QuestPool.get_offers().size(), 5)):
         var q: QuestInstance = QuestPool.get_offers()[i]
         var ctx := q.context
         if not ctx.get("is_goal_offer", false):
             continue
-        print("- %s | giver=%s | ant=%s | step=%s | domain=%s | profile=%s" % [
+        myLogger.debug("- %s | giver=%s | ant=%s | step=%s | domain=%s | profile=%s" % [
             q.template.title,
             str(ctx.get("giver_faction_id","")),
             str(ctx.get("antagonist_faction_id","")),
             str(ctx.get("goal_step_id","")),
             str(ctx.get("goal_domain","")),
             str(ctx.get("resolution_profile_id",""))
-        ])
+        ], LogTypes.Domain.TEST)
 
 func _create_generator() -> Node:
     if not ResourceLoader.exists(QUEST_GENERATOR_SCRIPT):
@@ -452,7 +452,7 @@ func _create_generator() -> Node:
 
 func _test_1_safe_generate_random_tier1(gen: Node):
     # On essaye d’obtenir QuestTypes.TIER_1 si possible
-    print("\n--- TEST 1: generate_random_quest(TIER_1) ---")
+    myLogger.debug("\n--- TEST 1: generate_random_quest(TIER_1) ---", LogTypes.Domain.TEST)
     var tier_1 = _get_tier1_value()
     if gen.has_method("generate_random_quest"):
         var quest1 = gen.generate_random_quest(tier_1)
@@ -465,7 +465,7 @@ func _test_1_safe_generate_random_tier1(gen: Node):
 func _test_2_safe_generate_poi_ruins(gen: Node):
     # On a besoin de TilesEnums.CellType.RUINS (on ne peut pas le hardcoder sans ton enum),
     # donc on teste plusieurs options:
-    print("\n--- TEST 2: generate_quest_for_poi(RUINS) ---")
+    myLogger.debug("\n--- TEST 2: generate_quest_for_poi(RUINS) ---", LogTypes.Domain.TEST)
     var ruins_type = _guess_ruins_celltype()
     var poi_pos := Vector2i(10, 10)
 
@@ -492,7 +492,7 @@ func _test_can_appear(quest_instance) -> void:
 
     if template.has_method("can_appear"):
         var ok = template.can_appear()
-        print("can_appear() => ", ok)
+        myLogger.debug("can_appear() => %b " % ok, LogTypes.Domain.TEST)
     else:
         _warn("QuestTemplate n'a pas can_appear() (ou template n'est pas un QuestTemplate).")
 
@@ -533,9 +533,9 @@ func _try_quest_manager_flow(quest_instance) -> void:
 
     var gold_after_complete := _safe_get_gold()
 
-    print("Gold before: ", gold_before, " | after complete: ", gold_after_complete)
-    print("Player tags before: ", player_tags_before)
-    print("World tags before: ", world_tags_before)
+    myLogger.debug("Gold before: %d | after complete: %d" % [gold_before, gold_after_complete], LogTypes.Domain.TEST)
+    myLogger.debug("Player tags before: %s" % player_tags_before, LogTypes.Domain.TEST)
+    myLogger.debug("World tags before: %s" % world_tags_before, LogTypes.Domain.TEST)
 
     # 2) Résoudre
     if qm.has_method("resolve_quest"):
@@ -548,9 +548,9 @@ func _try_quest_manager_flow(quest_instance) -> void:
     var player_tags_after: Array = qm.get_player_tags() if qm.has_method("get_player_tags") else []
     var world_tags_after: Array = qm.get_world_tags() if qm.has_method("get_world_tags") else []
 
-    print("Gold after resolve: ", gold_after_resolve)
-    print("Player tags after: ", player_tags_after)
-    print("World tags after: ", world_tags_after)
+    myLogger.debug("Gold after resolve: %d " % gold_after_resolve, LogTypes.Domain.TEST)
+    myLogger.debug("Player tags after: %s" % player_tags_before, LogTypes.Domain.TEST)
+    myLogger.debug("World tags after: %s" % world_tags_before, LogTypes.Domain.TEST)
     
 func _safe_get_gold() -> int:
     var rm = get_node_or_null("/root/ResourceManager")
@@ -586,21 +586,21 @@ func _run_resolution_case(qm: Node, gen: Node, choice: String) -> void:
     var tags_p_after: Array = qm.get_player_tags() if qm.has_method("get_player_tags") else []
     var tags_w_after: Array = qm.get_world_tags() if qm.has_method("get_world_tags") else []
 
-    print("\n--- RESOLUTION %s ---" % choice)
-    print("Gold: ", gold_before, " -> ", gold_after)
-    print("Player tags: ", tags_p_before, " -> ", tags_p_after)
-    print("World tags: ", tags_w_before, " -> ", tags_w_after)
+    myLogger.debug("\n--- RESOLUTION %s ---" % choice)
+    myLogger.debug("Gold: %d -> %d" % [gold_before, gold_after], LogTypes.Domain.TEST)
+    myLogger.debug("Player tags:  %d -> %d" % [tags_p_before, tags_p_after], LogTypes.Domain.TEST)
+    myLogger.debug("World tags:  %d -> %d" % [tags_w_before, tags_w_after], LogTypes.Domain.TEST)
     
 func _test_6_full_resolution_pipeline(gen: Node) -> void:
     # 1️⃣ Snapshot initial
-    print("\n--- TEST 6: FULL PALIER 2 PIPELINE ---")
+    myLogger.debug("\n--- TEST 6: FULL PALIER 2 PIPELINE ---", LogTypes.Domain.TEST)
     var gold_before := ResourceManager.get_resource("gold")
     var player_tags_before := QuestManager.player_tags.duplicate()
     var world_tags_before := QuestManager.world_tags.duplicate()
 
-    print("Initial gold:", gold_before)
-    print("Initial player tags:", player_tags_before)
-    print("Initial world tags:", world_tags_before)
+    myLogger.debug("Initial gold: %d" % gold_before)
+    myLogger.debug("Initial player tags: %s" % player_tags_before)
+    myLogger.debug("Initial world tags %s" % world_tags_before)
 
     # 2️⃣ Générer une quête procédurale
     var quest :QuestInstance = gen.generate_random_quest(QuestTypes.QuestTier.TIER_1)
@@ -608,12 +608,12 @@ func _test_6_full_resolution_pipeline(gen: Node) -> void:
         _fail("Impossible de générer une quête")
         return
 
-    print("\nGenerated quest:", quest.template.title)
+    myLogger.debug("\nGenerated quest: %s" % quest.template.title, LogTypes.Domain.TEST)
 
     # 3️⃣ Vérifier contexte runtime
-    print("Giver faction:", quest.giver_faction_id)
-    print("Antagonist faction:", quest.antagonist_faction_id)
-    print("Resolution profile:", quest.resolution_profile_id)
+    myLogger.debug("Giver faction: %s" % quest.giver_faction_id, LogTypes.Domain.TEST)
+    myLogger.debug("Antagonist faction %s" % quest.antagonist_faction_id, LogTypes.Domain.TEST)
+    myLogger.debug("Resolution profile: %s" % quest.resolution_profile_id, LogTypes.Domain.TEST)
 
     # 4️⃣ Reconstruire le context pour debug
     var ctx := ContextTagResolver.build_context(
@@ -623,44 +623,44 @@ func _test_6_full_resolution_pipeline(gen: Node) -> void:
         quest.antagonist_faction_id
     )
 
-    print("Context tags:", ctx.tags)
+    myLogger.debug("Context tags:", ctx.tags)
 
     # 5️⃣ Résolution LOYAL
-    print("\n--- RESOLUTION LOYAL ---")
+    myLogger.debug("\n--- RESOLUTION LOYAL ---")
     QuestManager.start_runtime_quest(quest)
     QuestManager.resolve_quest(quest.runtime_id, "LOYAL")
 
-    print("Gold:", gold_before, "→", ResourceManager.get_resource("gold"))
-    print("Player tags:", QuestManager.player_tags)
-    print("World tags:", QuestManager.world_tags)
+    myLogger.debug("Gold: %d -> %d" % [gold_before,ResourceManager.get_resource("gold")], LogTypes.Domain.TEST)
+    myLogger.debug("Player tags: %s" % QuestManager.player_tags, LogTypes.Domain.TEST)
+    myLogger.debug("World tags: %s" % QuestManager.world_tags, LogTypes.Domain.TEST)
 
     # 6️⃣ Reset partiel (pour test)
     _reset_test_state(gold_before, player_tags_before, world_tags_before)
 
     # 7️⃣ Résolution NEUTRAL
-    print("\n--- RESOLUTION NEUTRAL ---")
+    myLogger.debug("\n--- RESOLUTION NEUTRAL ---", LogTypes.Domain.TEST)
     var quest_n :QuestInstance = gen.generate_random_quest(QuestTypes.QuestTier.TIER_1)
     QuestManager.start_runtime_quest(quest_n)
     QuestManager.resolve_quest(quest_n.runtime_id, "NEUTRAL")
 
-    print("Gold:", ResourceManager.get_resource("gold"))
-    print("Player tags:", QuestManager.player_tags)
-    print("World tags:", QuestManager.world_tags)
+    myLogger.debug("Gold: %d" % ResourceManager.get_resource("gold"), LogTypes.Domain.TEST)
+    myLogger.debug("Player tags: %s" % QuestManager.player_tags, LogTypes.Domain.TEST)
+    myLogger.debug("World tags: %s" % QuestManager.world_tags, LogTypes.Domain.TEST)
 
     # 8️⃣ Reset partiel
     _reset_test_state(gold_before, player_tags_before, world_tags_before)
 
     # 9️⃣ Résolution TRAITOR
-    print("\n--- RESOLUTION TRAITOR ---")
+    myLogger.debug("\n--- RESOLUTION TRAITOR ---")
     var quest_t :QuestInstance = gen.generate_random_quest(QuestTypes.QuestTier.TIER_1)
     QuestManager.start_runtime_quest(quest_t)
     QuestManager.resolve_quest(quest_t.runtime_id, "TRAITOR")
 
-    print("Gold:", ResourceManager.get_resource("gold"))
-    print("Player tags:", QuestManager.player_tags)
-    print("World tags:", QuestManager.world_tags)
+    myLogger.debug("Gold: %d" % ResourceManager.get_resource("gold"))
+    myLogger.debug("Player tags: %s" % QuestManager.player_tags, LogTypes.Domain.TEST)
+    myLogger.debug("World tags: %s" % QuestManager.world_tags, LogTypes.Domain.TEST)
 
-    print("\n✅ TEST 6 PASSED — Palier 2 pipeline OK")
+    myLogger.debug("\n✅ TEST 6 PASSED — Palier 2 pipeline OK")
 
 # ------------------------------------------------------------
 #  Dump / printing
@@ -676,23 +676,23 @@ func _print_quest_instance(q) -> void:
         _warn("QuestInstance.template introuvable")
         return
 
-    print("QuestTemplate:")
-    print("  id: ", _safe_get(template, "id", "<no id>"))
-    print("  title: ", _safe_get(template, "title", "<no title>"))
-    print("  tier: ", _safe_get(template, "tier", "<no tier>"))
-    print("  category: ", _safe_get(template, "category", "<no category>"))
-    print("  objective_type: ", _safe_get(template, "objective_type", "<no objective_type>"))
-    print("  objective_target: ", _safe_get(template, "objective_target", "<no objective_target>"))
-    print("  objective_count: ", _safe_get(template, "objective_count", "<no objective_count>"))
-    print("  expires_in_days: ", _safe_get(template, "expires_in_days", "<no expires>"))
+    myLogger.debug("QuestTemplate:", LogTypes.Domain.TEST)
+    myLogger.debug("  id:  %s" % _safe_get(template, "id", "<no id>"), LogTypes.Domain.TEST)
+    myLogger.debug("  title: %s" % _safe_get(template, "title", "<no title>"), LogTypes.Domain.TEST)
+    myLogger.debug("  tier: %s" % _safe_get(template, "tier", "<no tier>"), LogTypes.Domain.TEST)
+    myLogger.debug("  category: %s" % _safe_get(template, "category", "<no category>"), LogTypes.Domain.TEST)
+    myLogger.debug("  objective_type: %s" % _safe_get(template, "objective_type", "<no objective_type>"), LogTypes.Domain.TEST)
+    myLogger.debug("  objective_target: %s" % _safe_get(template, "objective_target", "<no objective_target>"), LogTypes.Domain.TEST)
+    myLogger.debug("  objective_count: %s" % _safe_get(template, "objective_count", "<no objective_count>"), LogTypes.Domain.TEST)
+    myLogger.debug("  expires_in_days: %s" %  _safe_get(template, "expires_in_days", "<no expires>"), LogTypes.Domain.TEST)
 
     # champs “résolution” si tu les as ajoutés
     if _has_property(template, "resolution_profile_id"):
-        print("  resolution_profile_id: ", _safe_get(template, "resolution_profile_id", ""))
+        myLogger.debug("  resolution_profile_id: %s" % _safe_get(template, "resolution_profile_id", ""), LogTypes.Domain.TEST)
     if _has_property(template, "giver_faction_id"):
-        print("  giver_faction_id: ", _safe_get(template, "giver_faction_id", ""))
+        myLogger.debug("  giver_faction_id: %s" % _safe_get(template, "giver_faction_id", ""), LogTypes.Domain.TEST)
     if _has_property(template, "antagonist_faction_id"):
-        print("  antagonist_faction_id: ", _safe_get(template, "antagonist_faction_id", ""))
+        myLogger.debug("  antagonist_faction_id: %s" % _safe_get(template, "antagonist_faction_id", ""), LogTypes.Domain.TEST)
 
 
 # ------------------------------------------------------------
@@ -711,7 +711,7 @@ func _ensure_world_day(day: int) -> void:
 
     if _has_property(ws, "current_day"):
         ws.current_day = day
-        print("WorldState.current_day = ", day)
+        myLogger.debug("WorldState.current_day = %d" % day, LogTypes.Domain.TEST)
     else:
         _warn("WorldState existe mais n'a pas la propriété current_day.")
 
@@ -807,13 +807,13 @@ func _dump_world_tags(qm) -> Array:
 
 
 func _warn(msg: String) -> void:
-    print("[QuestSystemTest] " + msg)
-    print("⚠ ", msg)
+    myLogger.debug("[QuestSystemTest] %s" % msg, LogTypes.Domain.TEST)
+    myLogger.debug("⚠  %s" % msg, LogTypes.Domain.TEST)
 
 
 func _fail(msg: String) -> void:
-    push_error("[QuestSystemTest] " + msg)
-    print("❌ ", msg)
+    push_error("[QuestSystemTest] %s" % msg, LogTypes.Domain.TEST)
+    myLogger.debug("❌ %s" % msg, LogTypes.Domain.TEST)
 
 
 func _generate_retrieve_artifact_quest(artifact_id: String) -> QuestInstance:
@@ -884,11 +884,11 @@ func _set_day(day: int) -> void:
 
     ws.set("current_day", day)
     if day %10 == 0:
-        print("WorldState.current_day =", day)
+        myLogger.debug("WorldState.current_day = %s" % day, LogTypes.Domain.TEST)
 
 
 func _require_autoload(path: String, label: String) -> void:
     var n = get_node_or_null(path)
     if n == null:
-        print("[TEST 10] Missing autoload: " + label + " at " + path)
-        print("⚠ Missing autoload: %s : %s" % [label, path])
+        myLogger.debug("[TEST 10] Missing autoload: %s at %s" % [label, path], LogTypes.Domain.TEST)
+        myLogger.debug("⚠ Missing autoload: %s : %s" % [label, path], LogTypes.Domain.TEST)

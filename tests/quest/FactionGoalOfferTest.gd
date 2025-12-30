@@ -82,9 +82,10 @@ func _test_goal_offer_domain_corruption() -> void:
         _assert(ctx.get("goal_domain", "") == "corruption", "goal_domain doit être 'corruption'")
         _assert(ctx.get("giver_faction_id", "") == ATTACKER_FACTION, "giver_faction_id doit être 'orcs'")
         
-        print("  ✓ Goal offer créée: %s" % found_offer.template.title)
-        print("  ✓ Contexte: giver=%s, domain=%s, step=%s" % [
-            ctx.get("giver_faction_id", ""),
-            ctx.get("goal_domain", ""),
-            ctx.get("goal_step_id", "")
-        ])
+    
+        myLogger.debug("  ✓ Goal offer créée: %s" % found_offer.template.title, LogTypes.Domain.TEST)
+        myLogger.debug("  ✓ Contexte: giver=%s, domain=%s, step=%s" % [
+                ctx.get("giver_faction_id", ""),
+                ctx.get("goal_domain", ""),
+                ctx.get("goal_step_id", "")
+            ], LogTypes.Domain.TEST)

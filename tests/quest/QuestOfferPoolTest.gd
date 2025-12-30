@@ -79,12 +79,11 @@ func _test_offers_100_days_simulation() -> void:
                 "Doublon de signature jour %d: %s" % [day, sig])
             seen_signatures[sig] = true
     
-    print("  ✓ %d jours simulés" % SIMULATION_DAYS)
-    print("  ✓ %d offres créées au total" % total_offers_created)
-    print("  ✓ Max offres simultanées: %d (cap=%d)" % [max_seen, MAX_OFFERS_CAP])
-    print("  ✓ Aucune offre invalide détectée")
-    print("  ✓ Aucun doublon de signature détecté")
-
+    myLogger.debug("  ✓ %d jours simulés" % SIMULATION_DAYS, LogTypes.Domain.TEST)
+    myLogger.debug("  ✓ %d offres créées au total" % total_offers_created, LogTypes.Domain.TEST)
+    myLogger.debug("  ✓ Max offres simultanées: %d (cap=%d)" % [max_seen, MAX_OFFERS_CAP], LogTypes.Domain.TEST)
+    myLogger.debug("  ✓ Aucune offre invalide détectée", LogTypes.Domain.TEST)
+    myLogger.debug("  ✓ Aucun doublon de signature détecté", LogTypes.Domain.TEST)
 
 # =============================================================================
 # Helpers

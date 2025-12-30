@@ -92,7 +92,9 @@ func _discover_tests(dir_path: String) -> Array[String]:
     dir.list_dir_end()
     return out
 func _run_one(path: String) -> bool:
-    myLogger.debug("\n%d/%d --- RUN %s ---" % [test_counter, test_size, path], LogTypes.Domain.TEST)
+    myLogger.debug("==================================", LogTypes.Domain.TEST)
+    myLogger.debug("%d/%d --- RUN %s ---" % [test_counter, test_size, path], LogTypes.Domain.TEST)
+    myLogger.debug("==================================", LogTypes.Domain.TEST)
     test_counter += 1
 
     var scr := load(path)
@@ -140,8 +142,8 @@ func _run_one(path: String) -> bool:
 
 
     node.queue_free()
-    var summary = "--- RESULT %s %s %s"% [("OK" if ok else "FAIL \n"), (("--- " + details) if details != "" else ""), " ---"]
-    myLogger.debug("==================================\n", LogTypes.Domain.TEST)
+    var summary = "--- RESULT %s %s %s"% [("OK" if ok else "FAIL "), (("--- " + details) if details != "" else ""), " ---"]
+    myLogger.debug("==================================", LogTypes.Domain.TEST)
     myLogger.debug("%s" % summary, LogTypes.Domain.TEST)
     myLogger.debug("==================================\n", LogTypes.Domain.TEST)
     return ok

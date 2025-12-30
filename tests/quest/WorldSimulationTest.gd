@@ -41,23 +41,23 @@ func _test_world_sim_10_days() -> void:
     if FactionManager != null and FactionManager.has_method("get_all_factions"):
         var factions: Array = FactionManager.get_all_factions()
         _assert(factions.size() > 0, "Au moins une faction doit exister après simulation")
-        print("  ✓ %d factions actives" % factions.size())
+        myLogger.debug("  ✓ %d factions actives" % factions.size(), LogTypes.Domain.TEST)
     
     # Vérifier les offres
     if QuestPool != null and QuestPool.has_method("get_offers"):
         var offers: Array = QuestPool.get_offers()
-        print("  ✓ %d offres dans le pool" % offers.size())
+        myLogger.debug("  ✓ %d offres dans le pool" % offers.size(), LogTypes.Domain.TEST)
     
     # Vérifier les world tags
     if QuestManager != null and "world_tags" in QuestManager:
-        print("  ✓ World tags: %s" % str(QuestManager.world_tags))
+        myLogger.debug("  ✓ World tags: %s" % str(QuestManager.world_tags), LogTypes.Domain.TEST)
     
     # Afficher les relations si disponible
     if FactionManager != null and FactionManager.has_method("print_relations_between"):
-        print("  ✓ Relations entre factions:")
+        myLogger.debug("  ✓ Relations entre factions:", LogTypes.Domain.TEST)
         FactionManager.print_relations_between()
     
-    print("  ✓ Simulation de %d jours terminée" % SIMULATION_DAYS)
+    myLogger.debug("  ✓ Simulation de %d jours terminée" % SIMULATION_DAYS, LogTypes.Domain.TEST)
 
 
 # =============================================================================

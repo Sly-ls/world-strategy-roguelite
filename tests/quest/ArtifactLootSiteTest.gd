@@ -44,7 +44,7 @@ func _test_artifact_lost_and_retrieve() -> void:
     spec.unique = true
     
     ArtifactRegistryRunner.register_spec(spec)
-    print("  ✓ Artefact enregistré: %s (%s)" % [spec.id, spec.name])
+    myLogger.debug("  ✓ Artefact enregistré: %s (%s)" % [spec.id, spec.name], LogTypes.Domain.TEST)
     
     # 2) Créer une armée avec l'artefact
     var army: ArmyData = ArmyFactory.create_army("starter")
@@ -55,18 +55,18 @@ func _test_artifact_lost_and_retrieve() -> void:
     ArmyManagerRunner.register_army(army)
     
     _assert(army.inventory.artifacts.has(spec.id), "Armée doit avoir l'artefact")
-    print("  ✓ Armée créée avec artefact: %s" % army.id)
+    myLogger.debug("  ✓ Armée créée avec artefact: %s" % army.id, LogTypes.Domain.TEST)
     
     # 3) Détruire l'armée → doit créer un LootSite
     ArmyManagerRunner.destroy_army(army.id)
     
     var site_id := _find_loot_site_containing(spec.id)
     _assert(site_id != "", "LootSite doit être créé après destruction de l'armée")
-    print("  ✓ LootSite créé: %s" % site_id)
+    myLogger.debug("  ✓ LootSite créé: %s" % site_id, LogTypes.Domain.TEST)
     
     # Vérifier l'ownership
     var owner_type: String = ArtifactRegistryRunner.owner_type.get(spec.id, "")
-    print("  ✓ Owner après destruction: %s" % owner_type)
+    myLogger.debug("  ✓ Owner après destruction: %s" % owner_type, LogTypes.Domain.TEST)
     
     # 4) Expirer le LootSite → artefact devient LOST
     _set_day(999)  # Force expiration
@@ -74,7 +74,7 @@ func _test_artifact_lost_and_retrieve() -> void:
     
     owner_type = ArtifactRegistryRunner.owner_type.get(spec.id, "")
     _assert(owner_type == "LOST", "Artefact doit être LOST après expiration LootSite, got: %s" % owner_type)
-    print("  ✓ Artefact LOST après expiration")
+    myLogger.debug("  ✓ Artefact LOST après expiration", LogTypes.Domain.TEST)
     
     # 5) Générer une quête de récupération
     var quest := _generate_retrieve_artifact_quest(spec.id)
@@ -82,12 +82,12 @@ func _test_artifact_lost_and_retrieve() -> void:
     _assert(quest.template != null, "Quest.template ne doit pas être null")
     _assert(quest.context.get("artifact_id", "") == spec.id, "context.artifact_id doit correspondre")
     
-    print("  ✓ Quête retrieve générée: %s" % quest.template.title)
-    print("  ✓ Contexte: artifact=%s, giver=%s, profile=%s" % [
+    myLogger.debug("  ✓ Quête retrieve générée: %s" % quest.template.title, LogTypes.Domain.TEST)
+    myLogger.debug("  ✓ Contexte: artifact=%s, giver=%s, profile=%s" % [
         quest.context.get("artifact_id", ""),
         quest.context.get("giver_faction_id", ""),
         quest.context.get("resolution_profile_id", "")
-    ])
+    ], LogTypes.Domain.TEST)
 
 
 # =============================================================================

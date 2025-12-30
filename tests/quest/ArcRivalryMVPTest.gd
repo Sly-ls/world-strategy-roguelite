@@ -80,8 +80,8 @@ func _test_hostile_action_creates_arc_offer() -> void:
     _assert(ctx.has("arc_id"), "context doit avoir arc_id")
     _assert(ctx.has("arc_stage"), "context doit avoir arc_stage")
     
-    print("  ✓ Action hostile %s → %s crée une offre arc" % [ATTACKER_FACTION, DEFENDER_FACTION])
-    print("  ✓ Arc offer: %s (stage=%s)" % [arc_offer.template.title, ctx.get("arc_stage", "")])
+    myLogger.debug("  ✓ Action hostile %s → %s crée une offre arc" % [ATTACKER_FACTION, DEFENDER_FACTION], LogTypes.Domain.TEST)
+    myLogger.debug("  ✓ Arc offer: %s (stage=%s)" % [arc_offer.template.title, ctx.get("arc_stage", "")], LogTypes.Domain.TEST)
 
 
 # =============================================================================
@@ -111,7 +111,7 @@ func _test_resolution_triggers_retaliation() -> void:
     
     # Résoudre LOYAL
     QuestManager.resolve_quest(arc_offer.runtime_id, "LOYAL")
-    print("  ✓ Quête résolue LOYAL")
+    myLogger.debug("  ✓ Quête résolue LOYAL", LogTypes.Domain.TEST)
     
     # Avancer d'un jour et tick
     _set_day(1)
@@ -129,7 +129,7 @@ func _test_resolution_triggers_retaliation() -> void:
         # Retaliation: giver=defender, antagonist=attacker (inversé)
         if ctx.get("giver_faction_id", "") == DEFENDER_FACTION and ctx.get("antagonist_faction_id", "") == ATTACKER_FACTION:
             retaliation_found = true
-            print("  ✓ Retaliation offer trouvée: %s → %s" % [DEFENDER_FACTION, ATTACKER_FACTION])
+            myLogger.debug("  ✓ Retaliation offer trouvée: %s → %s" % [DEFENDER_FACTION, ATTACKER_FACTION], LogTypes.Domain.TEST)
             break
     
     _assert(retaliation_found, "Offre de retaliation doit être générée (giver=%s, ant=%s)" % [DEFENDER_FACTION, ATTACKER_FACTION])

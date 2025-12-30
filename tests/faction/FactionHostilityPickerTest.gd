@@ -77,7 +77,7 @@ func _set_relation_scores(a: String, b: String, relation: float, trust: float, t
 # =============================================================================
 
 func _test_excludes_origin() -> void:
-    print("  Testing excludes origin...")
+    myLogger.debug("  Testing excludes origin...", LogTypes.Domain.TEST)
     _setup_test_factions()
     
     # Faire plusieurs tirages et vérifier que origin n'est jamais retourné
@@ -87,10 +87,10 @@ func _test_excludes_origin() -> void:
         _assert(result != "", "Should return a valid faction")
     
     _cleanup_pair_states()
-    print("  ✓ Excludes origin test passed")
+    myLogger.debug("  ✓ Excludes origin test passed", LogTypes.Domain.TEST)
 
 func _test_excludes_extinct() -> void:
-    print("  Testing excludes extinct...")
+    myLogger.debug("  Testing excludes extinct...", LogTypes.Domain.TEST)
     _setup_test_factions()
     _cleanup_pair_states()
     
@@ -104,14 +104,14 @@ func _test_excludes_extinct() -> void:
         _assert(result != "beta", "Should never return EXTINCT faction")
     
     _cleanup_pair_states()
-    print("  ✓ Excludes extinct test passed")
+    myLogger.debug("  ✓ Excludes extinct test passed", LogTypes.Domain.TEST)
 
 # =============================================================================
 # Tests: Priorité des états
 # =============================================================================
 
 func _test_war_state_highest_priority() -> void:
-    print("  Testing WAR state highest priority...")
+    myLogger.debug("  Testing WAR state highest priority...", LogTypes.Domain.TEST)
     _setup_test_factions()
     _cleanup_pair_states()
     
@@ -137,10 +137,10 @@ func _test_war_state_highest_priority() -> void:
     _assert(war_count >= 40, "WAR faction should be selected most often, got %d/100" % war_count)
     
     _cleanup_pair_states()
-    print("  ✓ WAR state highest priority test passed")
+    myLogger.debug("  ✓ WAR state highest priority test passed", LogTypes.Domain.TEST)
 
 func _test_alliance_state_penalized() -> void:
-    print("  Testing ALLIANCE state penalized...")
+    myLogger.debug("  Testing ALLIANCE state penalized...", LogTypes.Domain.TEST)
     _setup_test_factions()
     _cleanup_pair_states()
     
@@ -172,14 +172,14 @@ func _test_alliance_state_penalized() -> void:
     # La trahison reste possible via d'autres mécanismes de jeu
     
     _cleanup_pair_states()
-    print("  ✓ ALLIANCE state penalized test passed")
+    myLogger.debug("  ✓ ALLIANCE state penalized test passed", LogTypes.Domain.TEST)
 
 # =============================================================================
 # Tests: Malus traité
 # =============================================================================
 
 func _test_treaty_malus() -> void:
-    print("  Testing treaty malus...")
+    myLogger.debug("  Testing treaty malus...", LogTypes.Domain.TEST)
     _setup_test_factions()
     _cleanup_pair_states()
     
@@ -232,14 +232,14 @@ func _test_treaty_malus() -> void:
     _assert(score_delta > score_beta, "High violation treaty should have less malus: delta=%.2f > beta=%.2f" % [score_delta, score_beta])
     
     _cleanup_pair_states()
-    print("  ✓ Treaty malus test passed")
+    myLogger.debug("  ✓ Treaty malus test passed", LogTypes.Domain.TEST)
 
 # =============================================================================
 # Tests: Impact des scores de relation
 # =============================================================================
 
 func _test_relation_scores_impact() -> void:
-    print("  Testing relation scores impact...")
+    myLogger.debug("  Testing relation scores impact...", LogTypes.Domain.TEST)
     _setup_test_factions()
     _cleanup_pair_states()
     
@@ -272,14 +272,14 @@ func _test_relation_scores_impact() -> void:
         _assert(results[i]["score"] >= results[i+1]["score"], "Scores should be in descending order")
     
     _cleanup_pair_states()
-    print("  ✓ Relation scores impact test passed")
+    myLogger.debug("  ✓ Relation scores impact test passed", LogTypes.Domain.TEST)
 
 # =============================================================================
 # Tests: RNG intelligent
 # =============================================================================
 
 func _test_rng_dominant_winner() -> void:
-    print("  Testing RNG dominant winner...")
+    myLogger.debug("  Testing RNG dominant winner...", LogTypes.Domain.TEST)
     _setup_test_factions()
     _cleanup_pair_states()
     
@@ -301,10 +301,10 @@ func _test_rng_dominant_winner() -> void:
     _assert(beta_count >= 95, "Dominant winner should be selected >95%%, got %d%%" % beta_count)
     
     _cleanup_pair_states()
-    print("  ✓ RNG dominant winner test passed")
+    myLogger.debug("  ✓ RNG dominant winner test passed", LogTypes.Domain.TEST)
 
 func _test_rng_close_competition() -> void:
-    print("  Testing RNG close competition...")
+    myLogger.debug("  Testing RNG close competition...", LogTypes.Domain.TEST)
     _setup_test_factions()
     _cleanup_pair_states()
     
@@ -330,14 +330,14 @@ func _test_rng_close_competition() -> void:
         _assert(percentage >= 15.0, "Close competition: %s should have >15%%, got %.1f%%" % [faction_id, percentage])
     
     _cleanup_pair_states()
-    print("  ✓ RNG close competition test passed")
+    myLogger.debug("  ✓ RNG close competition test passed", LogTypes.Domain.TEST)
 
 # =============================================================================
 # Tests: Méthodes utilitaires
 # =============================================================================
 
 func _test_get_top_hostile_factions() -> void:
-    print("  Testing get_top_hostile_factions...")
+    myLogger.debug("  Testing get_top_hostile_factions...", LogTypes.Domain.TEST)
     _setup_test_factions()
     _cleanup_pair_states()
     
@@ -356,10 +356,10 @@ func _test_get_top_hostile_factions() -> void:
         _assert(results[i]["score"] >= results[i + 1]["score"], "Results should be sorted by score desc")
     
     _cleanup_pair_states()
-    print("  ✓ get_top_hostile_factions test passed")
+    myLogger.debug("  ✓ get_top_hostile_factions test passed", LogTypes.Domain.TEST)
 
 func _test_empty_candidates() -> void:
-    print("  Testing empty candidates...")
+    myLogger.debug("  Testing empty candidates...", LogTypes.Domain.TEST)
     
     # Tester avec une faction qui n'existe pas ou exclure tout
     var result := FactionHostilityPicker.pick_hostile_faction(
@@ -371,10 +371,10 @@ func _test_empty_candidates() -> void:
     # Devrait retourner "" ou une faction valide (dépend de ce qui existe)
     _assert(result != "alpha", "Should never return origin even with exclusions")
     
-    print("  ✓ Empty candidates test passed")
+    myLogger.debug("  ✓ Empty candidates test passed", LogTypes.Domain.TEST)
 
 func _test_pick_most_hostile_factions() -> void:
-    print("  Testing pick_most_hostile_factions...")
+    myLogger.debug("  Testing pick_most_hostile_factions...", LogTypes.Domain.TEST)
     _setup_test_factions()
     _cleanup_pair_states()
     
@@ -401,7 +401,7 @@ func _test_pick_most_hostile_factions() -> void:
         _assert(not unique.has(faction_id), "Should not have duplicates: %s" % faction_id)
         unique[faction_id] = true
     
-    print("    Result: %s" % str(result))
+    myLogger.debug("    Result: %s" % str(result), LogTypes.Domain.TEST)
     
     # Test 2: Les factions les plus hostiles devraient apparaître plus souvent en premier
     var first_position_counts := {"beta": 0, "gamma": 0, "delta": 0, "epsilon": 0}
@@ -414,7 +414,7 @@ func _test_pick_most_hostile_factions() -> void:
     _assert(first_position_counts["beta"] > first_position_counts["epsilon"], 
         "WAR faction should be first more often: beta=%d vs epsilon=%d" % [first_position_counts["beta"], first_position_counts["epsilon"]])
     
-    print("    First position distribution: %s" % str(first_position_counts))
+    myLogger.debug("    First position distribution: %s" % str(first_position_counts), LogTypes.Domain.TEST)
     
     # Test 3: Demander plus de factions qu'il n'y en a
     var result_all := FactionHostilityPicker.pick_most_hostile(10, "alpha", _rng)
@@ -426,10 +426,10 @@ func _test_pick_most_hostile_factions() -> void:
     _assert(result_one[0] != "alpha", "Should not return origin")
     
     _cleanup_pair_states()
-    print("  ✓ pick_most_hostile_factions test passed")
+    myLogger.debug("  ✓ pick_most_hostile_factions test passed", LogTypes.Domain.TEST)
 
 func _test_pick_most_hostile_no_duplicates_with_close_scores() -> void:
-    print("  Testing pick_most_hostile no duplicates with close scores...")
+    myLogger.debug("  Testing pick_most_hostile no duplicates with close scores...", LogTypes.Domain.TEST)
     _setup_test_factions()
     _cleanup_pair_states()
     
@@ -456,14 +456,14 @@ func _test_pick_most_hostile_no_duplicates_with_close_scores() -> void:
         _assert(result.size() == 4, "Iteration %d: Should return 4 unique factions" % i)
     
     _cleanup_pair_states()
-    print("  ✓ pick_most_hostile no duplicates test passed")
+    myLogger.debug("  ✓ pick_most_hostile no duplicates test passed", LogTypes.Domain.TEST)
 
 # =============================================================================
 # Tests: Alliance (pick_ally)
 # =============================================================================
 
 func _test_pick_ally_basic() -> void:
-    print("  Testing pick_ally basic...")
+    myLogger.debug("  Testing pick_ally basic...", LogTypes.Domain.TEST)
     _setup_test_factions()
     _cleanup_pair_states()
     
@@ -474,10 +474,10 @@ func _test_pick_ally_basic() -> void:
         _assert(result != "", "Should return a valid faction")
     
     _cleanup_pair_states()
-    print("  ✓ pick_ally basic test passed")
+    myLogger.debug("  ✓ pick_ally basic test passed", LogTypes.Domain.TEST)
 
 func _test_pick_ally_alliance_highest_priority() -> void:
-    print("  Testing ALLIANCE state highest priority for pick_ally...")
+    myLogger.debug("  Testing ALLIANCE state highest priority for pick_ally...", LogTypes.Domain.TEST)
     _setup_test_factions()
     _cleanup_pair_states()
     
@@ -503,10 +503,10 @@ func _test_pick_ally_alliance_highest_priority() -> void:
     _assert(alliance_count >= 35, "ALLIANCE faction should be selected most often, got %d/100" % alliance_count)
     
     _cleanup_pair_states()
-    print("  ✓ ALLIANCE state highest priority test passed")
+    myLogger.debug("  ✓ ALLIANCE state highest priority test passed", LogTypes.Domain.TEST)
 
 func _test_pick_ally_hostile_penalized() -> void:
-    print("  Testing hostile factions penalized for pick_ally...")
+    myLogger.debug("  Testing hostile factions penalized for pick_ally...", LogTypes.Domain.TEST)
     _setup_test_factions()
     _cleanup_pair_states()
     
@@ -534,10 +534,10 @@ func _test_pick_ally_hostile_penalized() -> void:
     _assert(beta_count > 0, "WAR faction should still be possible (for reconciliation)")
     
     _cleanup_pair_states()
-    print("  ✓ hostile factions penalized test passed")
+    myLogger.debug("  ✓ hostile factions penalized test passed", LogTypes.Domain.TEST)
 
 func _test_pick_most_allies() -> void:
-    print("  Testing pick_most_allies...")
+    myLogger.debug("  Testing pick_most_allies...", LogTypes.Domain.TEST)
     _setup_test_factions()
     _cleanup_pair_states()
     
@@ -564,7 +564,7 @@ func _test_pick_most_allies() -> void:
         _assert(not unique.has(faction_id), "Should not have duplicates: %s" % faction_id)
         unique[faction_id] = true
     
-    print("    Result: %s" % str(result))
+    myLogger.debug("    Result: %s" % str(result), LogTypes.Domain.TEST)
     
     # Test 2: Les factions les plus alliées devraient apparaître plus souvent en premier
     var first_position_counts := {"beta": 0, "gamma": 0, "delta": 0, "epsilon": 0}
@@ -577,14 +577,15 @@ func _test_pick_most_allies() -> void:
     _assert(first_position_counts["beta"] > first_position_counts["epsilon"], 
         "ALLIANCE faction should be first more often: beta=%d vs epsilon=%d" % [first_position_counts["beta"], first_position_counts["epsilon"]])
     
-    print("    First position distribution: %s" % str(first_position_counts))
+    myLogger.debug("    First position distribution: %s" % str(first_position_counts))
     
     # Test 3: get_top_ally_factions
     var top_allies := FactionHostilityPicker.get_top_ally_factions("alpha", 4)
     _assert(top_allies.size() == 4, "Should return 4 factions")
     _assert(top_allies[0]["score"] >= top_allies[1]["score"], "Should be sorted by score desc")
     
-    print("    Top allies: %s" % str(top_allies))
+    myLogger.debug("    Top allies: %s" % str(top_allies), LogTypes.Domain.TEST)
     
     _cleanup_pair_states()
-    print("  ✓ pick_most_allies test passed")
+    myLogger.debug("  ✓ pick_most_allies test passed", LogTypes.Domain.TEST)
+    pass_test("Faction hostility picker ok")

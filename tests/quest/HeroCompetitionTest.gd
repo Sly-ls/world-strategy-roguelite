@@ -63,7 +63,7 @@ func _test_hero_competition_30_days() -> void:
     HeroSimRunner.take_chance = 0.45
     
     _assert(HeroSimRunner.heroes.size() == 3, "3 héros doivent être enregistrés")
-    print("  ✓ 3 héros configurés: %s, %s, %s" % [h1.name, h2.name, h3.name])
+    myLogger.debug("  ✓ 3 héros configurés: %s, %s, %s" % [h1.name, h2.name, h3.name], LogTypes.Domain.TEST)
     
     var offers_taken_total := 0
     var initial_day := WorldState.current_day if WorldState != null else 0
@@ -88,11 +88,11 @@ func _test_hero_competition_30_days() -> void:
         if QuestManager.has_method("check_expirations"):
             QuestManager.check_expirations()
     
-    print("  ✓ %d jours simulés" % SIMULATION_DAYS)
-    print("  ✓ ~%d offres prises par les héros" % offers_taken_total)
+    myLogger.debug("  ✓ %d jours simulés" % SIMULATION_DAYS, LogTypes.Domain.TEST)
+    myLogger.debug("  ✓ ~%d offres prises par les héros" % offers_taken_total, LogTypes.Domain.TEST)
     
     if QuestManager != null and "world_tags" in QuestManager:
-        print("  ✓ World tags finaux: %s" % str(QuestManager.world_tags))
+        myLogger.debug("  ✓ World tags finaux: %s" % str(QuestManager.world_tags), LogTypes.Domain.TEST)
 
 
 # =============================================================================

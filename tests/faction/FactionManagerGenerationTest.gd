@@ -71,7 +71,7 @@ func _test_generate_faction_basic() -> void:
     
     _assert(profile is FactionProfile, "profile doit être un FactionProfile")
     
-    print("  ✓ generate_faction basic: faction créée avec profile")
+    myLogger.debug("  ✓ generate_faction basic: faction créée avec profile", LogTypes.Domain.TEST)
 
 
 func _test_generate_faction_with_heat_low() -> void:
@@ -88,7 +88,7 @@ func _test_generate_faction_with_heat_low() -> void:
     _assert(aggression >= 0.0 and aggression <= 1.0, "aggression doit être entre 0 et 1")
     _assert(diplomacy >= 0.0 and diplomacy <= 1.0, "diplomacy doit être entre 0 et 1")
     
-    print("  ✓ generate_faction heat=10: aggr=%.2f, diplo=%.2f" % [aggression, diplomacy])
+    myLogger.debug("  ✓ generate_faction heat=10: aggr=%.2f, diplo=%.2f" % [aggression, diplomacy], LogTypes.Domain.TEST)
 
 
 func _test_generate_faction_with_heat_high() -> void:
@@ -110,7 +110,7 @@ func _test_generate_faction_with_heat_high() -> void:
     _assert(aggr_after > aggr_before, "heat élevé devrait augmenter l'aggression (before=%.2f, after=%.2f)" % [aggr_before, aggr_after])
     _assert(diplo_after < diplo_before, "heat élevé devrait diminuer la diplomatie (before=%.2f, after=%.2f)" % [diplo_before, diplo_after])
     
-    print("  ✓ generate_faction heat bias: aggr %.2f→%.2f, diplo %.2f→%.2f" % [aggr_before, aggr_after, diplo_before, diplo_after])
+    myLogger.debug("  ✓ generate_faction heat bias: aggr %.2f→%.2f, diplo %.2f→%.2f" % [aggr_before, aggr_after, diplo_before, diplo_after], LogTypes.Domain.TEST)
 
 
 func _test_generate_faction_with_antagonist() -> void:
@@ -122,7 +122,7 @@ func _test_generate_faction_with_antagonist() -> void:
     
     _assert(antag_profile != null, "antagonist doit avoir un profile")
     
-    print("  ✓ generate_faction with antagonist: profiles créés")
+    myLogger.debug("  ✓ generate_faction with antagonist: profiles créés", LogTypes.Domain.TEST)
 
 
 # =============================================================================
@@ -140,7 +140,7 @@ func _test_generate_factions_count() -> void:
         var profile = f.profile if f is Faction else f.get("profile")
         _assert(profile != null, "faction %d doit avoir un profile" % i)
     
-    print("  ✓ generate_factions: %d factions créées" % factions_list.size())
+    myLogger.debug("  ✓ generate_factions: %d factions créées" % factions_list.size(), LogTypes.Domain.TEST)
 
 
 func _test_generate_factions_with_seed_reproducibility() -> void:
@@ -174,9 +174,9 @@ func _test_generate_factions_with_seed_reproducibility() -> void:
     
     # Log le résultat mais ne fail pas si les valeurs diffèrent (pollution d'état du singleton)
     if all_match:
-        print("  ✓ generate_factions reproducibility: seed=99999 produit résultats identiques")
+        myLogger.debug("  ✓ generate_factions reproducibility: seed=99999 produit résultats identiques", LogTypes.Domain.TEST)
     else:
-        print("  ⚠ generate_factions reproducibility: valeurs différentes (pollution singleton acceptée)")
+        myLogger.debug("  ⚠ generate_factions reproducibility: valeurs différentes (pollution singleton acceptée)", LogTypes.Domain.TEST)
 
 
 # =============================================================================
@@ -192,8 +192,7 @@ func _test_generate_world_basic() -> void:
     for f in world:
         var profile = f.profile if f is Faction else f.get("profile")
         _assert(profile != null, "chaque faction doit avoir un profile")
-    
-    print("  ✓ generate_world basic: %d factions créées" % world.size())
+    myLogger.debug("  ✓ generate_world basic: %d factions créées" % world.size(), LogTypes.Domain.TEST)
 
 
 func _test_generate_world_relations_initialized() -> void:
@@ -219,7 +218,7 @@ func _test_generate_world_relations_initialized() -> void:
             _assert(relations.size() == expected_count, 
                 "faction doit avoir %d relations, got %d" % [expected_count, relations.size()])
     
-    print("  ✓ generate_world relations: toutes les factions ont des relations initialisées")
+    myLogger.debug("  ✓ generate_world relations: toutes les factions ont des relations initialisées", LogTypes.Domain.TEST)
 
 
 func _test_generate_world_heat_affects_relations() -> void:
@@ -234,7 +233,7 @@ func _test_generate_world_heat_affects_relations() -> void:
     var avg_tension_low := _average_tension(relations_low)
     var avg_tension_high := _average_tension(relations_high)
     
-    print("  ✓ generate_world heat effect: tension avg low=%.1f, high=%.1f" % [avg_tension_low, avg_tension_high])
+    myLogger.debug("  ✓ generate_world heat effect: tension avg low=%.1f, high=%.1f" % [avg_tension_low, avg_tension_high], LogTypes.Domain.TEST)
 
 
 # =============================================================================
@@ -250,7 +249,7 @@ func _test_gen_type_from_heat() -> void:
     var type_high := manager._gen_type_from_heat(80, rng)
     _assert(type_high == FactionProfile.GEN_DRAMATIC, "heat=80 devrait donner GEN_DRAMATIC")
     
-    print("  ✓ _gen_type_from_heat: low→CENTERED, high→DRAMATIC")
+    myLogger.debug("  ✓ _gen_type_from_heat: low→CENTERED, high→DRAMATIC", LogTypes.Domain.TEST)
 
 
 func _test_profile_params_from_heat() -> void:
@@ -263,9 +262,9 @@ func _test_profile_params_from_heat() -> void:
     _assert(params_high["coherence_strength"] >= params_low["coherence_strength"],
         "coherence_strength devrait augmenter avec heat")
     
-    print("  ✓ _profile_params_from_heat: coherence %.2f→%.2f" % [
+    myLogger.debug("  ✓ _profile_params_from_heat: coherence %.2f→%.2f" % [
         params_low["coherence_strength"], params_high["coherence_strength"]
-    ])
+    ], LogTypes.Domain.TEST)
 
 
 func _test_apply_heat_bias_to_personality() -> void:
@@ -281,9 +280,9 @@ func _test_apply_heat_bias_to_personality() -> void:
     _assert(aggr_after > aggr_before - 0.05, "aggression devrait augmenter avec heat=90")
     _assert(diplo_after < diplo_before + 0.05, "diplomacy devrait diminuer avec heat=90")
     
-    print("  ✓ _apply_heat_bias_to_personality: aggr %.2f→%.2f, diplo %.2f→%.2f" % [
+    myLogger.debug("  ✓ _apply_heat_bias_to_personality: aggr %.2f→%.2f, diplo %.2f→%.2f" % [
         aggr_before, aggr_after, diplo_before, diplo_after
-    ])
+    ], LogTypes.Domain.TEST)
 
 
 # =============================================================================
@@ -305,7 +304,7 @@ func _test_initialize_relations_world_symmetry() -> void:
             _assert(relations.has(b), "faction %s doit avoir des relations" % str(b))
             _assert(relations[b].has(a), "relation %s→%s doit exister si %s→%s existe" % [str(b), str(a), str(a), str(b)])
     
-    print("  ✓ initialize_relations_world: relations bidirectionnelles présentes")
+    myLogger.debug("  ✓ initialize_relations_world: relations bidirectionnelles présentes", LogTypes.Domain.TEST)
 
 
 func _test_center_outgoing_means() -> void:
@@ -325,7 +324,7 @@ func _test_center_outgoing_means() -> void:
             var mean := sum / float(count)
             _assert(abs(mean) < 40, "moyenne des relations devrait être centrée, got %.1f" % mean)
     
-    print("  ✓ _center_outgoing_means: moyennes centrées (< 40 de 0)")
+    myLogger.debug("  ✓ _center_outgoing_means: moyennes centrées (< 40 de 0)", LogTypes.Domain.TEST)
 
 
 func _test_apply_reciprocity() -> void:
@@ -352,7 +351,7 @@ func _test_apply_reciprocity() -> void:
     # Tolérance augmentée à 35 pour éviter les edge cases
     _assert(max_diff <= 35, "avec reciprocity=0.90, diff max devrait être <=35, got %d" % max_diff)
     
-    print("  ✓ _apply_reciprocity: diff max entre A→B et B→A = %d" % max_diff)
+    myLogger.debug("  ✓ _apply_reciprocity: diff max entre A→B et B→A = %d" % max_diff, LogTypes.Domain.TEST)
 
 
 # =============================================================================

@@ -57,7 +57,7 @@ func _test_generate_random_quest_tier1() -> void:
     _assert(quest.template.tier == QuestTypes.QuestTier.TIER_1, 
         "QuestTemplate.tier doit être TIER_1, got: %s" % str(quest.template.tier))
     
-    print("  ✓ generate_random_quest(TIER_1): id=%s, title=%s" % [quest.template.id, quest.template.title])
+    myLogger.debug("  ✓ generate_random_quest(TIER_1): id=%s, title=%s" % [quest.template.id, quest.template.title], LogTypes.Domain.TEST)
 
 
 # =============================================================================
@@ -65,12 +65,12 @@ func _test_generate_random_quest_tier1() -> void:
 # =============================================================================
 func _test_generate_quest_for_poi_ruins() -> void:
     if not generator.has_method("generate_quest_for_poi"):
-        print("  ⚠ generate_quest_for_poi() non disponible, test ignoré")
+        myLogger.debug("  ⚠ generate_quest_for_poi() non disponible, test ignoré", LogTypes.Domain.TEST)
         return
     
     var ruins_type = _guess_ruins_celltype()
     if ruins_type == null:
-        print("  ⚠ TilesEnums.CellType.RUINS introuvable, test ignoré")
+        myLogger.debug("  ⚠ TilesEnums.CellType.RUINS introuvable, test ignoré", LogTypes.Domain.TEST)
         return
     
     var poi_pos := Vector2i(10, 10)
@@ -79,7 +79,7 @@ func _test_generate_quest_for_poi_ruins() -> void:
     _assert(quest != null, "generate_quest_for_poi(RUINS) ne doit pas retourner null")
     _assert(quest.template != null, "QuestInstance.template ne doit pas être null")
     
-    print("  ✓ generate_quest_for_poi(RUINS): id=%s, title=%s" % [quest.template.id, quest.template.title])
+    myLogger.debug("  ✓ generate_quest_for_poi(RUINS): id=%s, title=%s" % [quest.template.id, quest.template.title], LogTypes.Domain.TEST)
 
 
 # =============================================================================
@@ -92,12 +92,12 @@ func _test_template_can_appear() -> void:
     _assert(quest.template != null, "Template ne doit pas être null")
     
     if not quest.template.has_method("can_appear"):
-        print("  ⚠ QuestTemplate.can_appear() non disponible, test ignoré")
+        myLogger.debug("  ✓ generate_quest_for_poi(RUINS): id=%s, title=%s" % [quest.template.id, quest.template.title], LogTypes.Domain.TEST)
         return
     
     var can_appear: bool = quest.template.can_appear()
     # On ne teste pas la valeur, juste que ça ne crash pas
-    print("  ✓ template.can_appear() = %s" % str(can_appear))
+    myLogger.debug("  ✓ template.can_appear() = %s" % str(can_appear), LogTypes.Domain.TEST)
 
 
 # =============================================================================
@@ -122,7 +122,7 @@ func _force_load_tiles_enums() -> void:
     if ResourceLoader.exists(TILES_ENUMS_SCRIPT):
         var s = load(TILES_ENUMS_SCRIPT)
         if s != null:
-            print("  ✓ TilesEnums chargé")
+            myLogger.debug("  ✓ TilesEnums chargé", LogTypes.Domain.TEST)
 
 
 func _ensure_world_day(day: int) -> void:

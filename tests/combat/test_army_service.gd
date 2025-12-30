@@ -8,11 +8,11 @@ func _ready():
     test_army_service()
 
 func test_army_service():
-    print("\n=== TEST ARMY SERVICE ===")
+    myLogger.debug("=== TEST ARMY SERVICE ===", LogTypes.Domain.TEST)
     
     # 1. Création du service
     var army_service = ArmyService.new()
-    print("✓ ArmyService créé")
+    myLogger.debug("✓ ArmyService créé", LogTypes.Domain.TEST)
     
     # 2. Création d'une armée de test
     var test_army = ArmyData.new()
@@ -30,16 +30,16 @@ func test_army_service():
     while test_army.units.size() < 15:
         test_army.units.append(null)
     
-    print("✓ Armée de test créée (3 unités)")
+    myLogger.debug("✓ Armée de test créée (3 unités)", LogTypes.Domain.TEST)
     
     # 3. Initialisation du service
     army_service.initialize(test_army, Vector2i(10, 10))
-    print("✓ Service initialisé à (10, 10)")
+    myLogger.debug("✓ Service initialisé à (10, 10)", LogTypes.Domain.TEST)
     
     # 4. Test comptage unités
     var alive_count = army_service.get_alive_unit_count()
     assert(alive_count == 3, "Devrait avoir 3 unités vivantes")
-    print("✓ Comptage: %d unités vivantes" % alive_count)
+    myLogger.debug("✓ Comptage: %d unités vivantes" % alive_count, LogTypes.Domain.TEST)
     
     # 5. Test ajout d'unité
     var new_unit = UnitData.new()
@@ -50,38 +50,33 @@ func test_army_service():
     
     var added = army_service.add_unit_to_player(new_unit)
     assert(added, "L'ajout devrait réussir")
-    print("✓ Unité ajoutée: %s" % new_unit.name)
+    myLogger.debug("✓ Unité ajoutée: %s" % new_unit.name, LogTypes.Domain.TEST)
     
     # 6. Test soins
     test_army.units[0].hp = 50  # Blesse une unité
     army_service.heal_player_army(30)
     assert(test_army.units[0].hp == 80, "HP devrait être 80")
-    print("✓ Soins appliqués (50 -> 80)")
+    myLogger.debug("✓ Soins appliqués (50 -> 80)", LogTypes.Domain.TEST)
     
     # 7. Test dégâts
     army_service.damage_player_army(20)
-    print("✓ Dégâts appliqués (-20 HP sur unité aléatoire)")
+    myLogger.debug("✓ Dégâts appliqués (-20 HP sur unité aléatoire)", LogTypes.Domain.TEST)
     
     # 8. Test stats
     var stats = army_service.get_army_stats()
-    print("✓ Stats récupérées:")
-    print("  Total unités: %d" % stats["total_units"])
-    print("  Vivantes: %d" % stats["alive_units"])
-    print("  HP total: %d/%d" % [stats["total_hp"], stats["max_hp"]])
+    myLogger.debug("✓ Stats récupérées:", LogTypes.Domain.TEST)
+    myLogger.debug("  Total unités: %d" % stats["total_units"], LogTypes.Domain.TEST)
+    myLogger.debug("  Vivantes: %d" % stats["alive_units"], LogTypes.Domain.TEST)
+    myLogger.debug("  HP total: %d/%d" % [stats["total_hp"], stats["max_hp"]], LogTypes.Domain.TEST)
     
     # 9. Test signaux
     var signal_received = false
     army_service.army_updated.connect(func(army):
         signal_received = true
-        print("  Signal reçu: army_updated")
-    )
+        myLogger.debug("  Signal reçu: army_updated"), LogTypes.Domain.TEST)
     
     army_service.heal_player_army(10)
     # FIX ME : ça ne passe pas
 #    assert(signal_received, "Signal devrait être émis") 
-    print("✓ Signaux fonctionnent")
-    
-    print("=== TEST RÉUSSI ✓ ===\n")
-    # FIX ME : ça ne passe pas
-    #army_service.free()
-    pass_test()
+    myLogger.debug("✓ Signaux fonctionnent", LogTypes.Domain.TEST)
+    pass_test("=== TEST RÉUSSI ✓ ===")

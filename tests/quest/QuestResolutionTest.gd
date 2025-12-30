@@ -86,7 +86,7 @@ func _test_resolution_loyal() -> void:
     var gold_after := _safe_get_gold()
     
     # LOYAL devrait donner une récompense
-    print("  ✓ LOYAL: gold %d → %d" % [gold_before, gold_after])
+    myLogger.debug("  ✓ LOYAL: gold %d → %d" % [gold_before, gold_after], LogTypes.Domain.TEST)
     _restore_initial_state()
 
 
@@ -108,7 +108,7 @@ func _test_resolution_neutral() -> void:
     
     var gold_after := _safe_get_gold()
     
-    print("  ✓ NEUTRAL: gold %d → %d" % [gold_before, gold_after])
+    myLogger.debug("  ✓ NEUTRAL: gold %d → %d" % [gold_before, gold_after], LogTypes.Domain.TEST)
     _restore_initial_state()
 
 
@@ -130,7 +130,7 @@ func _test_resolution_traitor() -> void:
     
     var gold_after := _safe_get_gold()
     
-    print("  ✓ TRAITOR: gold %d → %d" % [gold_before, gold_after])
+    myLogger.debug("  ✓ TRAITOR: gold %d → %d" % [gold_before, gold_after], LogTypes.Domain.TEST)
     _restore_initial_state()
 
 
@@ -149,7 +149,7 @@ func _test_full_pipeline() -> void:
     var antagonist :String = quest.context.get("antagonist_faction_id", "")
     var profile :String = quest.context.get("resolution_profile_id", "")
     
-    print("  ✓ Full pipeline: giver=%s, antagonist=%s, profile=%s" % [giver, antagonist, profile])
+    myLogger.debug("  ✓ Full pipeline: giver=%s, antagonist=%s, profile=%s" % [giver, antagonist, profile], LogTypes.Domain.TEST)
     
     # Test complet
     QuestManager.start_runtime_quest(quest)
@@ -160,7 +160,7 @@ func _test_full_pipeline() -> void:
     
     QuestManager.resolve_quest(quest.runtime_id, "LOYAL")
     
-    print("  ✓ Full pipeline completed successfully")
+    myLogger.debug("  ✓ Full pipeline completed successfully", LogTypes.Domain.TEST)
 
 
 # =============================================================================
