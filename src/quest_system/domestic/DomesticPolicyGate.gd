@@ -22,7 +22,7 @@ static func apply(
     faction_id: StringName,
     goal_state: FactionGoalState,
     ctx: Dictionary,
-    domestic_state,                # Objet avec .pressure() ou Dictionary avec "pressure"
+    domestic_state: FactionDomesticState,                # Objet avec .pressure() ou Dictionary avec "pressure"
     params: Dictionary = {}
 ) -> FactionGoalState:
     """
@@ -31,13 +31,7 @@ static func apply(
     """
     
     # Récupérer la pression (supporte objet avec .pressure() ou Dictionary)
-    var p: float
-    if domestic_state is Dictionary:
-        p = float(domestic_state.get("pressure", 0.0))
-    elif domestic_state != null and domestic_state.has_method("pressure"):
-        p = float(domestic_state.pressure())
-    else:
-        return goal_state
+    var p: float = float(domestic_state.pressure())
     
     var threshold := float(params.get("pressure_threshold", DEFAULT_PRESSURE_THRESHOLD))
     var force_days := int(params.get("force_days", DEFAULT_FORCE_DAYS))

@@ -301,14 +301,14 @@ func _ensure_crisis_coalitions(
     all_factions :Array[Faction],
     world: Dictionary,
 ) -> void:
-    var source: StringName = StringName(world.get("crisis_source_id", &""))   # can be empty (pure world crisis)
-    var source_faction: Faction = FactionManager.get_faction(source)
+    var source_id: StringName = StringName(world.get("crisis_source_id", &""))   # can be empty (pure world crisis)
+    var source_faction: Faction = FactionManager.get_faction(source_id)
     var axis: StringName = StringName(world.get("crisis_axis", &""))
     var sev := float(world.get("crisis_severity", 0.0))
     # A) coalition AGAINST crisis/source (STOP_CRISIS)
-    var key_anti := StringName("CRISIS|AGAINST_TARGET|%s" % String(source))
+    var key_anti := StringName("CRISIS|AGAINST_TARGET|%s" % String(source_id))
     if not coalition_id_by_key.has(key_anti):
-        var anti_members: Array[StringName] = []
+        var anti_members: Array[Faction] = []
         for faction :Faction  in all_factions:
             # some factions prefer letting crisis grow or are friendly to source => won't join anti
             var s := _stop_crisis_join_score(faction, source_faction, axis, sev, world)
@@ -316,13 +316,13 @@ func _ensure_crisis_coalitions(
                 anti_members.append(faction)
 
         if anti_members.size() >= COALITION_MIN_MEMBERS:
-            var leader := _pick_best_leader(anti_members, source)
+            var leader := _pick_best_leader(anti_members, source_faction.id)
             var c := CoalitionBlock.new()
             c.kind = &"CRISIS"
             c.side = &"AGAINST_TARGET"
             c.goal = &"STOP_CRISIS"
-            c.target_id = source
-            c.leader_id = leader
+            c.target_id = source_id
+            c.leader_id = leader.id
             c.started_day = day
             c.expires_day = day + rng.randi_range(12, 28)
             c.cohesion = 50
@@ -331,15 +331,15 @@ func _ensure_crisis_coalitions(
                 var faction = FactionManager.get_faction(m)
                 c.member_commitment[m] = clampf(_stop_crisis_join_score(faction, source_faction, axis, sev, world), 0.2, 0.95)
                 c.member_role[m] = &"DIPLO" if rng.randf() < 0.25 else &"SUPPORT"
-            c.id = StringName("coal_crisis_anti_%s_%s" % [String(source), str(day)])
+            c.id = StringName("coal_crisis_anti_%s_%s" % [String(source_id), str(day)])
             coalitions_by_id[c.id] = c
             coalition_id_by_key[key_anti] = c.id
             _apply_temp_truce_for_members(c, day, 12)
 
     # B) coalition WITH crisis/source (SUPPORT_CRISIS) if source exists and has allies who want crisis
-    if source == &"":
+    if source_id == &"":
         return
-    var key_pro := StringName("CRISIS|WITH_TARGET|%s" % String(source))
+    var key_pro := StringName("CRISIS|WITH_TARGET|%s" % String(source_id))
     if coalition_id_by_key.has(key_pro):
         return
 
@@ -356,8 +356,8 @@ func _ensure_crisis_coalitions(
         c2.kind = &"CRISIS"
         c2.side = &"WITH_TARGET"
         c2.goal = &"SUPPORT_CRISIS"
-        c2.target_id = source
-        c2.leader_id = source
+        c2.target_id = source_id
+        c2.leader_id = source_id
         c2.started_day = day
         c2.expires_day = day + rng.randi_range(10, 22)
         c2.cohesion = 55
@@ -366,7 +366,7 @@ func _ensure_crisis_coalitions(
             var faction = FactionManager.get_faction(m)
             c2.member_commitment[m] = clampf(_support_crisis_join_score(faction, source_faction, axis, sev, world), 0.2, 0.95)
             c2.member_role[m] = &"STEALTH" if rng.randf() < 0.5 else &"SUPPORT"
-        c2.id = StringName("coal_crisis_pro_%s_%s" % [String(source), str(day)])
+        c2.id = StringName("coal_crisis_pro_%s_%s" % [String(source_id), str(day)])
         coalitions_by_id[c2.id] = c2
         coalition_id_by_key[key_pro] = c2.id
 
@@ -611,18 +611,17 @@ func _support_crisis_join_score(faction: Faction, source: Faction, crisis_axis: 
     return clampf(s, 0.0, 1.0)
 
 
-func _pick_best_leader(members: Array[StringName], target: StringName) -> StringName:
-    var best := members[0]
+func _pick_best_leader(members: Array[Faction], target: StringName) -> Faction:
+    var best :Faction = members[0]
     var bestv := -1.0
-    for f in members:
-        var faction = FactionManager.get_faction(f)
-        var diplomacy :float = faction.profile.get_personality(FactionProfile.PERS_DIPLOMACY, 0.5)
-        var honor :float = faction.profile.get_personality(FactionProfile.PERS_HONOR, 0.5)
+    for faction in members:
+        var diplomacy :float = faction.profile.get_personality(FactionProfile.PERS_DIPLOMACY)
+        var honor :float = faction.profile.get_personality(FactionProfile.PERS_HONOR)
         var rel := faction.get_relation_to(target).get_score(FactionRelationScore.REL_RELATION) / 100.0
         var v := 0.40*diplomacy + 0.25*honor + 0.35*clampf(-rel, 0.0, 1.0)
         if v > bestv:
             bestv = v
-            best = f
+            best = faction
     return best
 
 
