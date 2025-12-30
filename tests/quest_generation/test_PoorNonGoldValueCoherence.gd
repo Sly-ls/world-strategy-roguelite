@@ -6,7 +6,7 @@ func _ready() -> void:
     pass_test("✅ PoorNonGoldValueCoherenceTest: OK")
 
 func _test_poor_non_gold_value_scales_with_tier_but_is_bounded() -> void:
-    _assert(ClassDB.class_exists("RewardEconomyUtil"), "RewardEconomyUtil must exist")
+    _assert(RewardEconomyUtilRunner != null, "RewardEconomyUtil must exist")
 
     var econ_poor := {
         "wealth_level": &"POOR",
@@ -40,7 +40,7 @@ func _avg_value_for_tier(econ: Dictionary, tier: int, action: StringName, n: int
     var count := 0
 
     for i in range(n):
-        var b := RewardEconomyUtil.build_reward_bundle(econ, tier, action, rng)
+        var b := RewardEconomyUtilRunner.build_reward_bundle(econ, tier, action, rng)
 
         # On mesure seulement le mode non-gold (c’est ce qu’on veut contrôler chez POOR)
         if int(b.get("gold", 0)) > 0:

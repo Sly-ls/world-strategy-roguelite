@@ -268,8 +268,7 @@ static func from_dict(data: Dictionary) -> FactionPairState:
     # Treaty désérialisation (si implémenté)
     var teatryInst :Treaty = Treaty.new()
     if data.has("treaty") and data["treaty"] != null:
-        if ClassDB.class_exists("Treaty") and teatryInst.has_method("from_dict"):
-            ps.treaty = teatryInst.from_dict(data["treaty"])
+        ps.treaty = teatryInst.from_dict(data["treaty"])
     
     return ps
 

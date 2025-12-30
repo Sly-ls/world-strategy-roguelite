@@ -106,8 +106,6 @@ func _test_3(quest1, quest2):
     _test_can_appear(quest2)
     
 func _force_load_tiles_enums() -> void:
-    if ClassDB.class_exists("TilesEnums"):
-        return
     if ResourceLoader.exists(TILES_ENUMS_SCRIPT):
         var s = load(TILES_ENUMS_SCRIPT)
         if s == null:
@@ -453,7 +451,7 @@ func _create_generator() -> Node:
 func _test_1_safe_generate_random_tier1(gen: Node):
     # On essaye d’obtenir QuestTypes.TIER_1 si possible
     myLogger.debug("\n--- TEST 1: generate_random_quest(TIER_1) ---", LogTypes.Domain.TEST)
-    var tier_1 = _get_tier1_value()
+    var tier_1 = QuestTypes.QuestTier.TIER_1
     if gen.has_method("generate_random_quest"):
         var quest1 = gen.generate_random_quest(tier_1)
         _print_quest_instance(quest1)
@@ -714,24 +712,6 @@ func _ensure_world_day(day: int) -> void:
         myLogger.debug("WorldState.current_day = %d" % day, LogTypes.Domain.TEST)
     else:
         _warn("WorldState existe mais n'a pas la propriété current_day.")
-
-
-func _get_tier1_value():
-    # Cas normal : QuestTypes est un class_name, donc accessible directement
-    if ClassDB.class_exists("QuestTypes"):
-        return QuestTypes.QuestTier.TIER_1
-
-    # Fallback: essayer de load le script (si pas de class_name)
-    if ResourceLoader.exists(QUEST_TYPES_SCRIPT):
-        var qt_script = load(QUEST_TYPES_SCRIPT)
-        if qt_script != null:
-            # Certains scripts exposent l'enum statiquement
-            # Mais sans class_name, c'est rarement accessible proprement.
-            # On fallback sur 1 si impossible.
-            pass
-
-    _warn("QuestTypes non accessible (class_name manquant ?). Fallback tier=1.")
-    return 1
 
 func _guess_ruins_celltype():
     # 1) Utiliser l'autoload (le plus fiable)

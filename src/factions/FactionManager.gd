@@ -668,30 +668,10 @@ func _has_prop(obj: Object, prop: String) -> bool:
 
 func _make_relation_score(other_id: StringName, init: Dictionary):
     # init keys: relation(int), friction(float), trust(int), tension(float)
-    if ClassDB.class_exists("FactionRelationScore"):
-        var rs = ClassDB.instantiate("FactionRelationScore")
-        # set common fields if present
-        if _has_prop(rs, "other_faction_id"): rs.set("other_faction_id", other_id)
-        if _has_prop(rs, "relation"): rs.set("relation", int(init["relation"]))
-        if _has_prop(rs, "trust"): rs.set("trust", int(init["trust"]))
-        if _has_prop(rs, "tension"): rs.set("tension", float(init["tension"]))
-        if _has_prop(rs, "friction"): rs.set("friction", float(init["friction"]))
-        if _has_prop(rs, "grievance"): rs.set("grievance", 0.0)
-        if _has_prop(rs, "weariness"): rs.set("weariness", 0.0)
-        if rs.has_method("clamp_all"):
-            rs.call("clamp_all")
-        return rs
-
-    # fallback dict
-    return {
-        "other_faction_id": other_id,
-        "relation": int(init["relation"]),
-        "trust": int(init["trust"]),
-        "tension": float(init["tension"]),
-        "friction": float(init["friction"]),
-        "grievance": 0.0,
-        "weariness": 0.0
-    }
+    
+    var rs = FactionRelationScore.new(other_id)
+    rs.init(init)
+    return rs
 
 func daily_decay() -> void:
     var base_tension_decay := 0.9

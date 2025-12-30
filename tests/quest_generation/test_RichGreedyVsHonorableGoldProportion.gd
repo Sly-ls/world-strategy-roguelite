@@ -6,7 +6,7 @@ func _ready() -> void:
     pass_test("✅ RichGreedyVsHonorableGoldProportionTest: OK")
 
 func _test_rich_greedy_has_higher_gold_proportion_than_honorable() -> void:
-    _assert(ClassDB.class_exists("RewardEconomyUtil"), "RewardEconomyUtil must exist")
+    _assert(RewardEconomyUtilRunner != null, "RewardEconomyUtil must exist")
 
     var econ_rich := {"wealth_level": &"RICH", "liquidity": 0.90, "prestige": 0.80}
     var tier := 3
@@ -17,8 +17,8 @@ func _test_rich_greedy_has_higher_gold_proportion_than_honorable() -> void:
     var prof_honorable := FactionProfile.new({FactionProfile.PERS_GREED: 0.10, FactionProfile.PERS_OPPORTUNISM: 0.20, FactionProfile.PERS_DISCIPLINE: 0.85, FactionProfile.PERS_HONOR: 0.90})
 
     # sanity: dw signs
-    var s_g := RewardEconomyUtil.compute_reward_style(econ_rich, tier, prof_greedy)
-    var s_h := RewardEconomyUtil.compute_reward_style(econ_rich, tier, prof_honorable)
+    var s_g := RewardEconomyUtilRunner.compute_reward_style(econ_rich, tier, prof_greedy)
+    var s_h := RewardEconomyUtilRunner.compute_reward_style(econ_rich, tier, prof_honorable)
     _assert(float(s_g.w_gold_dw) > 0.03, "expected greedy w_gold_dw positive (got %.3f)" % float(s_g.w_gold_dw))
     _assert(float(s_h.w_gold_dw) < -0.03, "expected honorable w_gold_dw negative (got %.3f)" % float(s_h.w_gold_dw))
 
@@ -29,7 +29,7 @@ func _test_rich_greedy_has_higher_gold_proportion_than_honorable() -> void:
     var greedy_non := 0
 
     for i in range(n):
-        var b := RewardEconomyUtil.build_reward_bundle(econ_rich, tier, action, rng, prof_greedy)
+        var b := RewardEconomyUtilRunner.build_reward_bundle(econ_rich, tier, action, rng, prof_greedy)
         if int(b.get("gold", 0)) > 0:
             greedy_gold += 1
         else:
@@ -42,7 +42,7 @@ func _test_rich_greedy_has_higher_gold_proportion_than_honorable() -> void:
     var hon_non := 0
 
     for i in range(n):
-        var b := RewardEconomyUtil.build_reward_bundle(econ_rich, tier, action, rng, prof_honorable)
+        var b := RewardEconomyUtilRunner.build_reward_bundle(econ_rich, tier, action, rng, prof_honorable)
         if int(b.get("gold", 0)) > 0:
             hon_gold += 1
         else:

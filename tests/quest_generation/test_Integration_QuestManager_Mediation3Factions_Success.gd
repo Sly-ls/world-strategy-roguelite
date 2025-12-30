@@ -8,14 +8,12 @@ func _ready() -> void:
 
 
 func _test_resolve_quest_mediation_success_logs_and_inverse_deltas() -> void:
-    _assert(ClassDB.class_exists("QuestOutcomeUtil"), "QuestOutcomeUtil must exist")
-    _assert(ClassDB.class_exists("ArcFailureConsequences"), "ArcFailureConsequences must exist")
-    _assert(ClassDB.class_exists("QuestInstance"), "QuestInstance must exist")
-    _assert(ClassDB.class_exists("QuestTemplate"), "QuestTemplate must exist")
+    _assert(QuestOutcomeUtil != null, "QuestOutcomeUtil must exist")
+    _assert(ArcFailureConsequences != null, "ArcFailureConsequences must exist")
 
-    _assert(QuestManager != null, "Missing /root QuestManagerRunner (or QuestManager)")
-    _assert(ArcManagerRunner != null, "Missing /root/ArcManagerRunner")
-    _assert(FactionManager != null, "Missing /root/FactionManager")
+    _assert(QuestManager != null, "QuestManager must exist")
+    _assert(ArcManagerRunner != null, "ArcManagerRunner must exist")
+    _assert(FactionManager != null, "FactionManager must exist")
 
     # --- patch notebook ---
     var prev_arc_notebook: ArcNotebook = ArcManagerRunner.arc_notebook

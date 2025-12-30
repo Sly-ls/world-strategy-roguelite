@@ -8,15 +8,9 @@ func _ready() -> void:
 
 
 func _test_resolve_quest_mediation_3f_roll_forced_logs_and_deltas() -> void:
-    # --- preconditions ---
-    _assert(ClassDB.class_exists("QuestOutcomeUtil"), "QuestOutcomeUtil must exist")
-    _assert(ClassDB.class_exists("ArcFailureConsequences"), "ArcFailureConsequences must exist")
-    _assert(ClassDB.class_exists("QuestInstance"), "QuestInstance must exist")
-    _assert(ClassDB.class_exists("QuestTemplate"), "QuestTemplate must exist")
-
-    _assert(QuestManager != null, "Missing /root QuestManagerRunner (or QuestManager)")
-    _assert(ArcManagerRunner != null, "Missing /root/ArcManagerRunner")
-    _assert(FactionManager != null, "Missing /root/FactionManager")
+    _assert(QuestManager != null, "QuestManager must exist")
+    _assert(ArcManagerRunner != null, "QuestManager must exist")
+    _assert(FactionManager != null, "QuestManager must exist")
 
     # --- snapshot & patch ArcNotebook ---
     var prev_arc_notebook: ArcNotebook = ArcManagerRunner.arc_notebook

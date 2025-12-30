@@ -86,9 +86,7 @@ func _test_20_days_war_pressure_stops_raids_after_day15_and_spawns_truce_domesti
     var dom := FactionDomesticState.new(60, 75, 10)
 
     # Economy (optionnel - vérifier si la classe existe)
-    var economy = null
-    if ClassDB.class_exists("FactionEconomy"):
-        economy = FactionEconomy.new(20)
+    var economy = FactionEconomy.new(20)
 
     # Créer un goal WAR avec FactionGoalState
     var war_goal := FactionGoal.new()

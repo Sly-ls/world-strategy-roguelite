@@ -117,8 +117,6 @@ func _create_generator() -> Node:
 
 
 func _force_load_tiles_enums() -> void:
-    if ClassDB.class_exists("TilesEnums"):
-        return
     if ResourceLoader.exists(TILES_ENUMS_SCRIPT):
         var s = load(TILES_ENUMS_SCRIPT)
         if s != null:

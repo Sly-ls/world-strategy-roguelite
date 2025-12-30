@@ -6,7 +6,7 @@ func _ready() -> void:
     pass_test("✅ RichGoldVarianceByPersonalityTest: OK")
 
 func _test_rich_gold_variance_depends_on_personality_but_stays_bounded() -> void:
-    _assert(ClassDB.class_exists("RewardEconomyUtil"), "RewardEconomyUtil must exist")
+    _assert(RewardEconomyUtilRunner != null, "RewardEconomyUtil must exist")
 
     var econ_rich := {"wealth_level": &"RICH", "liquidity": 0.90, "prestige": 0.80}
     var tier := 4
@@ -50,7 +50,7 @@ func _gold_stats_positive_only(econ: Dictionary, tier: int, action: StringName, 
 
     var xs: Array[float] = []
     for i in range(n):
-        var b := RewardEconomyUtil.build_reward_bundle(econ, tier, action, rng, profile)
+        var b := RewardEconomyUtilRunner.build_reward_bundle(econ, tier, action, rng, profile)
         var g := float(int(b.get("gold", 0)))
         if g > 0.0:
             xs.append(g)

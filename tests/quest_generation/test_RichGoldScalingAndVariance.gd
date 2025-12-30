@@ -6,7 +6,7 @@ func _ready() -> void:
     pass_test("✅ RichGoldScalingAndVarianceTest: OK")
 
 func _test_rich_gold_scales_with_tier_and_variance_is_controlled() -> void:
-    _assert(ClassDB.class_exists("RewardEconomyUtil"), "RewardEconomyUtil must exist")
+    _assert(RewardEconomyUtilRunner != null, "RewardEconomyUtil must exist")
 
     var econ_rich := {
         "wealth_level": &"RICH",
@@ -58,7 +58,7 @@ func _gold_stats_for_tier(econ: Dictionary, tier: int, action: StringName, n: in
     xs.resize(0)
 
     for i in range(n):
-        var b := RewardEconomyUtil.build_reward_bundle(econ, tier, action, rng)
+        var b := RewardEconomyUtilRunner.build_reward_bundle(econ, tier, action, rng)
         var g := float(int(b.get("gold", 0)))
         # For rich test, we include 0 gold outcomes too: it’s part of the "style".
         xs.append(g)
