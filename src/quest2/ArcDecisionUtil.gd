@@ -151,53 +151,51 @@ static func select_arc_action_type(
 
     # REPARATIONS : possible si la relation n’est pas trop noire et que A est diplomate/intégrateur
     var s_rep := 0.0
-    s_rep += 0.55 * diplo
-    s_rep += 0.35 * integ
-    s_rep += 0.25 * weariness
+    s_rep += 0.70 * diplo
+    s_rep += 0.45 * integ
+    s_rep += 0.30 * weariness
     s_rep += 0.25 * tension
     s_rep += 0.20 * trust_pos
-    s_rep -= 0.55 * negrel
-    s_rep -= 0.40 * grievance
-    # précondition douce
-    if relation > -60:
+    s_rep -= 0.25 * negrel
+    s_rep -= 0.20 * grievance
+    if relation > -75:
         candidates.append({"type": ARC_REPARATIONS, "s": max(0.0, s_rep)})
 
     # TRUCE_TALKS : fatigue haute + tension haute => sortie
     var s_truce := 0.0
-    s_truce += 0.95 * weariness
-    s_truce += 0.55 * tension
-    s_truce += 0.55 * diplo
-    s_truce += 0.25 * risk
-    s_truce += 0.35 * external_threat
-    s_truce -= 0.65 * grievance
-    s_truce -= 0.45 * (aggr)
+    s_truce += 1.10 * weariness
+    s_truce += 0.60 * tension
+    s_truce += 0.70 * diplo
+    s_truce += 0.35 * risk
+    s_truce += 0.45 * external_threat
+    s_truce -= 0.25 * grievance
+    s_truce -= 0.35 * aggr
     candidates.append({"type": ARC_TRUCE_TALKS, "s": max(0.0, s_truce)})
 
     # RAID : représaille “courte”, satisfait la grievance mais baisse trust ensuite (effets ailleurs)
     var s_raid := 0.0
-    s_raid += 0.95 * grievance
-    s_raid += 0.70 * tension
-    s_raid += 0.55 * negrel
-    s_raid += 0.70 * opportunity
-    s_raid += 0.55 * aggr
-    s_raid += 0.35 * veng
-    s_raid += 0.25 * expa
-    s_raid -= 0.80 * weariness
+    s_raid += 1.60 * grievance * tension
+    s_raid += 0.60 * negrel * tension
+    s_raid += 0.35 * opportunity
+    s_raid += 0.30 * aggr
+    s_raid += 0.20 * veng
+    s_raid += 0.10 * expa
+    s_raid -= 1.10 * weariness
+    s_raid -= 0.55 * risk
     s_raid -= 0.35 * diplo
-    if tension >= 0.20: # pas de raid si tout est froid
+    if tension >= 0.35 and grievance >= 0.25:
         candidates.append({"type": ARC_RAID, "s": max(0.0, s_raid)})
 
     # SABOTAGE : utile quand risk est haut (éviter frontal) + cunning
     var s_sab := 0.0
-    s_sab += 0.65 * grievance
-    s_sab += 0.45 * tension
+    s_sab += 1.25 * grievance * tension
     s_sab += 0.55 * cunning
     s_sab += 0.35 * risk
-    s_sab += 0.35 * opportunity
-    s_sab += 0.25 * negrel
-    s_sab -= 0.55 * weariness
+    s_sab += 0.20 * opportunity
+    s_sab += 0.20 * negrel
+    s_sab -= 0.70 * weariness
     s_sab -= 0.25 * diplo
-    if tension >= 0.25:
+    if tension >= 0.45 and grievance >= 0.30:
         candidates.append({"type": ARC_SABOTAGE, "s": max(0.0, s_sab)})
 
     # DECLARE_WAR : rare, conditions dures
