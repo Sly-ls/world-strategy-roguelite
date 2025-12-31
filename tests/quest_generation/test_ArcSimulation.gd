@@ -47,7 +47,14 @@ func run(days: int) -> void:
 
     # 2) Init relations world
     var params :Dictionary = TestUtils.init_params()
-    FactionRelationsUtil.initialize_relations_world(1, 12345, params)
+    FactionManager.generate_world(ids.size(), 1, 12345, params)
+    var count: int =0
+    var all_factions_init = FactionManager.get_all_factions()
+    FactionManager.reset()
+    for faction in all_factions_init:
+        faction.id = ids[count]
+        count += 1
+        FactionManager.register_faction(faction)
 
     # 4) Stats time-series + compteurs
     var stats := {

@@ -9,6 +9,8 @@ static func snapshot_metrics() -> Dictionary:
     var all_factions = FactionManager.get_all_factions()
     for faction_a in all_factions:
         for faction_b in all_factions:
+            if faction_b == faction_a:
+                continue
             count += 1
             var rel_score: FactionRelationScore = faction_a.get_relation_to(faction_b.id)
             sum_rels += float(rel_score.get_score(FactionRelationScore.REL_RELATION))

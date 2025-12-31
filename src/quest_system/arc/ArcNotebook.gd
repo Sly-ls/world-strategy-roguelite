@@ -334,6 +334,46 @@ func get_pair_heat_obj(a: StringName, b: StringName) -> PairHeat:
     if not pair_heats.has(k):
         pair_heats[k] = PairHeat.new()
     return pair_heats[k]
+func _compute_pair_heat_snapshot(self_id: StringName, other_id: StringName, day: int, decay_per_day: float) -> PairHeat:
+    var key := Utils.pair_key(self_id, other_id)
+    var snap := PairHeat.new()
+    snap.last_day = day
+
+    for e in pair_events:
+        var eday := int(e.get("day", 0))
+        if eday > day:
+            continue
+
+        var ea: StringName = e.get("a", &"")
+        var eb: StringName = e.get("b", &"")
+        if ea == &"" or eb == &"":
+            continue
+        if Utils.pair_key(ea, eb) != key:
+            continue
+
+        var action: StringName = e.get("action", &"")
+        var delta := _action_heat_delta(action)
+        if delta == 0:
+            continue
+
+        var sev := _severity_for_action(action)
+        var w := pow(decay_per_day, float(day - eday))
+        var contrib := sev * w
+
+        var actor_is_first := (String(ea) <= String(eb))
+        if delta > 0:
+            if actor_is_first:
+                snap.hostile_ab += contrib
+            else:
+                snap.hostile_ba += contrib
+        else:
+            if actor_is_first:
+                snap.friendly_ab += contrib
+            else:
+                snap.friendly_ba += contrib
+
+    return snap
+
 
 func get_pair_heat(self_id: StringName, other_id: StringName, day: int = 0, decay_per_day: float = 0.93) -> Dictionary:
     var key := Utils.pair_key(self_id, other_id)
@@ -341,7 +381,14 @@ func get_pair_heat(self_id: StringName, other_id: StringName, day: int = 0, deca
     if heat == null:
         return {"hostile_from_other": 0.0, "friendly_from_other": 0.0, "hostile_to_other": 0.0, "friendly_to_other": 0.0}
 
-    heat.decay_to(day, decay_per_day)
+    var qday := day
+    if qday <= 0:
+        qday = heat.last_day
+
+    if qday < heat.last_day:
+        heat = _compute_pair_heat_snapshot(self_id, other_id, qday, decay_per_day)
+    else:
+        heat.decay_to(qday, decay_per_day)
 
     var self_is_first := (String(self_id) <= String(other_id))
     var hostile_to_other := heat.hostile_ab if self_is_first else heat.hostile_ba

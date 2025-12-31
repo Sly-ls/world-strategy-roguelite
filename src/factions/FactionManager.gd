@@ -686,17 +686,17 @@ func daily_decay() -> void:
         var griev_mul := 0.55 + 0.90 * (1.0 - veng)
 
         var map_rel: Dictionary = faction.get_all_relations()
-        for target_id :StringName in map_rel.keys():
+        for target_id: StringName in map_rel.keys():
             var rel: FactionRelationScore = map_rel[target_id]
-            var tension_score = rel.get_score(FactionRelationScore.REL_TENSION)
-            var grievance_score = rel.get_score(FactionRelationScore.REL_GRIEVANCE)
-            var weariness_score = rel.get_score(FactionRelationScore.REL_WEARINESS)
-            var tension_delta = max(0.0,tension_score - base_tension_decay * tension_mul)
-            var grievance_delta = max(0.0, grievance_score - base_griev_decay * griev_mul)
-            var weariness_delta = max(0.0, weariness_score - base_wear_decay)
-            rel.apply_delta_to(FactionRelationScore.REL_TENSION, tension_delta)
-            rel.apply_delta_to(FactionRelationScore.REL_GRIEVANCE, grievance_delta)
-            rel.apply_delta_to(FactionRelationScore.REL_WEARINESS, weariness_delta)
+            var tension_score := rel.get_score(FactionRelationScore.REL_TENSION)
+            var grievance_score := rel.get_score(FactionRelationScore.REL_GRIEVANCE)
+            var weariness_score := rel.get_score(FactionRelationScore.REL_WEARINESS)
+            var tension_new = max(0.0, tension_score - base_tension_decay * tension_mul)
+            var grievance_new = max(0.0, grievance_score - base_griev_decay * griev_mul)
+            var weariness_new = max(0.0, weariness_score - base_wear_decay)
+            rel.set_score(FactionRelationScore.REL_TENSION, tension_new)
+            rel.set_score(FactionRelationScore.REL_GRIEVANCE, grievance_new)
+            rel.set_score(FactionRelationScore.REL_WEARINESS, weariness_new)
 
 # ========================================
 # PAIR STATES - Sérialisation
