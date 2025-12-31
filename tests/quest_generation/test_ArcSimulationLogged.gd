@@ -36,17 +36,28 @@ func _ready() -> void:
 func run(days: int) -> void:
     _assert(days > 0, "days must be > 0")
 
-    # 1) Load golden profiles
+     # 1) Charger profils golden (10) + construire factions
     var profiles_list := _load_golden_profiles()
-    _assert(profiles_list.size() >= 6, "Need at least 6 profiles")
+    _assert(profiles_list.size() >= 6, "Need at least 6 profiles for a meaningful arc sim")
 
-    var params = TestUtils.init_params()
+    var faction_profiles: Dictionary[StringName, FactionProfile] = {}
+    for i in range(min(10, profiles_list.size())):
+        faction_profiles[StringName("faction_%02d" % i)] = profiles_list[i]
+
+    var ids: Array[StringName] = []
+    for fid in faction_profiles.keys():
+        ids.append(StringName(fid))
+
     # 2) Init relations world
-    FactionManager.generate_world(10,
-        1,
-        98765,
-        params
-    )
+    var params :Dictionary = TestUtils.init_params()
+    FactionManager.generate_world(ids.size(), 1, 12345, params)
+    var count: int =0
+    var all_factions_init = FactionManager.get_all_factions()
+    FactionManager.reset()
+    for faction in all_factions_init:
+        faction.id = ids[count]
+        count += 1
+        FactionManager.register_faction(faction)
 
     # 4) Logs + metrics
     var event_log: Array = []
@@ -100,7 +111,7 @@ func run(days: int) -> void:
             var faction_a = FactionManager.get_faction(a_id)
             var faction_b = FactionManager.get_faction(b_id)
             var rel_ab: FactionRelationScore = faction_a.get_relation_to(faction_b.id)
-            var rel_ba: FactionRelationScore = faction_a.get_relation_to(faction_b.id)
+            var rel_ba: FactionRelationScore = faction_b.get_relation_to(faction_a.id)
 
             # ---- BEFORE snapshot (pair mean) ----
             var before := _snapshot_pair_mean(rel_ab, rel_ba)
