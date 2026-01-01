@@ -215,7 +215,7 @@ func _test_generate_world_relations_initialized() -> void:
         
         if not relations.is_empty():
             var expected_count := ids.size() - 1
-            _assert(relations.size() == expected_count, 
+            _assert(relations.size() == expected_count,
                 "faction doit avoir %d relations, got %d" % [expected_count, relations.size()])
     
     myLogger.debug("  ✓ generate_world relations: toutes les factions ont des relations initialisées", LogTypes.Domain.TEST)
@@ -329,7 +329,11 @@ func _test_center_outgoing_means() -> void:
 
 func _test_apply_reciprocity() -> void:
     manager.factions.clear()
-    var world := manager.generate_world(4, 50, 12345, {"reciprocity": 0.90})
+    var params :Dictionary = {
+        "reciprocity_params": {"apply_reciprocity": true,
+        "reciprocity": 0.90},
+        }
+    var world := manager.generate_world(4, 50, 12345, params)
     var relations := _extract_all_relations(world)
     
     var max_diff := 0

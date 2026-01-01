@@ -679,3 +679,47 @@ func can_spawn_knowledge_offer(key: StringName, day: int, cooldown_days: int) ->
 
 func mark_knowledge_offer_spawned(key: StringName, day: int) -> void:
     knowledge_spawn_cooldowns[key] = day
+
+# =============================================================================
+# Domestic / Truce offer cooldowns + per-faction counters (compat tests)
+# =============================================================================
+
+func _domestic_offer_key(fid: StringName) -> StringName:
+    return StringName("domestic:" + String(fid))
+
+func _truce_offer_key(a: StringName, b: StringName) -> StringName:
+    # normalisé => un seul cooldown quelle que soit l'ordre
+    var pair_key := String(Utils.pair_key(String(a), String(b)))
+    return StringName("truce:" + pair_key)
+
+# --- Domestic offer cooldown (par faction) ---
+func can_spawn_domestic_offer(faction_id: StringName, day: int, cooldown: int) -> bool:
+    var key := _domestic_offer_key(faction_id)
+    var last := int(last_offer_refresh_day_by_pair.get(key, -999999))
+    return (day - last) >= cooldown
+
+func mark_domestic_offer_spawned(faction_id: StringName, day: int) -> void:
+    var key := _domestic_offer_key(faction_id)
+    last_offer_refresh_day_by_pair[key] = day
+
+# --- Truce offer cooldown (par paire) ---
+func can_spawn_truce_offer(a: StringName, b: StringName, day: int, cooldown: int) -> bool:
+    var key := _truce_offer_key(a, b)
+    var last := int(last_offer_refresh_day_by_pair.get(key, -999999))
+    return (day - last) >= cooldown
+
+func mark_truce_offer_spawned(a: StringName, b: StringName, day: int) -> void:
+    var key := _truce_offer_key(a, b)
+    last_offer_refresh_day_by_pair[key] = day
+
+# --- Per-faction counters (utilise pair_counters avec une clé "faction:<id>") ---
+func _faction_counter_key(fid: StringName) -> StringName:
+    return StringName("faction:" + String(fid))
+
+func set_faction_counter(fid: StringName, name: StringName, val: int) -> void:
+    var k := _faction_counter_key(fid)
+    set_pair_counter(k, name, val)
+
+func get_faction_counter(fid: StringName, name: StringName, default_val: int = 0) -> int:
+    var k := _faction_counter_key(fid)
+    return get_pair_counter(k, name, default_val)

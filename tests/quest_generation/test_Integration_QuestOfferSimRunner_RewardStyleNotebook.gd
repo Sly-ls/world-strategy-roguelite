@@ -21,7 +21,8 @@ func _test_spawn_logs_reward_style_w_gold_dw_for_greedy() -> void:
 
     # --- snapshot & patch ArcNotebook ---
     var prev_notebook: ArcNotebook = ArcManagerRunner.arc_notebook
-    var notebook: ArcNotebook = ArcNotebook.new()
+    ArcManagerRunner.arc_notebook = ArcNotebook.new()
+    var notebook: ArcNotebook = ArcManagerRunner.arc_notebook
     ArcManagerRunner.arc_notebook = notebook
 
     var rng := RandomNumberGenerator.new()

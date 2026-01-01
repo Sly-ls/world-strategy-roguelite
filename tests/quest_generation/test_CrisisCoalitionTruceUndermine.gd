@@ -74,16 +74,15 @@ func _test_crisis_coalition_truce_then_undermine_creates_suspicion() -> void:
         "crisis_severity": 0.90,  # Très élevé pour garantir formation
         "crisis_axis": FactionProfile.AXIS_CORRUPTION,  # &"axis.corruption"
         "crisis_source_id": C,
-        "power_by_faction": {A: 40.0, B: 38.0, C: 50.0, D: 22.0},
         "hegemon_index_by_faction": {}
     }
-    var notebook := ArcNotebook.new()
+    var notebook := ArcManagerRunner.arc_notebook
 
     # Debug: afficher les scores de join avant tick
     myLogger.debug(" Join scores before tick_day:", LogTypes.Domain.TEST)
     for f in [A, B, D]:
         var faction :Faction = FactionManager.get_faction(f)
-        var score := CoalitionManager._stop_crisis_join_score(faction, faction_c, FactionProfile.AXIS_CORRUPTION, 0.90, world)
+        var score := CoalitionManager._stop_crisis_join_score(faction, faction_c, FactionProfile.AXIS_CORRUPTION, 0.90)
         myLogger.debug("    %s: score=%.3f (threshold=0.55)" % [str(f), score], LogTypes.Domain.TEST)
 
     # Day 10: tick => should form STOP_CRISIS coalition and set truce locks

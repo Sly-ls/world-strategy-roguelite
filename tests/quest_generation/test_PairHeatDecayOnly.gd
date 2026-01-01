@@ -7,7 +7,7 @@ func _ready() -> void:
 
 
 func _test_decay_only_reduces_hostile_heat_over_time() -> void:
-    var nb := ArcNotebook.new()
+    var nb := ArcManagerRunner.arc_notebook
     var a := &"A"
     var b := &"B"
 

@@ -12,7 +12,7 @@ func _ready() -> void:
 
 
 func _test_enemy_score_decreases_for_B_between_day10_and_day30() -> void:
-    var nb := ArcNotebook.new()
+    var nb := ArcManagerRunner.arc_notebook
     var self_id := &"A"
     var b := &"B"
     var c := &"C"

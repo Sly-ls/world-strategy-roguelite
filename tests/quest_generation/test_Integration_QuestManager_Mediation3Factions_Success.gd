@@ -16,9 +16,7 @@ func _test_resolve_quest_mediation_success_logs_and_inverse_deltas() -> void:
     _assert(FactionManager != null, "FactionManager must exist")
 
     # --- patch notebook ---
-    var prev_arc_notebook: ArcNotebook = ArcManagerRunner.arc_notebook
-    var notebook: ArcNotebook = ArcNotebook.new()
-    ArcManagerRunner.arc_notebook = notebook
+    var notebook: ArcNotebook = ArcManagerRunner.arc_notebook
 
     # --- backup existing relation_scores ---
     var A := &"A"

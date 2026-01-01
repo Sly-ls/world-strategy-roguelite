@@ -13,9 +13,7 @@ func _test_resolve_quest_mediation_3f_roll_forced_logs_and_deltas() -> void:
     _assert(FactionManager != null, "QuestManager must exist")
 
     # --- snapshot & patch ArcNotebook ---
-    var prev_arc_notebook: ArcNotebook = ArcManagerRunner.arc_notebook
-    var notebook: ArcNotebook = ArcNotebook.new()
-    ArcManagerRunner.arc_notebook = notebook
+    var notebook: ArcNotebook = ArcManagerRunner.arc_notebook
 
     # Build relations for A, B, C
     var A := &"A"

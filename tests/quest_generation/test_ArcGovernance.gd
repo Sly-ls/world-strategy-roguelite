@@ -20,7 +20,7 @@ func _ready() -> void:
 # 1) ArcNotebook cooldown + attempts
 # -------------------------
 func _test_notebook_refresh_cooldown_and_attempts() -> void:
-    var nb := ArcNotebook.new()
+    var nb := ArcManagerRunner.arc_notebook
     var pair := &"a|b"
 
     _assert(nb.can_refresh_offer_for_pair(pair, 10, 5), "should refresh at day 10")

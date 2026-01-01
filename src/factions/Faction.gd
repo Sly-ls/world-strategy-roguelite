@@ -214,7 +214,7 @@ func apply_reciprocity(fb :Faction, rng: RandomNumberGenerator, params: Dictiona
     var reciprocity_noise = params.get("reciprocity_noise", 2)
     var max_change_per_pair = params.get("max_change_per_pair", 18)
     reciprocity_strength = clampf(reciprocity_strength, 0.0, 1.0)
-    keep_asymmetry = clampf(keep_asymmetry, 0.0, 1.0)
+    keep_asymmetry = clampf(keep_asymmetry, 0.0, 100.0)
     reciprocity_noise = clampf(reciprocity_noise, 0, 20)
     max_change_per_pair = clampf(max_change_per_pair, 0, 50)
     
@@ -230,8 +230,12 @@ func apply_reciprocity(fb :Faction, rng: RandomNumberGenerator, params: Dictiona
     # asymmetry target: keep part of (ab - ba)
     var asym :float = (ab_rel - ba_rel) * keep_asymmetry
 
-    var ab_target := avg_rel + asym
-    var ba_target := avg_rel - asym
+    # keep at most N points of asymmetry
+    var diff_rel := ab_rel - ba_rel
+    var kept_diff := clampf(diff_rel, -keep_asymmetry, keep_asymmetry)
+
+    var ab_target := avg_rel + 0.5 * kept_diff
+    var ba_target := avg_rel - 0.5 * kept_diff
 
     # move each towards target by reciprocity_strength
     var ab_new :float = lerp(ab_rel, ab_target, reciprocity_strength)
@@ -254,11 +258,13 @@ func apply_reciprocity(fb :Faction, rng: RandomNumberGenerator, params: Dictiona
     # --- Trust reciprocity (softer) ---
     var ab_tr := float(ab.get_score(FactionRelationScore.REL_TRUST))
     var ba_tr := float(ba.get_score(FactionRelationScore.REL_TRUST))
+    var keep_trust :float = keep_asymmetry * 0.8
+    var diff_tr := ab_tr - ba_tr
+    var kept_tr := clampf(diff_tr, -keep_trust, keep_trust)
     var avg_tr := (ab_tr + ba_tr) * 0.5
-    var asym_tr :float = (ab_tr - ba_tr) * (keep_asymmetry * 0.8)
 
-    var ab_tr_target :float = avg_tr + asym_tr
-    var ba_tr_target :float = avg_tr - asym_tr
+    var ab_tr_target := avg_tr + 0.5 * kept_tr
+    var ba_tr_target := avg_tr - 0.5 * kept_tr
 
     var ab_tr_new :float = lerp(ab_tr, ab_tr_target, reciprocity_strength * 0.55)
     var ba_tr_new :float = lerp(ba_tr, ba_tr_target, reciprocity_strength * 0.55)

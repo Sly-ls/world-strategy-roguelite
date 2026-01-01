@@ -1,19 +1,6 @@
 extends BaseTest
 class_name KnowledgeBundleSpawnAndDebunkTest
 
-# --- stubs (no dependency on your real QuestPool/ArcNotebook) ---
-class TestQuestPool:
-    var offers: Array = []
-    func try_add_offer(inst) -> bool:
-        offers.append(inst)
-        return true
-
-class TestArcNotebook:
-    func can_spawn_knowledge_offer(_key: StringName, _day: int, _cooldown_days: int) -> bool:
-        return true
-    func mark_knowledge_offer_spawned(_key: StringName, _day: int) -> void:
-        pass
-
 
 func _ready() -> void:
     _test_bundle_spawns_then_debunk_reduces_bundle()
@@ -101,8 +88,7 @@ func _test_bundle_spawns_then_debunk_reduces_bundle() -> void:
     _assert(heat_before >= 40.0, "precondition: heat should be >=40 after 2 rumors (heat=%.1f)" % heat_before)
 
     # Spawn bundle offers for rumor2
-    var pool := TestQuestPool.new()
-    var notebook := ArcNotebook.new()
+    var pool := QuestPool
 
     var offers_before: Array = KnowledgeOfferFactory.spawn_offers_for_rumor(
         knowledge,
@@ -183,7 +169,7 @@ func _test_bundle_spawns_then_debunk_reduces_bundle() -> void:
 
     var heat_day5 := knowledge.get_perceived_heat(B, A, 5)
 
-    var pool2 := TestQuestPool.new()
+    var pool2 := QuestPool
     var offers_after: Array = KnowledgeOfferFactory.spawn_offers_for_rumor(
         knowledge,
         rumor3,

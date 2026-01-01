@@ -311,11 +311,17 @@ func _ensure_crisis_coalitions(
         var anti_members: Array[Faction] = []
         for faction :Faction  in all_factions:
             # some factions prefer letting crisis grow or are friendly to source => won't join anti
-            var s := _stop_crisis_join_score(faction, source_faction, axis, sev, world)
+            var s := _stop_crisis_join_score(faction, source_faction, axis, sev)
             if s >= 0.55:
                 anti_members.append(faction)
 
         if anti_members.size() >= COALITION_MIN_MEMBERS:
+            var anti_member_ids: Array[StringName] = []
+            for faction: Faction in all_factions:
+                var s := _stop_crisis_join_score(faction, source_faction, axis, sev)
+                if s >= 0.55:
+                    anti_member_ids.append(faction.id)
+        
             var leader := _pick_best_leader(anti_members, source_faction.id)
             var c := CoalitionBlock.new()
             c.kind = &"CRISIS"
@@ -326,10 +332,10 @@ func _ensure_crisis_coalitions(
             c.started_day = day
             c.expires_day = day + rng.randi_range(12, 28)
             c.cohesion = 50
-            c.member_ids = anti_members.map(func(f): return f.id)
+            c.member_ids = anti_member_ids.duplicate()
             for m in c.member_ids:
                 var faction = FactionManager.get_faction(m)
-                c.member_commitment[m] = clampf(_stop_crisis_join_score(faction, source_faction, axis, sev, world), 0.2, 0.95)
+                c.member_commitment[m] = clampf(_stop_crisis_join_score(faction, source_faction, axis, sev), 0.2, 0.95)
                 c.member_role[m] = &"DIPLO" if rng.randf() < 0.25 else &"SUPPORT"
             c.id = StringName("coal_crisis_anti_%s_%s" % [String(source_id), str(day)])
             coalitions_by_id[c.id] = c
@@ -581,20 +587,24 @@ world: Dictionary) -> float:
     return clampf(s, 0.0, 1.0)
 
 
-func _stop_crisis_join_score(faction: Faction, source: Faction, crisis_axis: StringName, sev: float, world: Dictionary) -> float:
+func _stop_crisis_join_score(faction: Faction, source: Faction, crisis_axis: StringName, sev: float) -> float:
     # join anti-crisis if altruism/honor/diplomacy, dislikes source, or crisis threatens them
     var diplomacy :float = faction.profile.get_personality(FactionProfile.PERS_DIPLOMACY)
     var opportunism :float = faction.profile.get_personality(FactionProfile.PERS_OPPORTUNISM)
     var honor :float = faction.profile.get_personality(FactionProfile.PERS_HONOR)
+    var fear: float = faction.profile.get_personality(FactionProfile.PERS_FEAR)
     
     var rel_to_source := faction.get_relation_to(source.id).get_score(FactionRelationScore.REL_RELATION) / 100.0
-    var axis_aff := 0.0
-    axis_aff = float(faction.profile.get_axis_affinity(crisis_axis, 0)) / 100.0
+    var axis_aff := float(faction.profile.get_axis_affinity(crisis_axis, 0)) / 100.0
 
     # If member *likes* the crisis axis (ex corruption) => less motivated to stop it
     var axis_resist := clampf(-axis_aff, 0.0, 1.0)
+# Threat works even for neutral (axis_aff ~ 0) -> they still feel the crisis is bad.
+    # axis_aff=1  -> threat ~0 ; axis_aff=0 -> threat 0.5 ; axis_aff=-1 -> threat 1
+    var axis_threat := clampf(0.5 * (1.0 - axis_aff), 0.0, 1.0)
+    var threat := sev * (0.6 * axis_threat + 0.4 * fear)   # [0..1] robust (no power map)
 
-    var s := 0.25*sev + 0.20*honor + 0.20*diplomacy + 0.20*axis_resist + 0.15*clampf(-rel_to_source, 0.0, 1.0) - 0.15*opportunism
+    var s := 0.25 * sev + 0.20 * honor + 0.20 * diplomacy + 0.20 * axis_resist + 0.15 * clampf(-rel_to_source, 0.0, 1.0) + 0.05 * threat - 0.15 * opportunism
     return clampf(s, 0.0, 1.0)
 
 

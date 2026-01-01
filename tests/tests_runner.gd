@@ -52,6 +52,8 @@ func _ready() -> void:
 
 func _reset_autoload():
     FactionManager.reset()
+    ArcManagerRunner.reset()
+
 func _is_excluded_dir(path: String) -> bool:
     var p := path.simplify_path()
     for ex in excluded_dirs:

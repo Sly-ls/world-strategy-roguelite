@@ -13,8 +13,9 @@ func _test_spawn_logs_reward_style_with_w_gold_dw() -> void:
     _assert(_has_prop(ArcManagerRunner, "arc_notebook"), "ArcManagerRunner must have var arc_notebook")
 
     # Patch notebook
-    var prev_notebook = ArcManagerRunner.arc_notebook
-    var notebook := ArcNotebook.new()
+    var prev_notebook: ArcNotebook = ArcManagerRunner.arc_notebook
+    ArcManagerRunner.arc_notebook = ArcNotebook.new()
+    var notebook: ArcNotebook = ArcManagerRunner.arc_notebook
     ArcManagerRunner.arc_notebook = notebook
 
     # Find a factory that can spawn offers

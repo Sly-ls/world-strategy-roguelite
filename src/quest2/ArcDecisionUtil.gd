@@ -150,6 +150,7 @@ static func select_arc_action_type(
     candidates.append({"type": ARC_ULTIMATUM, "s": max(0.0, s_ult)})
 
     # REPARATIONS : possible si la relation n’est pas trop noire et que A est diplomate/intégrateur
+    # REPARATIONS : porte de sortie “soft” (ne doit pas être trop rare)
     var s_rep := 0.0
     s_rep += 0.70 * diplo
     s_rep += 0.45 * integ
@@ -162,6 +163,7 @@ static func select_arc_action_type(
         candidates.append({"type": ARC_REPARATIONS, "s": max(0.0, s_rep)})
 
     # TRUCE_TALKS : fatigue haute + tension haute => sortie
+    # TRUCE_TALKS : dé-escalade (ne doit pas être “inaccessible” quand grievance est haut)
     var s_truce := 0.0
     s_truce += 1.10 * weariness
     s_truce += 0.60 * tension
@@ -173,6 +175,7 @@ static func select_arc_action_type(
     candidates.append({"type": ARC_TRUCE_TALKS, "s": max(0.0, s_truce)})
 
     # RAID : représaille “courte”, satisfait la grievance mais baisse trust ensuite (effets ailleurs)
+    # RAID : action très escalatoire → doit être rare et conditionnelle
     var s_raid := 0.0
     s_raid += 1.60 * grievance * tension
     s_raid += 0.60 * negrel * tension
@@ -187,6 +190,7 @@ static func select_arc_action_type(
         candidates.append({"type": ARC_RAID, "s": max(0.0, s_raid)})
 
     # SABOTAGE : utile quand risk est haut (éviter frontal) + cunning
+    # SABOTAGE : rare, et plutôt à tension/grievance élevées
     var s_sab := 0.0
     s_sab += 1.25 * grievance * tension
     s_sab += 0.55 * cunning

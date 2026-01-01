@@ -7,7 +7,7 @@ func _ready() -> void:
 
 
 func _test_heat_norms_shift_between_day10_and_day30() -> void:
-    var nb := ArcNotebook.new()
+    var nb := ArcManagerRunner.arc_notebook
     var self_id := &"A"
     var b := &"B"
 

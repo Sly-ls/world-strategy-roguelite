@@ -5,13 +5,6 @@ class_name IntegrationWarPressureStopsRaidsTest
 ## Test d'intégration: la pression de guerre stoppe les raids après J15
 ## et génère des offres de trêve/domestique
 
-class TestQuestPool:
-    var offers: Array = []
-    func try_add_offer(inst) -> bool:
-        offers.append(inst)
-        return true
-
-
 class TestArcNotebook:
     var last_domestic: Dictionary = {}
     var last_truce: Dictionary = {}
@@ -78,8 +71,8 @@ func _test_20_days_war_pressure_stops_raids_after_day15_and_spawns_truce_domesti
     var A := &"A"
     var B := &"B"
 
-    var pool := TestQuestPool.new()
-    var nb := TestArcNotebook.new()
+    var pool := QuestPool
+    var nb := ArcManagerRunner.arc_notebook
     var planner := PlannerSim.new()
 
     # Domestic state
@@ -150,26 +143,10 @@ func _test_20_days_war_pressure_stops_raids_after_day15_and_spawns_truce_domesti
     var truce_offer_post := 0
     var domestic_offer_post := 0
     for inst in pool.offers:
-        var sd: int
-        if inst is Dictionary:
-            sd = int(inst.get("started_on_day", inst.get("context", {}).get("day", 0)))
-        elif "started_on_day" in inst:
-            sd = int(inst.started_on_day)
-        elif "context" in inst:
-            sd = int(inst.context.get("day", 0))
-        else:
-            sd = 0
-        
+        var sd: int = int(inst.started_on_day)        
         if sd < 15:
             continue
-        
-        var ctx_dict: Dictionary
-        if inst is Dictionary:
-            ctx_dict = inst.get("context", {})
-        elif "context" in inst:
-            ctx_dict = inst.context
-        else:
-            ctx_dict = {}
+        var ctx_dict: Dictionary = inst.context
         
         if StringName(ctx_dict.get("arc_action_type", &"")) == &"arc.truce_talks":
             truce_offer_post += 1

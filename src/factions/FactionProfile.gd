@@ -96,14 +96,18 @@ func _init(profile_values :Dictionary[StringName, float] = {}) -> void:
         from_profile_and_axis(profile_values)
 
 func from_profile_and_axis(prof: Dictionary[StringName, float], axis: Dictionary[StringName, int] = {}) -> FactionProfile:
-    var profile = FactionProfile.new()
     for key in prof.keys():
         if ALL_PERSONALITY_KEYS.has(key):
-            set_personality(key, prof[key])
+            set_personality(key, float(prof[key]))
+        elif ALL_AXES.has(key):
+            set_axis_affinity(key, int(prof[key])) # ✅ axes dans le même dict
+
     for key in axis.keys():
         if ALL_AXES.has(key):
-            profile.axis_affinity[key] = int(axis[key])
-    return profile
+            set_axis_affinity(key, int(axis[key]))
+
+    return self
+
 # ---- Axis helpers ----
 func set_axis_affinity(axis: StringName, value: int) -> void:
     axis_affinity[axis] = clampi(value, AXIS_MIN, AXIS_MAX)

@@ -2,13 +2,6 @@
 extends BaseTest
 class_name IntegrationRealRunnersGoalStackTest
 
-class TestQuestPool:
-    var offers: Array = []
-    func try_add_offer(inst) -> bool:
-        offers.append(inst)
-        return true
-
-
 class TestArcNotebook:
     var last_domestic := {}
     var last_truce := {}
@@ -62,8 +55,8 @@ func _test_real_runners_goal_stack_restore() -> void:
     manager.set_goal(String(A), war_goal)
 
     var dom := FactionDomesticState.new(60, 75, 10)
-    var pool := TestQuestPool.new()
-    var nb := TestArcNotebook.new()
+    var pool := QuestPool
+    var nb := ArcManagerRunner.arc_notebook
 
     var first_truce_day := -1
     var until_day := -1
@@ -142,10 +135,10 @@ func _test_real_runners_goal_stack_restore() -> void:
     var truce_offers := 0
     var domestic_offers := 0
     for inst in pool.offers:
-        var started_day: int = int(inst.get("started_on_day", 0)) if inst is Dictionary else (inst.started_on_day if "started_on_day" in inst else 0)
+        var started_day: int = int(inst.started_on_day)
         if started_day < 15:
             continue
-        var ctx_dict: Dictionary = inst.get("context", {}) if inst is Dictionary else (inst.context if "context" in inst else {})
+        var ctx_dict: Dictionary = inst.context
         if StringName(ctx_dict.get("arc_action_type", &"")) == &"arc.truce_talks":
             truce_offers += 1
         if bool(ctx_dict.get("is_domestic_offer", false)):

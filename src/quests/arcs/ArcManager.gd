@@ -22,7 +22,27 @@ func _ready() -> void:
     _connect_signals()
     myLogger.debug("ArcManager after connect", LogTypes.Domain.ARC)
 
-      
+"""
+func can_spawn_domestic_offer(faction_id: StringName, day: int, cooldown: int) -> bool:
+    return (day - int(last_domestic.get(faction_id, -999999))) >= cooldown
+func mark_domestic_offer_spawned(faction_id: StringName, day: int) -> void:
+    last_domestic[faction_id] = day
+
+func can_spawn_truce_offer(a: StringName, b: StringName, day: int, cooldown: int) -> bool:
+    var k := StringName(String(a) + "|" + String(b))
+    return (day - int(last_truce.get(k, -999999))) >= cooldown
+func mark_truce_offer_spawned(a: StringName, b: StringName, day: int) -> void:
+    var k := StringName(String(a) + "|" + String(b))
+    last_truce[k] = day
+
+func set_faction_counter(fid: StringName, name: StringName, val: int) -> void:
+    if not faction_counters.has(fid):
+        faction_counters[fid] = {}
+    faction_counters[fid][name] = val
+func get_faction_counter(fid: StringName, name: StringName, default_val: int = 0) -> int:
+    if not faction_counters.has(fid): return default_val
+    return int(faction_counters[fid].get(name, default_val))
+"""   
 func _connect_signals() -> void:
     if QuestManager != null and QuestManager.has_signal("quest_resolved"):
         if not QuestManager.quest_resolved.is_connected(on_quest_resolution_choice):

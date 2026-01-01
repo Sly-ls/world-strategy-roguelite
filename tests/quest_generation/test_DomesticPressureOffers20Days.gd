@@ -1,12 +1,6 @@
 extends BaseTest
 class_name DomesticPressureOffers20DaysTest
 
-class TestQuestPool:
-    var offers: Array = []
-    func try_add_offer(inst) -> bool:
-        offers.append(inst)
-        return true
-
 class TestArcNotebook:
     var last_domestic: Dictionary = {}
     var last_truce: Dictionary = {}
@@ -44,8 +38,8 @@ func _test_20_days_war_support_drops_and_spawns_truce_and_domestic() -> void:
 
     var dom := FactionDomesticState.new(70,75,10)
     var eco := FactionEconomy.new(120)
-    var pool := TestQuestPool.new()
-    var nb := TestArcNotebook.new()
+    var pool := QuestPool
+    var nb := ArcManagerRunner.arc_notebook
 
     # simulate "20 days of war" via war_days_rolling_30 counter + tick_domestic
     var relations := {A: {B: FactionRelationScore.new()}} # minimal (not used by tick in this test)
